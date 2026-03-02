@@ -1589,15 +1589,20 @@ body::after {
   <div class="page-subtitle" id="raceday-subtitle">Loading race...</div>
   <div class="raceday-layout">
     <div class="raceday-grid">
+
+      <!-- CIRCUIT INFO -->
       <div class="strategy-card">
         <div class="sc-title">CIRCUIT INFO</div>
         <div class="sc-body" id="raceday-circuit-info">
           <div class="strat-row"><span class="strat-key">Track</span><span class="strat-val" id="raceday-track">—</span></div>
-          <div class="strat-row"><span class="strat-key">Laps</span><span class="strat-val" id="raceday-laps">—</span></div>
+          <div class="strat-row"><span class="strat-key">Race Laps</span><span class="strat-val" id="raceday-laps">—</span></div>
+          <div class="strat-row"><span class="strat-key">Sim Laps</span><span class="strat-val" style="color:var(--dim)">10</span></div>
           <div class="strat-row"><span class="strat-key">Type</span><span class="strat-val" id="raceday-type">—</span></div>
           <div class="strat-row"><span class="strat-key">Weather</span><span class="strat-val" id="raceday-weather" style="color:var(--yellow)">—</span></div>
         </div>
       </div>
+
+      <!-- GRID POSITIONS -->
       <div class="strategy-card">
         <div class="sc-title">GRID POSITIONS</div>
         <div class="sc-body">
@@ -1606,45 +1611,36 @@ body::after {
           <div class="strat-row"><span class="strat-key">Pole Holder</span><span class="strat-val" id="raceday-pole">—</span></div>
         </div>
       </div>
-      <div class="strategy-card">
+
+      <!-- STRATEGY + TIRE SELECTION -->
+      <div class="strategy-card" style="grid-column:1/-1;">
         <div class="sc-title">STRATEGY</div>
         <div class="sc-body">
-          <div class="strat-row"><span class="strat-key">Plan</span><span class="strat-val" style="color:var(--green)">1-STOP</span></div>
-          <div class="strat-row"><span class="strat-key">Start Tire</span><span class="strat-val" style="color:var(--yellow)">MEDIUM</span></div>
-          <div class="strat-row"><span class="strat-key">End Tire</span><span class="strat-val" style="color:var(--accent2)">HARD</span></div>
+          <!-- Planned stops dropdown -->
+          <div class="strat-row" style="align-items:center;">
+            <span class="strat-key">Planned Stops</span>
+            <select id="raceday-stop-count" onchange="updateRacedayTireStints()"
+              style="background:var(--panel);border:1px solid var(--border);color:var(--yellow);font-family:var(--pixel);font-size:7px;padding:4px 8px;cursor:pointer;outline:none;">
+              <option value="1">1 Stop</option>
+              <option value="2">2 Stops</option>
+              <option value="3">3 Stops</option>
+            </select>
+          </div>
+          <!-- Pit lap info row (auto-set) -->
+          <div class="strat-row">
+            <span class="strat-key">Pit Laps</span>
+            <span class="strat-val" id="raceday-pit-laps" style="color:var(--dim)">Lap 5</span>
+          </div>
+        </div>
+
+        <!-- Tire stints — one per stop+1, shown/hidden based on stop count -->
+        <div id="raceday-tire-stints" style="padding:0 12px 12px;display:flex;flex-direction:column;gap:14px;">
+          <!-- Populated by updateRacedayTireStints() -->
         </div>
       </div>
     </div>
-    <div class="px-box">
-      <div class="sc-title">TIRE SELECTION — LAP 1</div>
-      <div class="tire-selector">
-        <div class="tire-opt selected">
-          <div class="tire-circle" style="background:#ffcc00;color:#000">M</div>
-          <div class="tire-label">Medium</div>
-          <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">5–7 laps</div>
-        </div>
-        <div class="tire-opt">
-          <div class="tire-circle" style="background:#ff3366;color:#fff">S</div>
-          <div class="tire-label">Soft</div>
-          <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">3–4 laps</div>
-        </div>
-        <div class="tire-opt">
-          <div class="tire-circle" style="background:#cccccc;color:#000">H</div>
-          <div class="tire-label">Hard</div>
-          <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">7–10 laps</div>
-        </div>
-        <div class="tire-opt">
-          <div class="tire-circle" style="background:#0055cc;color:#fff">W</div>
-          <div class="tire-label">Wet</div>
-          <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">Rain only</div>
-        </div>
-        <div class="tire-opt">
-          <div class="tire-circle" style="background:#00aa44;color:#fff">I</div>
-          <div class="tire-label">Inter</div>
-          <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">Damp only</div>
-        </div>
-      </div>
-    </div>
+
+    <!-- SIMULATE button -->
     <div class="px-box" style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px;">
       <div style="font-family:var(--pixel);font-size:7px;color:var(--dim);letter-spacing:2px;">RACE STATUS: READY TO SIMULATE</div>
       <button class="simulate-btn" onclick="openSimConfirmGated()">
@@ -1706,7 +1702,7 @@ body::after {
       <button class="cam-btn" id="cam-team" onclick="setCamera('team',this)">🔴 APEX</button>
       <button class="cam-btn" id="cam-driver" onclick="setCamera('driver',this)">👤 P<span id="cam-driver-rank">1</span></button>
       <button class="cam-btn" id="cam-action" onclick="setCamera('action',this)">📡 BROADCAST</button>
-      <button class="cam-same-lap-toggle" id="cam-samelap" onclick="toggleSameLap(this)" title="Show only drivers on same lap">LAP FILTER: OFF</button>
+      <button class="cam-same-lap-toggle" id="cam-samelap" title="Lap filter auto-follows camera">LAP FILTER: AUTO</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div id="sim-speed-btns" style="display:none;gap:6px;align-items:center;">
@@ -2332,7 +2328,7 @@ function go(screen){
   window.scrollTo(0,0);
   if(screen==='races') setTimeout(renderRacePage, 0);
   if(screen==='dashboard') setTimeout(updateDashboard, 0);
-  if(screen==='raceday') setTimeout(updateRaceDay, 0);
+  if(screen==='raceday') setTimeout(()=>{ updateRaceDay(); updateRacedayTireStints(); }, 0);
   if(screen==='drivers') setTimeout(renderDriversPage, 0);
   if(screen==='standings') setTimeout(()=>{ switchStandingsTab(document.getElementById('stand-tab-drv')&&document.getElementById('stand-tab-drv').classList.contains('active')?'drivers':'constructors'); }, 0);
   if(screen==='finances') setTimeout(updateFinancesPage, 0);
@@ -2619,9 +2615,6 @@ function renderStandings() {
   }).join('');
 }
 
-function selectDriver(idx,btn){
-  // Kept for compatibility but no longer used in UI
-}
 
 // ========================
 // FREE AGENT DRIVER MARKET
@@ -3090,7 +3083,15 @@ function updateFinancesPage() {
 function hasTwoDrivers(){ return signedDriverIds[0]!==null && signedDriverIds[1]!==null; }
 function openSimConfirmGated(){
   if(!hasTwoDrivers()){
-    alert('You need to sign TWO drivers before you can race!\nHead to the DRIVER MARKET to fill both seats.');
+    const ov = document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    ov.innerHTML=`<div style="background:var(--panel);border:2px solid var(--accent);padding:36px 44px;text-align:center;box-shadow:8px 8px 0 #000;max-width:400px;">
+      <div style="font-family:var(--pixel);font-size:10px;color:var(--accent);margin-bottom:16px;">NO DRIVERS SIGNED</div>
+      <div style="font-family:var(--ui);font-size:13px;color:var(--text);margin-bottom:8px;line-height:1.6">You can't race without a full lineup!</div>
+      <div style="font-family:var(--ui);font-size:12px;color:var(--dim);margin-bottom:28px;line-height:1.6">Sign drivers from the free agents list under<br><span style="color:var(--yellow)">Team HQ → Drivers!</span></div>
+      <button onclick="this.closest('div[style]').remove()" style="background:var(--accent);border:none;color:#fff;font-family:var(--pixel);font-size:8px;padding:12px 28px;cursor:pointer;box-shadow:3px 3px 0 #000;">GOT IT</button>
+    </div>`;
+    document.body.appendChild(ov);
     return;
   }
   openSimConfirm();
@@ -3620,7 +3621,6 @@ function buildStatsGrid(r) {
   return div;
 }
 
-function buildStandingsSnap(r) { return document.createDocumentFragment(); } // merged into stats grid
 
 function buildForecastSection(r) {
   const frag = document.createDocumentFragment();
@@ -3688,6 +3688,80 @@ function updateDashboard() {
       miniEl.innerHTML = svg.outerHTML;
     }
   }
+}
+
+// ── Player race strategy (set from Race Day UI) ──────────────────────────────
+let playerRaceStops   = 1;                          // 1, 2, or 3
+let playerRaceTires   = ['MEDIUM', 'HARD'];         // one entry per stint (stops+1)
+const STOP_PIT_LAPS   = { 1:[5], 2:[4,8], 3:[3,6,9] }; // forced pit laps per stop count
+
+// Tire option config for the selector UI
+const TIRE_OPTS_CFG = [
+  { code:'SOFT',   label:'Soft',   abbr:'S', bg:'#ff3366', fg:'#fff', life:'3–4 laps' },
+  { code:'MEDIUM', label:'Medium', abbr:'M', bg:'#ffcc00', fg:'#000', life:'4–5 laps' },
+  { code:'HARD',   label:'Hard',   abbr:'H', bg:'#cccccc', fg:'#000', life:'6–7 laps' },
+  { code:'WET',    label:'Wet',    abbr:'W', bg:'#0055cc', fg:'#fff', life:'Rain only' },
+  { code:'INTER',  label:'Inter',  abbr:'I', bg:'#00aa44', fg:'#fff', life:'Damp only' },
+];
+
+function tireOptHTML(stintIdx, selectedCode) {
+  return TIRE_OPTS_CFG.map(t => `
+    <div class="tire-opt${t.code===selectedCode?' selected':''}"
+      onclick="selectRacedayTire(${stintIdx},'${t.code}',this)">
+      <div class="tire-circle" style="background:${t.bg};color:${t.fg}">${t.abbr}</div>
+      <div class="tire-label">${t.label}</div>
+      <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">${t.life}</div>
+    </div>`).join('');
+}
+
+function selectRacedayTire(stintIdx, code, el) {
+  playerRaceTires[stintIdx] = code;
+  // Update selected highlight within this stint's selector
+  const selector = el.closest('.tire-selector');
+  if (selector) selector.querySelectorAll('.tire-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function updateRacedayTireStints() {
+  const stops = parseInt(document.getElementById('raceday-stop-count')?.value || '1');
+  playerRaceStops = stops;
+  const pitLaps = STOP_PIT_LAPS[stops] || [5];
+
+  // Update pit lap display
+  const pitEl = document.getElementById('raceday-pit-laps');
+  if (pitEl) pitEl.textContent = pitLaps.map(l => 'Lap ' + l).join('  ·  ');
+
+  // Ensure playerRaceTires has enough entries (pad with defaults if needed)
+  const stintCount = stops + 1;
+  const defaults = ['MEDIUM','HARD','SOFT','MEDIUM'];
+  while (playerRaceTires.length < stintCount) playerRaceTires.push(defaults[playerRaceTires.length] || 'MEDIUM');
+
+  // Build stint blocks
+  const container = document.getElementById('raceday-tire-stints');
+  if (!container) return;
+  const stintLabels = buildStintLabels(stops, pitLaps);
+  container.innerHTML = stintLabels.map((label, i) => `
+    <div>
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);padding:0 0 6px;letter-spacing:1px;">
+        STINT ${i+1} — ${label}
+      </div>
+      <div class="tire-selector" id="raceday-stint-${i}">
+        ${tireOptHTML(i, playerRaceTires[i] || 'MEDIUM')}
+      </div>
+    </div>`).join('');
+}
+
+function buildStintLabels(stops, pitLaps) {
+  // Returns e.g. ["Laps 1–5", "Laps 6–10"] for 1 stop with pit on lap 5
+  const SIM_LAPS = 10;
+  const labels = [];
+  let start = 1;
+  for (let i = 0; i < stops; i++) {
+    labels.push('Laps ' + start + '–' + pitLaps[i]);
+    start = pitLaps[i] + 1;
+  }
+  labels.push('Laps ' + start + '–' + SIM_LAPS);
+  return labels;
 }
 
 function updateRaceDay() {
@@ -3798,9 +3872,9 @@ const DNF_REASONS = ['ENGINE','GEARBOX','HYDRAULICS','CRASH','PUNCTURE','BRAKES'
 // Soft:   fastest, degrades 5-15%/lap, needs pit every 3-4 laps
 // Medium: 92% soft speed, degrades 4-6%/lap, pit every 4-5 laps
 // Hard:   87% soft speed, degrades 2-3%/lap, pit every 6-7 laps
-const TIRE_BASE_SPEED   = { SOFT:1.00, MEDIUM:0.92, HARD:0.87, WET:0.82, INTER:0.85 };
-const TIRE_DEG_RATE_MIN = { SOFT:0.05, MEDIUM:0.04, HARD:0.02, WET:0.03, INTER:0.03 };
-const TIRE_DEG_RATE_MAX = { SOFT:0.15, MEDIUM:0.06, HARD:0.03, WET:0.05, INTER:0.05 };
+const TIRE_BASE_SPEED   = { SOFT:1.00, MEDIUM:0.95, HARD:0.80, WET:0.70, INTER:0.72 };
+const TIRE_DEG_RATE_MIN = { SOFT:0.07, MEDIUM:0.07, HARD:0.03, WET:0.04, INTER:0.04 };
+const TIRE_DEG_RATE_MAX = { SOFT:0.11, MEDIUM:0.12, HARD:0.05, WET:0.07, INTER:0.07 };
 const TIRE_LIFE_LAPS    = { SOFT:[3,4], MEDIUM:[4,5], HARD:[6,7], WET:[5,6], INTER:[5,6] };
 
 // Per-car degradation rate (randomised in buildRacers so each car differs slightly)
@@ -4067,6 +4141,8 @@ function startSimulation() {
     rc.lateralOffset = side === 0 ? 0.28 : -0.28;
     rc.targetLateral = rc.lateralOffset;
     rc.frozenUntilGo = true;
+    rc.accelRamp = 0;             // 0=stopped, ramps to 1.0 after GO fires
+    rc.accelDelay = gridPos * 3;  // P1 moves first (delay 0), P20 moves last (delay 57)
   });
 
   // DNFs: cap at max 2 per race, never player cars
@@ -4081,13 +4157,19 @@ function startSimulation() {
   racers.forEach((rc,i)=>{
     const teamBonus=getTeamBonus(rc.teamId);
     const rawSkill=(rc.skill*0.38+rc.control*0.32+rc.craft*0.3)/100;
-    const compressed=0.82+rawSkill*0.16;
+    const compressed=0.70+rawSkill*0.30;
     const teamAdj=1+(teamBonus-1)*0.3;
     rc.baseFactor=compressed*teamAdj;
 
     // Assign a race strategy — player cars get MEDIUM start, AI gets variety
+    // Player uses tire/stop selection from Race Day UI
+    const playerStrat = rc.isPlayer ? {
+      name: 'CUSTOM',
+      compounds: playerRaceTires.slice(0, playerRaceStops + 1),
+      pitLaps: STOP_PIT_LAPS[playerRaceStops] || [5]
+    } : null;
     const strat = rc.isPlayer
-      ? TEAM_STRATEGIES[1] // BALANCED by default for player
+      ? playerStrat
       : TEAM_STRATEGIES[i % TEAM_STRATEGIES.length];
     rc.strategy = strat;
 
@@ -4104,8 +4186,8 @@ function startSimulation() {
     // Speed modifier from compound
     rc.tireSpeedMult = TIRE_BASE_SPEED[rc.tireCompound] || 1.0;
 
-    // raceFactor includes compound speed
-    rc.raceFactor = rc.baseFactor * rc.tireSpeedMult;
+    // raceFactor = skill/team only; tireSpeedMult applied live so compound diff is always real
+    rc.raceFactor = rc.baseFactor;
 
     rc.pitDuration=180+Math.floor(Math.random()*60);
     if(dnfPool.includes(rc.id)){
@@ -4173,10 +4255,10 @@ function startSimulation() {
   // Snap camera to track center immediately (no lerp lag)
   cameraMode='full';
   driverCamIdx=0;
-  sameLapFilter=false;
+  sameLapFilter=true;
   actionCamState={target:null,eventLabel:'',labelTimer:0,scanTimer:0,lingerTimer:0,excludedIds:new Set(),recentDnfShown:false,eventType:'',pitGroup:null};
   const sameLapBtn=document.getElementById('cam-samelap');
-  if(sameLapBtn){sameLapBtn.textContent='LAP FILTER: OFF';sameLapBtn.classList.remove('on');}
+  if(sameLapBtn){sameLapBtn.textContent='LAP FILTER: AUTO';sameLapBtn.classList.add('on');}
   cameraTarget={x:trackCX, y:trackCY, zoom:1};
   cameraActual={x:trackCX, y:trackCY, zoom:1};
   document.querySelectorAll('#sim-cam-btns .cam-btn').forEach(b=>b.classList.remove('active'));
@@ -4244,7 +4326,7 @@ function simLoop(){
     if(s.countdownTimer===f*3.6){
       hideCountdown();
       s.phase='racing';
-      s.racers.forEach(rc=>{ rc.frozenUntilGo=false; });
+      s.racers.forEach(rc=>{ rc.frozenUntilGo=false; rc.accelRamp=0; });
     }
     return;
   }
@@ -4257,7 +4339,7 @@ function simLoop(){
     }
     updateCamera(s);
     drawScene(ctx,W,H,s,false);
-    if(s.frame%6===0) updateStandingsDom(s);
+    if(s.frame%6===0){ updateRankings(s); updateStandingsDom(s); }
     // Check done: all racers finished or retired
     const allDone=s.racers.every(rc=>rc.finished||rc.retired);
     if(allDone){ s.phase='done'; endRace(); }
@@ -4269,14 +4351,22 @@ function updateRacers(s){
   const n=s.trackPts.length;
   const {racers,curv,trackWidths,pitLane,totalLaps,framePerLap}=s;
 
-  // Build list of active car positions for collision avoidance
-  const carPositions=racers.map(rc=>({
-    id:rc.id, progress:rc.lap+rc.t, lat:rc.lateralOffset, isPitting:rc.isPitting, finished:rc.finished, retired:rc.retired
-  })).filter(c=>!c.finished&&!c.retired);
+  // Build car positions — reuse array to avoid GC pressure
+  const carPositions=[];
+  for(let ci=0;ci<racers.length;ci++){
+    const rc=racers[ci];
+    if(!rc.finished&&!rc.retired) carPositions.push({id:rc.id,progress:rc.lap+rc.t,trackT:rc.t,lat:rc.lateralOffset,isPitting:rc.isPitting,finished:false,retired:false});
+  }
 
   racers.forEach(rc=>{
     if(rc.finished||rc.retired) return;
     if(rc.frozenUntilGo) return;
+
+    // ── Race start: accelerate from dead stop ──
+    if(rc.accelRamp < 1.0){
+      if(rc.accelDelay > 0){ rc.accelDelay--; }
+      else { rc.accelRamp = Math.min(1.0, rc.accelRamp + 0.011); } // ~90 frames to full speed
+    }
 
     // DNF trigger
     if(rc.dnfAtLap!==undefined && rc.lap>=rc.dnfAtLap && !rc.dnfTriggered){
@@ -4316,7 +4406,7 @@ function updateRacers(s){
         rc.tireLapsUsed = 0;
         rc.tireDegRate = tireDegRateForCar(rc.tireCompound, rc.tires);
         rc.tireSpeedMult = TIRE_BASE_SPEED[rc.tireCompound] || 1.0;
-        rc.raceFactor = rc.baseFactor * rc.tireSpeedMult;
+        rc.raceFactor = rc.baseFactor; // tireSpeedMult applied live
         rc.flashType=null;
       }
       return;
@@ -4327,11 +4417,24 @@ function updateRacers(s){
     const cvRaw=curv[tIdx];
     const halfW=trackWidths[tIdx];
 
-    // ── Tire degradation: per-lap multiplicative decay ──
-    // tireDeg goes from 1.0 down by tireDegRate each completed lap
-    // This is applied continuously as a fraction of the current lap progress
-    const lapProgress = rc.tireLapsUsed + (rc.t % 1); // fractional laps on this set
-    rc.tireDeg = Math.max(0.40, 1.0 - lapProgress * rc.tireDegRate);
+    // ── Tire degradation: exponential cliff model ──
+    // Exponential decay creates a speed cliff — tires feel good early, fall off sharply
+    // Floor 0.25 means dead tires lose 75% of peak speed
+    const lapProgress = rc.tireLapsUsed + (rc.t % 1);
+    // Fast exp approx: e^-x ≈ 1/(1+x+x²/2+x³/6) accurate to <0.1% for x<3
+    const _ex = lapProgress * rc.tireDegRate * 1.6;
+    const rawDeg = _ex>4 ? 0.02 : 1/(1+_ex+_ex*_ex*0.5+_ex*_ex*_ex*0.1667);
+    rc.tireDeg = Math.max(0.25, rawDeg);
+
+    // ── Force pit when tires hit 50% degradation ──
+    const degPctNow = (1 - rc.tireDeg);
+    if(degPctNow >= 0.50 && !rc.isPitting && !rc.pendingPitOnCrossLine && !rc.finished && !rc.retired && rc.lap >= 0){
+      rc.pendingPitOnCrossLine = true;
+      if(rc.isPlayer){
+        const hud = document.getElementById('sim-status-hud');
+        if(hud) hud.textContent = '⚠ TIRES CRITICAL — FORCED PIT';
+      }
+    }
 
     // ── Cornering physics: cars are faster through turns (3x vs straight penalty) ──
     // cvRaw is the raw curvature; we want to speed up in corners and accelerate out
@@ -4350,43 +4453,171 @@ function updateRacers(s){
     const exitBoost = exitingCorner ? 1.12 : 1.0;
 
     const jitter=(Math.random()-0.5)*0.0005*rc.baseFactor;
-    let spd=rc.raceFactor*rc.tireDeg*cornerFactor*exitBoost*(1/framePerLap)+jitter;
+    // tireSpeedMult live: Soft=1.0 vs Hard=0.80 is ALWAYS enforced regardless of baseFactor
+    const degEffectS=rc.tireDeg*rc.tireDeg;
+    const liveSpd = rc.raceFactor * (rc.tireSpeedMult||1) * degEffectS;
+    const ramp = (rc.accelRamp!==undefined) ? rc.accelRamp : 1.0;
+    let spd = liveSpd * cornerFactor * exitBoost * ramp * (1/framePerLap) + jitter;
 
-    // Collision avoidance — slow down if car ahead is close
-    const myProgress=rc.lap+rc.t;
-    let avoidBoost=0;
-    let targetLat=rc.lateralOffset+(Math.random()-0.5)*0.04;
+    // ── Overtake system ──────────────────────────────────────────────────────────
+    const myProgress = rc.lap + rc.t;
 
-    carPositions.forEach(other=>{
-      if(other.id===rc.id) return;
-      const dist=other.progress-myProgress;
-      if(dist>0&&dist<0.018){ // car ahead within ~1.8% of track
-        const latDiff=Math.abs(rc.lateralOffset-other.lat);
-        if(latDiff<0.5){
-          // too close behind — slow down or try to pass
-          const aggrFactor=rc.overtake/100;
-          if(Math.random()<aggrFactor*0.015){
-            // attempt overtake: shift laterally
-            targetLat=other.lat+(other.lat>0?-0.6:0.6);
-          } else {
-            spd*=0.78; // back off
+    // Init state
+    if(rc.overtakeState    === undefined) rc.overtakeState = 'none';
+    if(rc.overtakeCooldown === undefined) rc.overtakeCooldown = 0;
+    if(rc.overtakeTimer    === undefined) rc.overtakeTimer = 0;
+    if(rc.overtakeCooldown > 0) rc.overtakeCooldown--;
+    // Tick down global overtake block
+    if(rc.overtakeBlocked > 0) rc.overtakeBlocked--;
+
+    // Find closest car directly ahead (within 4% track)
+    let closestAheadId = -1, closestDist = 999;
+    carPositions.forEach(other => {
+      if(other.id === rc.id) return;
+      const d = other.progress - myProgress;
+      if(d > 0 && d < 0.012 && d < closestDist){ closestDist = d; closestAheadId = other.id; }
+    });
+
+    // Default: drift toward center
+    let targetLat = rc.lateralOffset * 0.92; // gentle pull to center
+
+    // ── Hitbox constants (normalized lateral, progress units) ────────────────
+    const HB_LAT  = 0.13;  // car half-width in normalized lateral space
+    const HB_PROG = 0.004; // car half-length in progress units
+
+    // Helper: do two cars' hitboxes overlap? Uses track-position (t) for lap-agnostic check
+    // trackT values are 0..1 around circuit — wrap-around handled with min distance
+    const trackDist = (a, b) => { const d = Math.abs(a - b); return d > 0.5 ? 1 - d : d; };
+    const hitsOther = (myLat, myT, theirLat, theirT) =>
+      Math.abs(myLat - theirLat) < HB_LAT * 2 &&
+      trackDist(myT, theirT) < HB_PROG * 2;
+
+    if(rc.overtakeState === 'committing'){
+      rc.overtakeTimer++;
+      spd *= 1.8;
+      const wantedLat = (rc.overtakeSide||1) * 0.7;
+
+      // Check if moving to wantedLat would clip any other car's hitbox
+      let pathBlocked = false;
+      const myNextProg = myProgress + spd;
+      for(let ci = 0; ci < carPositions.length; ci++){
+        const other = carPositions[ci];
+        if(other.id === rc.id) continue;
+        if(hitsOther(wantedLat, (myProgress + spd) % 1, other.lat, other.trackT)){
+          pathBlocked = true;
+          break;
+        }
+      }
+
+      if(pathBlocked){
+        // Can't move through — abort overtake, slow down
+        rc.overtakeState    = 'none';
+        rc.overtakeCooldown = 60;
+        rc.overtakeTimer    = 0;
+        rc.overtakeVictimId = undefined;
+        spd *= 0.82; // back off
+        targetLat = rc.lateralOffset * 0.95;
+      } else {
+        targetLat = wantedLat;
+        if(rc.overtakeTimer >= 60){
+          rc.overtakeState    = 'none';
+          rc.overtakeCooldown = 90;
+          rc.overtakeTimer    = 0;
+          if(rc.overtakeVictimId !== undefined){
+            const victim = racers[rc.overtakeVictimId];
+            if(victim) victim.overtakeBlocked = 600;
+            rc.overtakeVictimId = undefined;
+          }
+          targetLat = 0;
+        }
+      }
+    } else if(closestAheadId >= 0 && rc.overtakeCooldown === 0){
+      const blocked = rc.overtakeBlocked > 0;
+      const otherRC  = racers[closestAheadId];
+      const otherPos = carPositions.find(c => c.id === closestAheadId);
+      const otherLat = otherPos ? otherPos.lat : 0;
+      const aggr     = (rc.overtake||50) / 100;
+      const mySpd    = (rc.tireSpeedMult||1) * (rc.tireDeg||1);
+      const theirSpd = otherRC ? ((otherRC.tireSpeedMult||1)*(otherRC.tireDeg||1)) : 1;
+      const speedAdv = mySpd - theirSpd;
+
+      // Which side to try: pick the side with more lateral clearance from all cars
+      const sideA =  otherLat >= 0 ? -1 : 1;
+      const sideB = -sideA;
+      const wantedLatA = sideA * 0.7;
+      const wantedLatB = sideB * 0.7;
+
+      // Check hitbox clearance for each side — use trackT for lap-agnostic check
+      const checkT = (rc.t + HB_PROG * 3) % 1;
+      let clearA = true, clearB = true;
+      for(let ci = 0; ci < carPositions.length; ci++){
+        const other = carPositions[ci];
+        if(other.id === rc.id) continue;
+        if(hitsOther(wantedLatA, checkT, other.lat, other.trackT)) clearA = false;
+        if(hitsOther(wantedLatB, checkT, other.lat, other.trackT)) clearB = false;
+      }
+
+      const hasClearSide = clearA || clearB;
+      const chosenSide   = clearA ? sideA : sideB;
+
+      const attemptChance = (blocked || !hasClearSide) ? 0 : 0.006 + aggr * 0.012 + Math.max(0, speedAdv) * 0.08;
+      if(!blocked && hasClearSide && Math.random() < attemptChance){
+        rc.overtakeState    = 'committing';
+        rc.overtakeTimer    = 0;
+        rc.overtakeVictimId = closestAheadId;
+        rc.overtakeSide     = chosenSide;
+        if(s.overtakeCount !== undefined) s.overtakeCount++;
+      } else {
+        spd *= closestDist < 0.006 ? 0.88 : 1.0;
+        targetLat = rc.lateralOffset * 0.95;
+      }
+    }
+
+    // Lateral movement
+    const maxLat = Math.max(0.3,(trackWidths[tIdx]-2)/trackWidths[tIdx]);
+    targetLat = Math.max(-maxLat, Math.min(maxLat, targetLat));
+    rc.targetLateral = targetLat;
+    const latRate = rc.overtakeState === 'committing' ? 0.20 : 0.05;
+    rc.lateralOffset += (targetLat - rc.lateralOffset) * latRate;
+    rc.lateralOffset  = Math.max(-maxLat, Math.min(maxLat, rc.lateralOffset));
+
+    // ── Hard hitbox enforcement: never advance into any car on track (any lap) ──
+    {
+      const myNextT = (rc.t + spd) % 1;
+      let hitAhead = false;
+      let hitLat   = 0;
+      for(let ci = 0; ci < carPositions.length; ci++){
+        const other = carPositions[ci];
+        if(other.id === rc.id) continue;
+        // Use circular track distance so lap-behind cars are also detected
+        const tDiff = trackDist(myNextT, other.trackT);
+        // Check if physically close on track AND laterally overlapping
+        if(tDiff < HB_PROG * 2){
+          const dLat = Math.abs(rc.lateralOffset - other.lat);
+          if(dLat < HB_LAT * 2){
+            // Only block if the other car is ahead or alongside (not already behind us)
+            // "Ahead" in track terms: other.trackT is slightly greater than rc.t (mod 1)
+            const rawD = ((other.trackT - rc.t) + 1) % 1; // 0..1, small = just ahead
+            if(rawD < 0.5){ // car is ahead or alongside, not already lapped
+              hitAhead = true;
+              hitLat   = other.lat;
+              break;
+            }
           }
         }
       }
-      if(dist<0&&dist>-0.018){
-        // car behind — can push on
-        avoidBoost=0.002*rc.raceFactor;
+      if(hitAhead){
+        // Slow to a near-stop — can't push through
+        spd *= 0.05;
+        // Steer away from blocker laterally so car can work around
+        const pushDir = rc.lateralOffset >= hitLat ? 1 : -1;
+        const escapeLat = rc.lateralOffset + pushDir * 0.08;
+        const maxLatH = Math.max(0.3,(trackWidths[tIdx]-2)/trackWidths[tIdx]);
+        targetLat = Math.max(-maxLatH, Math.min(maxLatH, escapeLat));
+        rc.lateralOffset += (targetLat - rc.lateralOffset) * 0.15;
+        rc.lateralOffset  = Math.max(-maxLatH, Math.min(maxLatH, rc.lateralOffset));
       }
-    });
-
-    spd+=avoidBoost;
-
-    // Lateral drift toward target, clamped to track width
-    const maxLat=Math.max(0.3,(halfW-2)/halfW);
-    targetLat=Math.max(-maxLat,Math.min(maxLat,targetLat));
-    rc.targetLateral=targetLat;
-    rc.lateralOffset+=(targetLat-rc.lateralOffset)*0.06;
-    rc.lateralOffset=Math.max(-maxLat,Math.min(maxLat,rc.lateralOffset));
+    }
 
     rc.t+=Math.max(spd,0.00005);
     if(rc.t>=1){
@@ -4415,38 +4646,41 @@ function updateRacers(s){
       }
     }
 
-    if(rc.flashTimer>0) rc.flashTimer--;
-    else if(rc.flashType!=='pitting') rc.flashType=null;
+    if(rc.flashTimer>0){ rc.flashTimer--; if(rc.flashTimer===0&&rc.flashType!=='pitting') rc.flashType=null; }
   });
 
-  // Rank update + REAL overtake counting (any pass regardless of lap delta)
-  const rankable=[...racers].filter(r=>!r.finished&&!r.retired);
+  // Rank sort moved to simLoop every 6 frames — no longer runs every physics tick
+}
+
+function updateRankings(s){
+  const racers=s.racers;
+  const rankable=[];
+  const doneFinished=[];
+  const dnfs=[];
+  for(let i=0;i<racers.length;i++){
+    const r=racers[i];
+    if(r.retired) dnfs.push(r);
+    else if(r.finished) doneFinished.push(r);
+    else rankable.push(r);
+  }
   rankable.sort((a,b)=>(b.lap+b.t)-(a.lap+a.t));
-  const doneFinished=racers.filter(r=>r.finished&&!r.retired).sort((a,b)=>a.finishOrder-b.finishOrder);
-  const dnfs=racers.filter(r=>r.retired);
-  const ordered=[...doneFinished,...rankable,...dnfs];
-  ordered.forEach((rc,i)=>{
+  doneFinished.sort((a,b)=>a.finishOrder-b.finishOrder);
+  const ordered=doneFinished.concat(rankable,dnfs);
+  for(let i=0;i<ordered.length;i++){
+    const rc=ordered[i];
     const oldRank=rc.rank;
-    rc.prevRank=oldRank;
     if(oldRank!==i){
       if(i<oldRank){
         rc.flashType='gained'; rc.flashTimer=Math.max(rc.flashTimer,70);
-        // Only count as overtake if cars are on the same lap (not lapping)
-        const displaced = rankable[oldRank]; // the car that was ahead
-        if(displaced && rc.lap === displaced.lap){
+        if(rankable[oldRank]&&rc.lap===rankable[oldRank].lap)
           s.overtakeCount=(s.overtakeCount||0)+(oldRank-i);
-        }
-      } else if(i>oldRank&&rc.flashType!=='pitting'){
+      } else if(rc.flashType!=='pitting'){
         rc.flashType='lost'; rc.flashTimer=Math.max(rc.flashTimer,50);
       }
     }
     rc.rank=i;
-  });
+  }
   s.sortedForStandings=ordered;
-
-  // Lap display
-  const leaderLap=Math.max(...racers.map(r=>Math.max(r.lap,0)));
-  document.getElementById('sim-lap-display').textContent=`LAP ${Math.min(leaderLap+1,s.totalLaps)}/${s.totalLaps}`;
 }
 
 // ---- CAMERA ----
@@ -4772,20 +5006,30 @@ function drawScene(ctx,W,H,s,isGrid){
     night:  ['#030308','#05050f','#02020a'],
   };
   const bc = bgColors[sceneryType]||bgColors.city;
-  const bgGrad = ctx.createLinearGradient(0,0,W,H);
-  bgGrad.addColorStop(0,bc[0]); bgGrad.addColorStop(0.5,bc[1]); bgGrad.addColorStop(1,bc[2]);
-  ctx.fillStyle=bgGrad; ctx.fillRect(0,0,W,H);
+  const bgKey=sceneryType+'|'+W+'|'+H;
+  if(!s._bgGrad||s._bgGradKey!==bgKey){
+    const g=ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,bc[0]); g.addColorStop(0.5,bc[1]); g.addColorStop(1,bc[2]);
+    s._bgGrad=g; s._bgGradKey=bgKey;
+  }
+  ctx.fillStyle=s._bgGrad; ctx.fillRect(0,0,W,H);
 
   // Stars for night/city scenes
   if(sceneryType==='night'||sceneryType==='city'){
-    const rng2=seededRng(scenerySeed+3);
-    for(let i=0;i<120;i++){
-      const sx=rng2()*W, sy=rng2()*H, sr=0.5+rng2()*1.2;
-      ctx.globalAlpha=0.2+rng2()*0.5;
-      ctx.fillStyle='#ffffff';
-      ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
+    // Draw stars to offscreen cache on first call, then blit
+    if(!s._starCanvas||s._starW!==W||s._starH!==H){
+      const sc2=document.createElement('canvas'); sc2.width=W; sc2.height=H;
+      const sc2ctx=sc2.getContext('2d');
+      const rng2=seededRng(scenerySeed+3);
+      for(let i=0;i<120;i++){
+        const sx=rng2()*W, sy=rng2()*H, sr=0.5+rng2()*1.2;
+        sc2ctx.globalAlpha=0.2+rng2()*0.5;
+        sc2ctx.fillStyle='#ffffff';
+        sc2ctx.beginPath(); sc2ctx.arc(sx,sy,sr,0,Math.PI*2); sc2ctx.fill();
+      }
+      s._starCanvas=sc2; s._starW=W; s._starH=H;
     }
-    ctx.globalAlpha=1;
+    ctx.drawImage(s._starCanvas,0,0);
   }
   if(sceneryType==='desert'){
     // Horizon glow
@@ -4802,7 +5046,7 @@ function drawScene(ctx,W,H,s,isGrid){
     if(obj.type==='building'||obj.type==='skyscraper'){
       const bw=obj.w*sc, bh=obj.h*sc;
       ctx.fillStyle=obj.color; ctx.fillRect(sx-bw/2,sy-bh,bw,bh);
-      if(obj.windows&&sc>0.4){
+      if(obj.windows&&sc>0.6){
         const cols=Math.max(Math.floor(obj.w/3),1), rows2=Math.max(Math.floor(obj.h/5),1);
         const ww=Math.max(bw/cols*0.4,1), wh=Math.max(bh/rows2*0.35,1);
         for(let r=0;r<rows2;r++) for(let c=0;c<cols;c++){
@@ -4835,33 +5079,42 @@ function drawScene(ctx,W,H,s,isGrid){
       ctx.fillStyle='#444466'; ctx.fillRect(sx-1,sy-h2,2,h2);
       ctx.fillStyle='rgba(255,220,100,0.9)';
       ctx.beginPath(); ctx.arc(sx,sy-h2,Math.max(2*sc,1.5),0,Math.PI*2); ctx.fill();
-    } else if(obj.type==='neon'){
-      const gl=ctx.createRadialGradient(sx,sy,0,sx,sy,obj.r*sc*5);
+    } else if(obj.type==='neon'&&sc>0.3){
+      const nr=obj.r*sc*5;
+      const gl=ctx.createRadialGradient(sx,sy,0,sx,sy,nr);
       gl.addColorStop(0,`hsla(${obj.hue},100%,65%,0.5)`);
       gl.addColorStop(0.5,`hsla(${obj.hue},100%,55%,0.15)`);
       gl.addColorStop(1,'transparent');
-      ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(sx,sy,obj.r*sc*5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(sx,sy,nr,0,Math.PI*2); ctx.fill();
     }
   });
 
   // Subtle grid texture
   ctx.strokeStyle='rgba(255,255,255,0.016)'; ctx.lineWidth=1;
   const gs=50*tr.scale;
-  for(let x=(tr.offsetX%gs+gs)%gs;x<W;x+=gs){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for(let y=(tr.offsetY%gs+gs)%gs;y<H;y+=gs){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.beginPath();
+  for(let x=(tr.offsetX%gs+gs)%gs;x<W;x+=gs){ctx.moveTo(x,0);ctx.lineTo(x,H);}
+  for(let y=(tr.offsetY%gs+gs)%gs;y<H;y+=gs){ctx.moveTo(0,y);ctx.lineTo(W,y);}
+  ctx.stroke();
 
   // ---- TRACK ----
   const n=pts.length;
-  const outerPts=[], innerPts=[];
-  for(let i=0;i<n;i++){
-    const angle=getAngleAt(pts,i/n);
-    const perpX=Math.cos(angle+Math.PI/2)*tw[i];
-    const perpY=Math.sin(angle+Math.PI/2)*tw[i];
-    const scale=tr.scale;
-    const cx=pts[i].x*scale+tr.offsetX, cy=pts[i].y*scale+tr.offsetY;
-    outerPts.push({x:cx+perpX*scale, y:cy+perpY*scale});
-    innerPts.push({x:cx-perpX*scale, y:cy-perpY*scale});
+  // Cache screen-space track edges — only rebuild when transform changes
+  const trKey=tr.scale+'|'+tr.offsetX+'|'+tr.offsetY;
+  if(!s._trackGeomKey||s._trackGeomKey!==trKey){
+    s._outerPts=[]; s._innerPts=[];
+    for(let i=0;i<n;i++){
+      const angle=getAngleAt(pts,i/n);
+      const perpX=Math.cos(angle+Math.PI/2)*tw[i];
+      const perpY=Math.sin(angle+Math.PI/2)*tw[i];
+      const scale=tr.scale;
+      const cx=pts[i].x*scale+tr.offsetX, cy=pts[i].y*scale+tr.offsetY;
+      s._outerPts.push({x:cx+perpX*scale, y:cy+perpY*scale});
+      s._innerPts.push({x:cx-perpX*scale, y:cy-perpY*scale});
+    }
+    s._trackGeomKey=trKey;
   }
+  const outerPts=s._outerPts, innerPts=s._innerPts;
 
   // Track shadow/base
   ctx.beginPath(); ctx.moveTo(outerPts[0].x,outerPts[0].y);
@@ -5035,20 +5288,13 @@ function drawCar(ctx,x,y,angle,rc,scale,onSameLap=true){
     ctx.fillText(rc.number,carW*0.1,0);
   }
 
-  // Flash border
-  if(rc.flashTimer>0&&rc.flashType){
-    const a=rc.flashTimer/70;
-    ctx.strokeStyle=rc.flashType==='gained'?`rgba(0,232,122,${a})`:rc.flashType==='lost'?`rgba(255,51,102,${a})`:`rgba(56,184,255,${a})`;
-    ctx.lineWidth=Math.max(1.5*scale,1);
-    ctx.strokeRect(-carW/2-0.8,-carH/2-0.8,carW+1.6,carH+1.6);
-  }
+  // Car flash removed — position changes shown in standings only
 
   // Exhaust
   if(!rc.retired&&!rc.isPitting&&!rc.finished){
     const tl=carW*0.65;
-    const g=ctx.createLinearGradient(-carW/2,0,-carW/2-tl,0);
-    g.addColorStop(0,rc.color+'66'); g.addColorStop(1,'transparent');
-    ctx.fillStyle=g;
+    // Simple solid semi-transparent rect instead of gradient — much cheaper
+    ctx.fillStyle=rc.color+'44';
     ctx.fillRect(-carW/2-tl,-carH*0.12,tl,carH*0.24);
   }
 
@@ -5075,7 +5321,7 @@ function hideCountdown(){
 
 // ---- CAMERA BTN ----
 let driverCamIdx = 0; // which position in the standings to follow
-let sameLapFilter = false;
+let sameLapFilter = true;
 let actionCamState = { target: null, eventLabel: '', labelTimer: 0, scanTimer: 0 };
 
 function toggleSameLap(btn) {
@@ -5205,8 +5451,13 @@ function initStandingsDom(racers){
         <div class="ssc-sub" id="scssub-${rc.id}">L1</div>
       </div>
       <div id="ssctire-${rc.id}" style="display:flex;align-items:center;padding-right:4px;">${tireBadge(rc.tireCompound||'MEDIUM')}</div>`;
-    standingsDomCards[rc.id]=div;
     (i<10?leftList:rightList).appendChild(div);
+    standingsDomCards[rc.id]={
+      card:div,
+      pos:document.getElementById('sscpos-'+rc.id),
+      sub:document.getElementById('scssub-'+rc.id),
+      tire:document.getElementById('ssctire-'+rc.id)
+    };
   });
 
   // Set container heights
@@ -5214,54 +5465,62 @@ function initStandingsDom(racers){
   rightList.style.height=10*CARD_H+'px';
 }
 
+// Cached list elements for updateStandingsDom
+let _standLeftList=null, _standRightList=null, _lapDisplayEl=null;
+
 function updateStandingsDom(s){
+  if(!_standLeftList)  _standLeftList  = document.getElementById('sim-stand-left-list');
+  if(!_standRightList) _standRightList = document.getElementById('sim-stand-right-list');
+  if(!_lapDisplayEl)   _lapDisplayEl   = document.getElementById('sim-lap-display');
+
   const sorted=s.sortedForStandings;
+  let leaderLap=0;
   sorted.forEach((rc,i)=>{
-    const card=standingsDomCards[rc.id];
-    if(!card) return;
+    if(rc.lap>leaderLap) leaderLap=rc.lap;
+    const refs=standingsDomCards[rc.id];
+    if(!refs) return;
+    const {card,pos:posEl,sub:subEl,tire:tireEl}=refs;
     const inRight=i>=10;
     const localPos=inRight?i-10:i;
 
-    // Move to correct parent if crossed boundary
-    const rightList=document.getElementById('sim-stand-right-list');
-    const leftList=document.getElementById('sim-stand-left-list');
-    if(inRight&&card.parentElement!==rightList) rightList.appendChild(card);
-    else if(!inRight&&card.parentElement!==leftList) leftList.appendChild(card);
+    // Re-parent only when crossing the 10-car boundary
+    const targetList=inRight?_standRightList:_standLeftList;
+    if(card.parentElement!==targetList) targetList.appendChild(card);
 
-    // Animate position
-    card.style.top=localPos*CARD_H+'px';
+    const newTop=localPos*CARD_H+'px';
+    if(card._top!==newTop){ card.style.top=newTop; card._top=newTop; }
 
-    // Flash class
-    card.classList.remove('gained','lost','pitting');
-    if(rc.flashType==='gained') card.classList.add('gained');
-    else if(rc.flashType==='lost') card.classList.add('lost');
-    else if(rc.isPitting||rc.flashType==='pitting') card.classList.add('pitting');
-
-    // Update pos number color
-    const posEl=document.getElementById('sscpos-'+rc.id);
-    if(posEl){
-      posEl.textContent=i+1;
-      posEl.style.color=i===0?'var(--yellow)':i<3?'var(--green)':i<10?'var(--text)':'var(--dim)';
+    // Flash classes — only touch DOM if state changed
+    const newClass=rc.flashType==='gained'?'gained':rc.flashType==='lost'?'lost':(rc.isPitting||rc.flashType==='pitting')?'pitting':'';
+    if(rc._lastFlash!==newClass){
+      card.classList.remove('gained','lost','pitting');
+      if(newClass) card.classList.add(newClass);
+      rc._lastFlash=newClass;
     }
 
-    // Sub text
-    const subEl=document.getElementById('scssub-'+rc.id);
+    if(posEl&&rc._lastRankShown!==i){
+      posEl.textContent=i+1;
+      posEl.style.color=i===0?'var(--yellow)':i<3?'var(--green)':i<10?'var(--text)':'var(--dim)';
+      rc._lastRankShown=i;
+    }
     if(subEl){
       if(rc.retired){ subEl.textContent='DNF · '+rc.dnfReason; subEl.style.color='var(--accent)'; }
       else if(rc.finished){ subEl.textContent='✓ FINISHED'; subEl.style.color='var(--green)'; }
-      else if(rc.isPitting){ const pct=Math.round(rc.pitTimer/rc.pitDuration*100); subEl.textContent='PIT '+pct+'%'; subEl.style.color='var(--blue)';}
-      else if(rc.pendingPitOnCrossLine){ const pd=Math.max(rc.lap,0); subEl.textContent='L'+(pd+1)+' → PIT'; subEl.style.color='var(--yellow)'; }
+      else if(rc.isPitting){ subEl.textContent='PIT '+Math.round(rc.pitTimer/rc.pitDuration*100)+'%'; subEl.style.color='var(--blue)';}
+      else if(rc.pendingPitOnCrossLine){ subEl.textContent='L'+(Math.max(rc.lap,0)+1)+' → PIT'; subEl.style.color='var(--yellow)'; }
       else {
-        const degPct = Math.round((1-(rc.tireDeg||1))*100);
-        const degCol = degPct>60?'var(--accent)':degPct>35?'var(--yellow)':'var(--dim)';
-        const lapDisp=Math.max(rc.lap,0); subEl.innerHTML = 'L'+(lapDisp+1)+'/'+s.totalLaps+' <span style="color:'+degCol+';font-size:8px">'+degPct+'%✗</span>';
+        const degPct=Math.round((1-(rc.tireDeg||1))*100);
+        const degCol=degPct>=50?'var(--accent)':degPct>28?'var(--yellow)':'var(--dim)';
+        subEl.innerHTML='L'+(Math.max(rc.lap,0)+1)+'/'+s.totalLaps+' <span style="color:'+degCol+';font-size:8px">'+degPct+'%✗</span>';
         subEl.style.color='';
       }
     }
-    // Tire badge
-    const tireEl=document.getElementById('ssctire-'+rc.id);
-    if(tireEl && !rc.retired) tireEl.innerHTML=tireBadge(rc.tireCompound||'MEDIUM');
+    if(tireEl&&!rc.retired&&rc.tireCompound!==rc._lastTireShown){
+      tireEl.innerHTML=tireBadge(rc.tireCompound||'MEDIUM');
+      rc._lastTireShown=rc.tireCompound;
+    }
   });
+  if(_lapDisplayEl) _lapDisplayEl.textContent='LAP '+Math.min(leaderLap+1,s.totalLaps)+'/'+s.totalLaps;
 }
 
 // ---- END RACE ----
@@ -5287,11 +5546,45 @@ function endRace(skipFlag){
   r.notes=generateRaceNote(myR1+1,myR2+1);
 
   const pts=[25,18,15,12,10,8,6,4,2,1];
-  const top10=sorted.slice(0,10);
-  r.leaderboard=top10.map((rc,i)=>{
-    const t=teams.find(t=>t.name===rc.team)||teams[0];
-    return {pos:i+1,team:t.name.split(' ')[0],pts:pts[i]||0,color:rc.color,my:rc.isPlayer};
+
+  // ── Aggregate points by team and update global teams[] ──────────────────────
+  const raceTeamPts = {}; // teamName -> {pts, wins, podiums, color, my}
+  sorted.forEach((rc, i) => {
+    const p = pts[i] || 0;
+    if (!raceTeamPts[rc.team]) {
+      const t = teams.find(t => t.name === rc.team) || teams[0];
+      raceTeamPts[rc.team] = { pts: 0, wins: 0, podiums: 0, color: t.color, my: !!rc.isPlayer };
+    }
+    if (!rc.retired) {
+      raceTeamPts[rc.team].pts += p;
+      if (i === 0) raceTeamPts[rc.team].wins++;
+      if (i < 3)  raceTeamPts[rc.team].podiums++;
+    }
+    if (rc.isPlayer) raceTeamPts[rc.team].my = true;
   });
+
+  // Apply this race's points to the global teams array
+  Object.entries(raceTeamPts).forEach(([name, data]) => {
+    const t = teams.find(t => t.name === name);
+    if (t) {
+      t.pts     += data.pts;
+      t.wins    += data.wins;
+      t.podiums += data.podiums;
+    }
+  });
+
+  // Build constructor leaderboard sorted by points for this race snapshot
+  const conSnap = Object.entries(raceTeamPts)
+    .map(([name, data], i) => ({ name, ...data }))
+    .sort((a, b) => b.pts - a.pts);
+  const conSnapMax = Math.max(1, conSnap[0]?.pts || 1);
+  r.leaderboard = conSnap.map((t, i) => ({
+    pos: i + 1,
+    team: t.name.split(' ')[0],
+    pts: t.pts,
+    color: t.color,
+    my: t.my
+  }));
   // Store full driver finishing order for the race detail page
   r.driverResults=sorted.map((rc,i)=>({
     pos:i+1,
@@ -5477,14 +5770,22 @@ function stepRace(s){
     const tIdx=Math.floor(((rc.t%1)+1)%1*n);
     const cvRaw=curv[tIdx];
     const lapProgress=rc.tireLapsUsed+(rc.t%1);
-    rc.tireDeg=Math.max(0.40,1.0-lapProgress*rc.tireDegRate);
+    const _ex2=lapProgress*rc.tireDegRate*1.6;
+    const rawDegS=_ex2>4?0.02:1/(1+_ex2+_ex2*_ex2*0.5+_ex2*_ex2*_ex2*0.1667);
+    rc.tireDeg=Math.max(0.25,rawDegS);
+    if((1-rc.tireDeg)>=0.50&&!rc.isPitting&&!rc.pendingPitOnCrossLine&&!rc.finished&&!rc.retired&&rc.lap>=0){
+      rc.pendingPitOnCrossLine=true;
+    }
     const isCorner=cvRaw>0.008,isStraight=cvRaw<0.003;
     const cornerFactor=isCorner?(1-Math.min(cvRaw*26,0.25)):isStraight?1.22:(1-Math.min(cvRaw*26,0.15));
     const prevTIdx=Math.floor((((rc.t-0.005)%1)+1)%1*n);
     const prevCurv=curv[Math.max(0,prevTIdx)]||0;
     const exitBoost=(prevCurv>0.006&&cvRaw<0.004)?1.12:1.0;
     const jitter=(Math.random()-0.5)*0.0005*rc.baseFactor;
-    let spd=rc.raceFactor*rc.tireDeg*cornerFactor*exitBoost*(1/framePerLap)+jitter;
+    const degEffectS=rc.tireDeg*rc.tireDeg;
+    const liveSpd2=rc.raceFactor*(rc.tireSpeedMult||1)*degEffectS;
+    const ramp2=(rc.accelRamp!==undefined)?rc.accelRamp:1.0;
+    let spd=liveSpd2*cornerFactor*exitBoost*ramp2*(1/framePerLap)+jitter;
     rc.t+=Math.max(0.0001,spd);
     if(rc.t>=1){
       rc.t-=1;
