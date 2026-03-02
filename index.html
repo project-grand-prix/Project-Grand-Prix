@@ -3863,6 +3863,43 @@ let raceResults = null;
 let racerGridOrder = null;
 let completedRaces = [];
 let simSpeed = 1; // 1, 2, or 3x
+
+// Car sprite — recolored per team, cached by hex color
+const _carSpriteImg = new Image();
+_carSpriteImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAA+CAYAAAA8nKuUAAASs0lEQVR4nE2Ze2xcV37fP+fccx/z4mtIiaRI6knKkvWgtLL1sNe73me2yWa99gZB2nW32GCdAoWDtkCKRYPUaIMu2iZIEBRog6ZFUTRNF+4mabvIukm3Tr1er23JlmS9XyRFkSIpieQM53mf59c/7kjoAIOZuTNzz/md8/v9vo+jAlwEAVISBdaA0TAQgQ+yDirSoCxoQAEGcAELJFoRI/mXDpCAIxC4EMYAGotGcPJ/qAQAk6GwCBngegabpJDkAxwY3c7C2gNxbH5PRf5weoMrILGCBVILkubXyhqyUpmFuKW62N5/VP47yaMwibKgLWhNosC3UOzdfFfg8Z2ZI4y2IzybgEpJtAbR+KmDa0GLRRuH0CYkCjJRbJQ93s2a/FmtJXmMlgKQoWmiEaUxOCn4ATyJVONhMSDS2GJ70WNns4Nvu6ASYkeRKY2beRgLQSZkWUaMxS0WyXCZa8QEySZ+b2UywMH2llyBBoMGSCEFrCJBk2ApA561XF2bp54KJfJt7ObbiO19dnuvGeDEDQRY19AqKrze1lggBlIUaN0bWIAoBatxjEeWpbQFBgC/WKG6fRuVsEUlaaNI8A1EjiHRLhaNlwq+cUlTS2oV1ho8z4NOnU6rQUYvpt7gKEDAmBQyyeclxoJjiRLoWNSDViphdYi2LZCaPhxJSTXEjiY0DpnSOKHF1x44Guv5dIxhw1F0xSWiQQqkCnA0KAFrIQNl8gkAkDm9rNIOg2HGKEg/UOldfrxs9PZOesue9r4XoAa0gQRFHVFNNKmj8z3BQpyXpkJDIXBJOgka0C6kSX5jDwhQPHf4lNQaWwxtGyAk5PK583ylb5xOp8O7aZ2pXfsYKVfZbDYJRqr85KNzKnucC46CQEMWgU1xUiiKwqA8Jid2ycHpPbS3apTLRVZWVrh045ZKlE8zygjHx2j5LmnRI00yQsAxikpfifZmnXC4zO1mA8oug4N9dLQCC8a47JveI08dPcDNe3NsG+pn4cIlHt1/oJRHiZdf+ZrML1yn1lzH2pjDhw/zo7d+rOKEPG/FgIBPRAXLbNGTWe3iFQv8NG3z0WZXRQrEA2sdtDWYzGKAX/raN+TSzUskBc1Wt8nJZ5/hB3/y35QRFH/99js8/4XTxPMJM7sn+OCDD4hj+Nvf/pZcvjHH8FCVqFanv9tl6eOznO4fpC9qEKVNJuKIFZADp5+mJkJHDJ4uMOSWOfeT97lw9n2OnzrBD9/935z6/Av81f/5cb6HmhJffemXpDo5IYePH5LpkRH5zitfFwM8c/K4nP7Mc4LOY94D8p8Pzcofakd+F+Q/TZXltxTyH07NyizIKIjSyPThPXL40FPiAS//3FdketekzJ45JjuP7pOXXv2G4IK2xLzzs3d58cUXefSwxqfPvMCHP/sYDRhjaHcafObZI4wDXxjoZ6wZ0mczDk72E6+3KAmMNiNeHCgwCHz1hU+xfWSY4dEREuCTq1c4NHuUbhixf98M5979ABcH5VdK8uUvf4X5O3PE7Yik3ubMmTP84Id/riIiUMJQBn+nOiYvloepbtVZqi/hVwxbYUpgHYbHdlIPivz7O1e4lHcuVRkclM3alnr5F78m99fusxV2UMDBsd38r7d+qHTUbquPPjrL1M7d9A9UOX7qDNduzRHbFAfBsTAA8unt29jebtKnNIN4tJopZd8QZRmVOGOym/La/mMMAYGFqNFQYi23b80xObGTbjvk+OFjrC4+QOOjUIBrwDpgXZTNQSJ1ukyND0pzaV3tBvne3lHG2zFJ5HGztoYJDEoJUTfjxPgkutVls7/EP1paZA4Y3T3BpYVlleGQohCVosTFpwQ4oj0BFacgGpQm0J4YBTbLqK+sqyrIa6eP4IQNsrjN/doaB/ccohGmJFaxf9dO3l9ZQkmKSSO+OXuYErCytIzNGzFK5X1PHEWGkQStdAD049Dv+uJkGYltq0RCfu6Lz8uZw9NSAvojB0/54AS0gUYzozI4RtcJaIiLAjpjI9SDAFsPGQSOnzjIoVMHJdMKcR0eo2BCqBQWrYCYjDBsqUAJLzx3Rk5+alYGMsuti7f51dNnuHj+Aj9arhFqQ9cd4GG1j4udDg/6+rhtLMsK1qzlzYW7LN+9yyvHTnDhg2tsD1w+9/wZOTE7K8VCQRyt0dqSEmG2HDAG0siSqYRu1mS07HPu7ff47MgA6WaNfhQtBAb6OdtY4e0bH6KBztoWZeCz42UaNu/vMQn91vLKnm386P9+wsFnTxN3E1SrqwwQqRQcjcZA6ihQlswmCDFx7RF7gBdGJtihXUKEX5ma4OFmjSvdkNFdOyjvm2Tq0BTTRyc4t9KiYA3fnjpCP+Bv1DnplZgEvLCDX/QxQKAURucoZXIY1AQOSJrRaWyyeu0e3zvwNKObTQpBiTWAsMtQoUiBGvW7ayyTYYAWsBcY2Owy5EAfsB8HHm7wm7OH+LWLn5Dt300b0CKQPSaLAsQZYZqTvHHtUAR2hRnbIksUNvjs4HZcG7J47z4v7T/MO+ubbOsr0Kg9ZJ+r+dLIGLVrN9hT2skXB3ejuh2CJGJ+dZkSEDge61qTiMUKaAWa2ECWA7UCNq4s8N3pQwxvNhnsxlSjlKpSkHTZsb3C4spdhsernF+4w1y9wWB1gFtzN5ga2UGcblGMQ7xWA9+GjHsOv3XiNPraLapWi5YeeXBAm8zJB5Z8CQaBoW5KJUnws4Qs6qARFrZiir7H/tEdXL98iQowBpy/cZedAyMkcYOFqAYqYajaR5RmhM0aQaNJESEjJe2xFyVgimhSLN0U/B59yXRKpjNSJ8WWPS5vPmDfaInVepORyjC/duhFlqIGxlHsyISh5gZVX5gYHuTy+jqlECYHFcpxiNIuLWADVOSAyaCU5RUA9OqbnKamjpCpfEnqgWYN6Ky1md6zg7ou8sdX/ppujxoVgW9P7EdFba6v15gDnpuZIltfxdMeBnlCf3EcdJbl+Rxi6SJkBkJ6/FdD6kDH1ayXNO8Bu7f38bAT8q/uXOAyMA9cAT4G/mD5JvUkYs9gkcvAzU6LViNBajFFqykABQDrPJmEibFPFNljBmmVJVNglabejUiBQJfwCwWabLDpa8LIYgHlQJCBKpdRYYcmHdxSlaF+j0AbFqx9srd52Pl25lmFBZsvnQNoyaWGFs1oZZgi0HnYIu3m1LUeW6gUiA1Ejk8LCLVLHEEA6Jais95lY7NJx3do98ZUorGPIwb7ZGzVu9gxLusFH99CbbNNEVDDVba0ogIYgTDs5npWHGLgfpbg+YagCY7VMDxCi5R2UCR8EqVgHgfXE2gYgQBkemSMJetwtVRkcaiClEt8bt8B/ujBXRZ9YbzoM0TeBMgsJgopAat9Hv9mfZ2f3zuD0sK9/iI3KyXuJ5ojuw/29HFCv0IK9LLaaE1qLW1QnVJRNspF3rlwlTK5hvrqxE5OjE/x9vw8z3/6JI2zH7Ic5QpitDLM8wemefvse7y8d5yajfiLxUW6QBM4duozXL9yhQRBYYkE1QeijOeSJgm+q9Gx5eCeHdKav8+vHnuGYRRh1mbz9l2eKW0ndB1+b/U2Lz1zgsOPDGlmuD5e4s0P/5LvzhzACVu8v77K6Mx+tpW3cb2xxR/fukS9UiJqZrgiJFFbacCkZKAgSiyuAWewnw3u86cXzlEGIvLGP9K9z1PTT+MDb537iDMjR0gzxVsf/hQfKCQZjzbqnO2k1C9epcJVGsAKMHFwjNvnb6jg/2saBmvBdcBaklTQNjccjh85znDBp91tcOHSVR56LgFtur1E+Wm6SJxmtIEy0Gy3aae5fn7p81/A1FNu3r/PvbXbDDkBhlxLZQpEQa6eLWg/wLZDfOBv/sLPy40Pz7Ly6BE+eYl8Cvj87Cz1cJN3btzjqX5odeFODF8/sIcZb5D/+cnH/BjYJG+/B6YOsCQdbj5cVq04e2KiVCpaFEUPbAZxhsHBsRmq10KPHdovOktYuT7PLuDVnfs45BXY2lzlk9o6hTI81T8OVrNu4c3VZT4B9j17koftLh9fvaSCwKMbx9CXh2q2LD6gidInmrXouNIT7Ijj8LMrN9WWhomZnWwCjuvT10jY1VHstdDXgJ3NmAnlkwYey8DuvdMsbm3x0Y3rSvyAbhTjeBoigdA+satMf+aSklDUgURJqHwcLEKcZShFTvB8TQu4vHyX45UxRpXLp8t92DTB1Ns0Sn38bGmeR4BT8NG4kBmMcvDwyMIYq8ALcixoATolQYCGDVVuvAiu8sXBoEUzP3dXUShSB5X0FUmzjKzTJmjHVK2mgiJJEpLBCg9AmWo/l69cUaDJ0oxMLA5QViBdQCky40JQKAmOhoLOM8JoHDT9pig++XsHGHThOMiVHQckKu2QTrkiWwpJqcj5/u1yFMR/bA1pA04ZRRGDoYiir5ekYEAH6DDs5jJGC7gaXEWmLEmWqtwO7PVvm3shq/Ua4nlsdFtIX4mmA1Kp0AKiBHBUXiaSImQox5AixL3ccU2Qw6MvmoITCNZAYiHLwCi01mRYJAjAAZHcWFlor7HS3KI8uo0HUYf2QJlzy3ef4J3KcuDHVWCEJEspFPtEuQaLIUkFcNBlpyBf/uzn2L9nWg4ePiSTY+PyN770RelmIalSkMU9UZc3AH9olHCgyMPNTUqDQ6yQ8sBVtEEZz+Q2o7WQRoDlF1/+upQH+xkZG5d9Tx2QV7/5LQGDbmZd9XBzg+mZvdhmly8efYZ4dZ1MA4HD4M4pGahWpdnalC987jn+y+YaKxWF73jQTWkOFriYJJw6dlSknbJ3x7hMT02IsrmnNb+wwIlTp9kxMcW+mRneff8sbrEs2jW+DI0MM3dngYFKH/M3rjE6NIBj4Nd/43WpLd2l/nADvzzEf337PVrAPadGa3uXR+Ut1oOQFeDDC5/gAAv3V9T8vWX11n//EzFimZoaZm7hBvV6nbsL95idPULSaSjl4/LMyVPSN1bl7p3rHN8zxerSPO9dmlMhcPDQATF+P7VGi92BonnxMn/3tMdrv/k1sIp//caf8eaFFG/nXjb9Ek6/IUu3yOorzC901cCkL5958StcOHeT/fuPcu7iee4vLiqtEIb7B1m9t4rrl7j9YA1T7SMDfvuN1+XWpevq6vmLamluQX148bIS4LXf+HVgA9I1Xv8n3yUGLi/OcXthkY8vXFafXJxTv/87/xJXwZlTJ7h48SLGalYXlzhy7Ag4GRpSNtbXmBzahs4MQ7tnWMOQGLCOnxP9NIQkyvkU8G+/9wfQqIAd5z/+9u8jgGNc2kmonBSGPV+SUJEJnLt4jcmpaaqFISa3TbL8cA1c0KkLquSysnwfFSuuX77FiU+dBoE33vhd1WcULrnfrMl5tJ8WefOf/Q9+9M+/j2NdPKCZJgoFvg6kE0XqV775utIOfP2XX2X1UY04TLhz+za7du3pgXIR8CBwivRTliIBRc9FKSg6uaTpBzQOw8BzIN9/dkrk/d8Tee935N8dHpCTIBUA46NVAR/NUA8a8QDPwaOU+x9eCUqFnkwVhRuHFAAfi8TQDxJlKB+kDcpxDSZTomxKo9bmT//eP8QJXIqFUaCeeziug6QJhrw/B+RWuFvwJIhFAcRxgmQZmhgKqWI7Vr46eYARkKH8SRUkAbRbkCSxRDZVPuA4hlf+8Ru89Le+RacdY3tQp7sdqijZhiODIDtAxgUptrv8wuxxGSSRPiylTGOcDILUMgAc3DZC7YHH0RNHKGaaR+2YN69cpJ50VaACRBK2AFPw+MHf/6dUqy6abQAUQCJQhpgAePXkGcK0Q82z/NX7l5j2fa6QkIB0UUoPZ9BHznV9neImMRuLyyzfmUdvtPjOUy8wAVKQ6InNX2+t89KXTqMaCY2NJo8fPjmQfOPwEeyjVeLlu+jVJYaBnd0u2/MJohB0mLsDhADGBYG9I1VGk5SxVp3iwk1ef+oZJhCZAHGBzVaMOfElYjWIMiUMUAImQH55dIK+hVV21CMO+mX2lSo5JPr5+ZSQM1ezRZlCUKAWPuLuRgMUTJZ8KkXDYBKjyy6Xb5zjH4yU+ItHbZrAudWMP/wX32e4+jR/eeGnuZgHXnv6BOrqCjP949h2hyjwmCNGAVe6qywCK6BCAwqnD7KEYRJ2a19G/JTPz+xiJorpS7q0kiaD1SE2H7VIvCKybZJrS2v85H4OhUdGdjC9Y4xSp8NgqpksVGk/aBAEAWs0WR4V/vzqVbyJId65valqTt6F1ONTDpXlJVfolV4pNxl7JQavHZmhEmakAqFWuDu282BrCw+Dl1m8qEtWcPmj89dok599xEADVBNIejJYbM5C1BP5JoACDw1WEWfZk2OykQz2g+wnx+QOsJ7zDNxeKfXOM/kIVLsESScn7nkDyWdRKGiRGkrj8P8Amn/LdtkF79UAAAAASUVORK5CYII=';
+let _carSpriteReady = false;
+_carSpriteImg.onload = () => { _carSpriteReady = true; };
+const _carSpriteCache = {};
+
+// Returns an offscreen canvas with the sprite recolored to the given hex color
+// The sprite is red — we remap red channel to target hue, preserving luminance
+function getCarSprite(hexColor) {
+  if(_carSpriteCache[hexColor]) return _carSpriteCache[hexColor];
+  const c = document.createElement('canvas');
+  c.width = _carSpriteImg.width;
+  c.height = _carSpriteImg.height;
+  const cx = c.getContext('2d');
+  cx.drawImage(_carSpriteImg, 0, 0);
+  const id = cx.getImageData(0, 0, c.width, c.height);
+  const d = id.data;
+  // Parse target color
+  const tr2 = parseInt(hexColor.slice(1,3),16);
+  const tg2 = parseInt(hexColor.slice(3,5),16);
+  const tb2 = parseInt(hexColor.slice(5,7),16);
+  for(let i = 0; i < d.length; i += 4) {
+    if(d[i+3] < 10) continue; // skip transparent
+    const r = d[i], g = d[i+1], b = d[i+2];
+    // luminance of this pixel relative to the original red (255,0,0)
+    // treat r channel as the "brightness" of the red paint
+    const lum = r / 255;
+    d[i]   = Math.round(tr2 * lum);
+    d[i+1] = Math.round(tg2 * lum);
+    d[i+2] = Math.round(tb2 * lum);
+  }
+  cx.putImageData(id, 0, 0);
+  _carSpriteCache[hexColor] = c;
+  return c;
+}
 let playerFinished = false; // flag to show speed controls
 
 // DNF reasons pool
@@ -5258,44 +5295,28 @@ function drawCar(ctx,x,y,angle,rc,scale,onSameLap=true){
   if(!onSameLap) ctx.globalAlpha=0.2;
   ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
 
-  // Shadow
-  ctx.fillStyle='rgba(0,0,0,0.45)';
-  ctx.fillRect(-carW/2+0.8,-carH/2+0.8,carW,carH);
+  // ── Draw sprite for all cars, recolored to team color ──
+  const spriteColor = rc.retired ? '#555555' : (rc.color||'#ff0000');
+  const spriteCanvas = _carSpriteReady ? getCarSprite(spriteColor.length===7?spriteColor:'#ff0000') : null;
 
-  // Body
-  const col=rc.retired?'#555':rc.color;
-  ctx.fillStyle=col;
-  const r2=carH*0.28, bx=-carW/2, by=-carH/2;
-  ctx.beginPath();
-  ctx.moveTo(bx+r2,by); ctx.lineTo(bx+carW-r2,by);
-  ctx.arcTo(bx+carW,by,bx+carW,by+r2,r2);
-  ctx.lineTo(bx+carW,by+carH-r2);
-  ctx.arcTo(bx+carW,by+carH,bx+carW-r2,by+carH,r2);
-  ctx.lineTo(bx+r2,by+carH);
-  ctx.arcTo(bx,by+carH,bx,by+carH-r2,r2);
-  ctx.lineTo(bx,by+r2); ctx.arcTo(bx,by,bx+r2,by,r2);
-  ctx.closePath(); ctx.fill();
-
-  // Cockpit
-  ctx.fillStyle=rc.isPitting?'rgba(56,184,255,0.9)':'rgba(0,0,0,0.75)';
-  ctx.fillRect(-carW*0.08,-carH*0.3,carW*0.28,carH*0.6);
-
-  // Number
-  if(scale>0.05){
-    ctx.fillStyle='#fff';
-    ctx.font=`bold ${Math.max(carH*0.55,2.5)}px monospace`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(rc.number,carW*0.1,0);
+  if(spriteCanvas){
+    if(rc.retired) ctx.globalAlpha=(onSameLap?1:0.2)*0.4;
+    ctx.save();
+    ctx.rotate(-Math.PI/2); // sprite faces up, track faces right
+    const sh=carH*2.8, sw=sh*(30/62);
+    ctx.drawImage(spriteCanvas, -sw/2, -sh/2, sw, sh);
+    ctx.restore();
+    if(rc.retired) ctx.globalAlpha=onSameLap?1:0.2;
+  } else {
+    // Fallback: plain rectangle if sprite not ready
+    ctx.fillStyle=rc.retired?'#555':rc.color;
+    ctx.fillRect(-carW/2,-carH/2,carW,carH);
   }
 
-  // Car flash removed — position changes shown in standings only
-
-  // Exhaust
-  if(!rc.retired&&!rc.isPitting&&!rc.finished){
-    const tl=carW*0.65;
-    // Simple solid semi-transparent rect instead of gradient — much cheaper
-    ctx.fillStyle=rc.color+'44';
-    ctx.fillRect(-carW/2-tl,-carH*0.12,tl,carH*0.24);
+  // Pit glow overlay
+  if(rc.isPitting){
+    ctx.fillStyle='rgba(56,184,255,0.35)';
+    ctx.fillRect(-carW/2,-carH/2,carW,carH);
   }
 
   ctx.restore();
