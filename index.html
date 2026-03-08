@@ -158,6 +158,46 @@ body::after {
 }
 .saveslot-back:hover { border-color: var(--text); color: var(--text); }
 
+/* ---- STANDINGS POPUP ---- */
+#standings-popup-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:9000;
+  display:none;align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(4px);
+}
+#standings-popup-overlay.active { display:flex; }
+#standings-popup {
+  background:var(--panel);border:2px solid var(--border2);
+  max-width:480px;width:100%;max-height:90vh;overflow-y:auto;
+  position:relative;box-shadow:0 0 60px rgba(0,0,0,0.8);
+}
+.sp-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:2px solid var(--border);
+  background:var(--panel2);position:sticky;top:0;z-index:1;
+}
+.sp-close {
+  background:none;border:1px solid var(--dim);color:var(--dim);
+  font-family:var(--pixel);font-size:6px;padding:5px 9px;cursor:pointer;
+}
+.sp-close:hover { border-color:var(--accent);color:var(--accent); }
+.sp-stat-row {
+  display:flex;flex-direction:column;gap:3px;padding:0 18px;margin-bottom:10px;
+}
+.sp-stat-label {
+  display:flex;justify-content:space-between;
+  font-family:var(--ui);font-size:11px;letter-spacing:1px;
+}
+.sp-bar-bg { height:5px;background:rgba(255,255,255,0.07);border-radius:1px;overflow:hidden; }
+.sp-bar-fg { height:5px;border-radius:1px;transition:width 0.4s ease; }
+.sp-meta-row {
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 18px;border-bottom:1px solid rgba(255,255,255,0.04);
+  font-family:var(--ui);font-size:12px;
+}
+.sp-meta-label { color:var(--dim);letter-spacing:1px;font-size:11px; }
+.standings-table tr { cursor:pointer; }
+.standings-table tr:hover td { background:rgba(255,255,255,0.05) !important; }
+
 /* ---- DRIVER CYCLE CAM / LAP FILTER ---- */
 .cam-same-lap-toggle {
   font-family: var(--pixel); font-size: 5px; letter-spacing: 0.5px;
@@ -467,6 +507,184 @@ body::after {
 .hq-card-desc { font-family: var(--ui); font-size: 11px; color: var(--dim); line-height: 1.5; }
 
 /* ========================
+   MANAGE TEAM / R&D SCREENS
+======================== */
+.manage-layout {
+  display: flex; flex-direction: column; gap: 0;
+  padding: 0 20px 30px;
+}
+.manage-tabs {
+  display: flex; gap: 6px; padding: 0 20px 16px; flex-wrap: wrap;
+}
+.manage-tab {
+  background: var(--panel); border: 2px solid var(--border);
+  color: var(--dim); font-family: var(--pixel); font-size: 6px;
+  padding: 8px 14px; cursor: pointer; letter-spacing: 1px;
+  transition: all 0.15s;
+}
+.manage-tab:hover { border-color: var(--yellow); color: var(--text); }
+.manage-tab.active { border-color: var(--yellow); background: var(--yellow); color: #000; }
+.manage-tab.locked { opacity: 0.5; cursor: default; }
+.facility-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.facility-card {
+  background: var(--panel); border: 2px solid var(--border);
+  padding: 14px; cursor: pointer; transition: all 0.15s;
+  position: relative;
+}
+.facility-card:hover:not(.locked-card) { border-color: var(--yellow); }
+.facility-card.selected { border-color: var(--green) !important; }
+.facility-card.locked-card { opacity: 0.45; cursor: not-allowed; }
+.facility-name {
+  font-family: var(--pixel); font-size: 7px; color: var(--yellow);
+  margin-bottom: 6px;
+}
+.facility-stat {
+  display: flex; justify-content: space-between;
+  font-family: var(--ui); font-size: 11px;
+  padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.staff-category {
+  background: var(--panel); border: 2px solid var(--border);
+  margin-bottom: 12px; overflow: hidden;
+}
+.staff-cat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: var(--panel2);
+  border-bottom: 1px solid var(--border);
+}
+.staff-cat-title { font-family: var(--pixel); font-size: 7px; color: var(--yellow); }
+.staff-cat-count { font-family: var(--pixel); font-size: 7px; color: var(--green); }
+.staff-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: var(--ui); font-size: 12px;
+}
+.staff-row:last-child { border-bottom: none; }
+.staff-hire-btn {
+  background: none; border: 1px solid var(--green); color: var(--green);
+  font-family: var(--pixel); font-size: 5px; padding: 4px 8px;
+  cursor: pointer; white-space: nowrap;
+}
+.staff-hire-btn:hover { background: var(--green); color: #000; }
+.staff-fire-btn {
+  background: none; border: 1px solid var(--dim); color: var(--dim);
+  font-family: var(--pixel); font-size: 5px; padding: 4px 8px;
+  cursor: pointer;
+}
+.staff-fire-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rd-layout { padding: 0 20px 30px; }
+
+/* ========================
+   SPONSOR CARDS
+======================== */
+.sponsor-card {
+  background: var(--panel); border: 2px solid var(--border);
+  padding: 0; overflow: hidden; transition: all 0.15s; position: relative;
+}
+.sponsor-card:hover { border-color: var(--yellow); transform: translate(-1px,-1px); box-shadow: 4px 4px 0 rgba(0,0,0,0.5); }
+.sponsor-card.signed { border-color: var(--green) !important; }
+.sponsor-card.unavailable { opacity: 0.42; }
+.sponsor-logo-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+}
+.sponsor-logo {
+  width: 52px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: 2px; flex-shrink: 0; font-size: 0.65rem; font-weight: 900;
+  letter-spacing: -0.5px; font-family: var(--ui); text-align: center; line-height: 1.1;
+}
+.sponsor-name { font-family: var(--pixel); font-size: 7px; color: var(--yellow); }
+.sponsor-tagline { font-family: var(--ui); font-size: 10px; color: var(--dim); margin-top: 2px; }
+.sponsor-body { padding: 10px 14px; }
+.sponsor-stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: var(--ui); font-size: 11px;
+}
+.sponsor-stat-row:last-of-type { border-bottom: none; }
+.sponsor-stat-label { color: var(--dim); }
+.sponsor-stat-val { color: var(--text); font-weight: 600; }
+.sponsor-sign-btn {
+  width: 100%; margin-top: 10px; padding: 8px; cursor: pointer;
+  font-family: var(--pixel); font-size: 6px; border: none;
+  background: var(--yellow); color: #000;
+}
+.sponsor-sign-btn:hover { background: #fff; }
+.sponsor-sign-btn:disabled { background: var(--border); color: var(--dim); cursor: not-allowed; }
+.sponsor-badge {
+  display: inline-block; font-family: var(--pixel); font-size: 5px;
+  padding: 2px 6px; margin-right: 4px; margin-bottom: 4px;
+}
+.badge-p  { background: rgba(255,204,0,0.15); color: var(--yellow); border: 1px solid rgba(255,204,0,0.3); }
+.badge-s  { background: rgba(100,200,255,0.12); color: #80d4ff; border: 1px solid rgba(100,200,255,0.25); }
+.badge-a  { background: rgba(150,150,220,0.12); color: #aaaaee; border: 1px solid rgba(150,150,220,0.2); }
+.badge-ok { background: rgba(0,220,100,0.12);  color: var(--green); border: 1px solid rgba(0,220,100,0.25); }
+.slot-box {
+  background: var(--panel2); border: 2px dashed var(--border);
+  padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+}
+.slot-box.filled { border-style: solid; border-color: var(--green); }
+.active-deal-row {
+  background: var(--panel); border: 2px solid var(--border); margin-bottom: 10px; overflow: hidden;
+}
+.active-deal-header {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  background: var(--panel2); border-bottom: 1px solid var(--border);
+}
+.rd-branches { display: flex; flex-direction: column; gap: 0; margin-top: 10px; }
+.rd-branch { margin-bottom: 18px; }
+.rd-branch-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; background: var(--panel2);
+  border: 2px solid var(--border); border-bottom: none;
+  cursor: pointer; user-select: none;
+}
+.rd-branch-header:hover { border-color: var(--cyan); }
+.rd-branch-header.open { border-color: var(--cyan); }
+.rd-branch-label { font-family: var(--pixel); font-size: 7px; color: var(--cyan); flex: 1; }
+.rd-branch-progress { font-family: var(--pixel); font-size: 5px; color: var(--dim); }
+.rd-branch-chevron { font-size: 10px; color: var(--cyan); transition: transform 0.2s; }
+.rd-branch-header.open .rd-branch-chevron { transform: rotate(90deg); }
+.rd-branch-body {
+  border: 2px solid var(--cyan); border-top: none;
+  padding: 12px; display: none;
+}
+.rd-branch-body.open { display: block; }
+.rd-tier { margin-bottom: 14px; }
+.rd-tier-label {
+  font-family: var(--pixel); font-size: 5px; color: var(--dim);
+  letter-spacing: 1px; margin-bottom: 8px; padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.rd-tier-nodes { display: flex; gap: 10px; flex-wrap: wrap; }
+.rd-node {
+  flex: 1; min-width: 180px; max-width: 260px;
+  background: var(--panel); border: 2px solid var(--border);
+  padding: 10px; position: relative; transition: all 0.15s;
+}
+.rd-node:hover:not(.rd-locked):not(.rd-done) { border-color: var(--cyan); }
+.rd-node.rd-locked { opacity: 0.38; }
+.rd-node.rd-done { border-color: var(--green); background: rgba(0,200,80,0.04); }
+.rd-node.rd-active { border-color: var(--yellow); }
+.rd-node.rd-excluded { opacity: 0.2; border-color: var(--accent) !important; }
+.rd-node-title { font-family: var(--pixel); font-size: 6px; color: var(--yellow); margin-bottom: 4px; }
+.rd-node-desc { font-family: var(--ui); font-size: 10px; color: var(--dim); margin-bottom: 6px; line-height: 1.5; }
+.rd-btn {
+  width: 100%; background: none; border: 1px solid var(--cyan); color: var(--cyan);
+  font-family: var(--pixel); font-size: 5px; padding: 5px; cursor: pointer;
+}
+.rd-btn:hover:not(:disabled) { background: var(--cyan); color: #000; }
+.rd-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--dim); color: var(--dim); }
+.rd-node-excl-tag {
+  font-family: var(--pixel); font-size: 4px; color: var(--accent);
+  border: 1px solid var(--accent); padding: 1px 4px; display: inline-block; margin-bottom: 4px;
+}
+@media(max-width:600px) { .facility-grid { grid-template-columns: 1fr; } .rd-node { min-width: 140px; } }
+
+/* ========================
    DRIVERS PAGE
 ======================== */
 .drivers-layout {
@@ -643,6 +861,45 @@ body::after {
 }
 
 .livery-swatches { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px; }
+/* ---- LIVERY PICKER POPUP ---- */
+#livery-popup-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9100;
+  display:none;align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(4px);
+}
+#livery-popup-overlay.active { display:flex; }
+#livery-popup {
+  background:var(--panel);border:2px solid var(--border2);
+  max-width:440px;width:100%;
+  box-shadow:0 0 60px rgba(0,0,0,0.9);
+}
+.livery-popup-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:2px solid var(--border);
+  background:var(--panel2);
+}
+.livery-grid {
+  display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+  padding:18px;
+}
+.livery-tile {
+  aspect-ratio:1;border-radius:2px;cursor:pointer;
+  border:2px solid transparent;transition:transform 0.1s,border-color 0.15s;
+  position:relative;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:4px;
+}
+.livery-tile:hover { transform:scale(1.08); border-color:rgba(255,255,255,0.4); }
+.livery-tile.selected { border-color:#fff !important; box-shadow:0 0 12px rgba(255,255,255,0.3); }
+.livery-tile span {
+  font-family:var(--pixel);font-size:4px;color:rgba(255,255,255,0.7);
+  text-align:center;line-height:1.3;text-shadow:0 1px 3px #000;
+  pointer-events:none;
+}
+.livery-preview-strip {
+  height:6px;width:100%;
+  border-top:1px solid rgba(255,255,255,0.1);
+}
+
 .swatch {
   width: 32px; height: 32px; border: 3px solid transparent; cursor: pointer; box-shadow: 2px 2px 0 #000;
 }
@@ -1091,6 +1348,20 @@ body::after {
 #screen-simulation { background:#060612;flex-direction:column;height:100vh;overflow:hidden; }
 #screen-simulation.active { display:flex; }
 
+/* ---- MOBILE SIM LAYOUT ---- */
+@media(max-width:600px){
+  #sim-hud { padding:5px 8px !important; gap:5px !important; }
+  #sim-race-name-hud { display:none; }
+  #cam-samelap { display:none; }
+  #sim-cam-btns { gap:3px !important; }
+  .cam-btn { font-size:4px !important; padding:4px 5px !important; }
+  #sim-standings-left, #sim-standings-right { display:none !important; }
+  #sim-mobile-standings { display:flex !important; }
+  .ssc { height:22px !important; }
+  .ssc-name { font-size:9px !important; }
+  .ssc-sub { font-size:8px !important; }
+}
+
 
 
 
@@ -1106,7 +1377,7 @@ body::after {
   <div class="topbar">
     <div class="logo">▶ PROJECT GRAND PRIX</div>
     <div class="top-stats">
-      <div class="top-stat"><span class="val" id="dash-budget">$75.0M</span><span class="lbl">Budget</span></div>
+      <div class="top-stat"><span class="val" id="dash-budget">$50.0M</span><span class="lbl">Budget</span></div>
       <div class="top-stat"><span class="val" style="color:var(--yellow)">2ND</span><span class="lbl">Constructors</span></div>
       <div class="top-stat"><span class="val">374 PTS</span><span class="lbl">Points</span></div>
       <div class="top-stat"><span class="val" style="color:var(--purple)">72%</span><span class="lbl">Morale</span></div>
@@ -1132,20 +1403,20 @@ body::after {
       <div class="car-stage">
         <div class="car-label">APEX RACING — CAR #7</div>
         <svg class="car-svg" width="260" height="68" viewBox="0 0 260 68">
-          <rect x="40" y="26" width="170" height="18" fill="#dd0033"/>
-          <polygon points="210,28 248,34 210,40" fill="#cc0022"/>
-          <rect x="90" y="16" width="54" height="16" fill="#dd0033"/>
+          <rect id="dash-car-body" x="40" y="26" width="170" height="18" fill="#dd0033"/>
+          <polygon id="dash-car-nose" points="210,28 248,34 210,40" fill="#cc0022"/>
+          <rect id="dash-car-top" x="90" y="16" width="54" height="16" fill="#dd0033"/>
           <rect x="98" y="10" width="38" height="12" fill="#0a0a22"/>
           <rect x="10" y="14" width="28" height="5" fill="#eee"/>
           <rect x="14" y="19" width="20" height="16" fill="#2a2a4a"/>
           <rect x="220" y="40" width="30" height="4" fill="#eee"/>
-          <rect x="223" y="44" width="24" height="3" fill="#dd0033"/>
+          <rect id="dash-car-fw" x="223" y="44" width="24" height="3" fill="#dd0033"/>
           <rect x="158" y="42" width="24" height="16" rx="2" fill="#111"/>
           <rect x="161" y="44" width="18" height="12" rx="1" fill="#2a2a2a"/>
           <rect x="62" y="42" width="24" height="16" rx="2" fill="#111"/>
           <rect x="65" y="44" width="18" height="12" rx="1" fill="#2a2a2a"/>
-          <rect x="65" y="34" width="44" height="11" fill="#bb0028"/>
-          <rect x="138" y="34" width="38" height="11" fill="#bb0028"/>
+          <rect id="dash-car-pod-l" x="65" y="34" width="44" height="11" fill="#bb0028"/>
+          <rect id="dash-car-pod-r" x="138" y="34" width="38" height="11" fill="#bb0028"/>
           <rect x="102" y="9" width="4" height="9" fill="#555"/>
           <rect x="122" y="9" width="4" height="9" fill="#555"/>
           <rect x="102" y="9" width="24" height="4" fill="#555"/>
@@ -1154,7 +1425,7 @@ body::after {
           <line x1="0" y1="34" x2="22" y2="34" stroke="#ff3366" stroke-width="1.5" opacity="0.55"/>
           <line x1="0" y1="43" x2="26" y2="43" stroke="#ff3366" stroke-width="1" opacity="0.4"/>
         </svg>
-        <div class="car-sublabel">CRIMSON STRIKE LIVERY &nbsp;✦&nbsp; ENGINE 98% &nbsp;✦&nbsp; MEDIUMS</div>
+        <div class="car-sublabel" id="dash-car-sublabel">CRIMSON STRIKE LIVERY &nbsp;✦&nbsp; ENGINE 98% &nbsp;✦&nbsp; MEDIUMS</div>
         <div class="road"><div class="road-line"></div></div>
       </div>
       <div class="race-stats">
@@ -1203,7 +1474,7 @@ body::after {
       </div>
       <div class="px-box">
         <div class="sec-title">◼ FINANCES</div>
-        <div class="fin-row"><span class="fin-label">Budget</span><span class="fin-val pos" id="fin-budget">$75.0M</span></div>
+        <div class="fin-row"><span class="fin-label">Budget</span><span class="fin-val pos" id="fin-budget">$50.0M</span></div>
         <div class="fin-row"><span class="fin-label">Driver Salary</span><span class="fin-val neg" id="fin-salary">-$0.0M/yr</span></div>
         <div class="fin-row"><span class="fin-label">TV Deal</span><span class="fin-val pos">+$1.8M</span></div>
         <div class="fin-row"><span class="fin-label">Status</span><span class="fin-val neu" id="fin-status">SEASON 1 — RD.1</span></div>
@@ -1248,10 +1519,193 @@ body::after {
       <div class="hq-card-top" style="background:linear-gradient(135deg,#0a0a1a,#101040)">🔍</div>
       <div class="hq-card-body"><div class="hq-card-title">SCOUTING</div><div class="hq-card-desc">Academy prospects and free agent driver market</div></div>
     </div>
-    <div class="hq-card" onclick="go('dashboard')">
-      <div class="hq-card-top" style="background:linear-gradient(135deg,#1a0808,#300808)">📢</div>
-      <div class="hq-card-body"><div class="hq-card-title">MARKETING</div><div class="hq-card-desc">Social media, sponsorships and TV deal management</div></div>
+    <div class="hq-card" id="hq-card-marketing" onclick="go('marketing')" style="opacity:0.5;cursor:not-allowed;">
+      <div class="hq-card-top" style="background:linear-gradient(135deg,#1a0808,#300808)">📢🔒</div>
+      <div class="hq-card-body"><div class="hq-card-title">MARKETING 🔒</div><div class="hq-card-desc">Social media, sponsorships and TV deal management. <span style="color:var(--yellow)">Hire a Media Manager to unlock.</span></div></div>
     </div>
+    <div class="hq-card" onclick="go('manage')">
+      <div class="hq-card-top" style="background:linear-gradient(135deg,#0a1428,#142040)">🏢</div>
+      <div class="hq-card-body"><div class="hq-card-title">MANAGE TEAM</div><div class="hq-card-desc">Facility size, staff hiring, pit crew, engineers and mechanics</div></div>
+    </div>
+    <div class="hq-card" id="hq-card-rd" onclick="goToRD()" style="opacity:0.5;">
+      <div class="hq-card-top" style="background:linear-gradient(135deg,#0a1a1a,#0a2828)">🔬🔒</div>
+      <div class="hq-card-body"><div class="hq-card-title">R&amp;D 🔒</div><div class="hq-card-desc">Car development research tree. <span style="color:var(--yellow)">Hire engineers to unlock.</span></div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== MANAGE TEAM ===================== -->
+<div class="screen" id="screen-manage">
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="manage-season-badge">◼ S1 — RD.1</div></div>
+  <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
+  <div class="page-title">MANAGE TEAM</div>
+  <div class="page-subtitle" id="manage-subtitle">APEX RACING — Operations</div>
+
+  <div class="manage-tabs">
+    <button class="manage-tab active" id="mtab-facility"  onclick="switchManageTab('facility')">🏢 FACILITY</button>
+    <button class="manage-tab"        id="mtab-staff"     onclick="switchManageTab('staff')">👥 STAFF</button>
+    <button class="manage-tab"        id="mtab-expenses"  onclick="switchManageTab('expenses')">💸 EXPENSES</button>
+  </div>
+
+  <!-- FACILITY TAB -->
+  <div id="manage-tab-facility" class="manage-layout">
+    <div class="px-box" style="margin-bottom:14px;">
+      <div class="sec-title">CURRENT FACILITY</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:14px;">
+        <div style="font-size:2.5rem;" id="facility-icon">🏠</div>
+        <div>
+          <div style="font-family:var(--pixel);font-size:10px;color:var(--yellow)" id="facility-name-display">SMALL FACILITY</div>
+          <div style="font-family:var(--ui);font-size:12px;color:var(--dim);margin-top:4px" id="facility-desc-display">Up to 100 employees · $2M/season rent</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="font-family:var(--pixel);font-size:8px;color:var(--green)" id="facility-employees-display">0 / 100</div>
+          <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">EMPLOYEES</div>
+        </div>
+      </div>
+      <div style="height:6px;background:rgba(255,255,255,0.06);margin:0 14px 14px;">
+        <div id="facility-bar" style="height:6px;background:var(--green);transition:width 0.3s;width:0%;"></div>
+      </div>
+    </div>
+    <div class="facility-grid" id="facility-grid">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+
+  <!-- STAFF TAB -->
+  <div id="manage-tab-staff" class="manage-layout" style="display:none;">
+    <div class="px-box" style="margin-bottom:14px;padding:12px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-family:var(--pixel);font-size:7px;color:var(--dim)">TOTAL STAFF (EXCL. DRIVERS)</div>
+        <div style="font-family:var(--pixel);font-size:9px;color:var(--yellow)" id="staff-total-display">0 / 100</div>
+      </div>
+      <div style="height:5px;background:rgba(255,255,255,0.06);margin-top:8px;">
+        <div id="staff-capacity-bar" style="height:5px;background:var(--yellow);transition:width 0.3s;width:0%;"></div>
+      </div>
+    </div>
+    <div id="staff-categories">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+
+  <!-- EXPENSES TAB -->
+  <div id="manage-tab-expenses" class="manage-layout" style="display:none;">
+    <div class="px-box">
+      <div class="sec-title">SEASON COSTS (ANNUAL TOTALS)</div>
+      <div class="fin-row"><span class="fin-label">Facility Rent</span><span id="exp-rent" class="fin-val neg">-$2.0M/season</span></div>
+      <div class="fin-row"><span class="fin-label">Driver Salaries</span><span id="exp-salaries" class="fin-val neg">-$0.0M/season</span></div>
+      <div class="fin-row"><span class="fin-label">Staff Wages</span><span id="exp-wages" class="fin-val neg">-$0.0M/season</span></div>
+      <div class="fin-row" style="border-top:2px solid var(--border);font-weight:700"><span class="fin-label">TOTAL SEASON COST</span><span id="exp-total-season" class="fin-val neg">-$2.0M/season</span></div>
+    </div>
+    <div class="px-box" style="margin-top:12px;">
+      <div class="sec-title">DEDUCTED BEFORE EVERY RACE</div>
+      <div style="font-family:var(--ui);font-size:11px;color:var(--dim);padding:8px 14px 4px;line-height:1.6;">Wages &amp; salaries are paid in 20 equal instalments — one before each race. Travel costs are also charged per race.</div>
+      <div class="fin-row"><span class="fin-label">Wages instalment (÷20)</span><span id="exp-wages-race" class="fin-val neg">-$0.000M</span></div>
+      <div class="fin-row"><span class="fin-label">Driver salaries (÷20)</span><span id="exp-salaries-race" class="fin-val neg">-$0.000M</span></div>
+      <div class="fin-row"><span class="fin-label">Travel ($0.01M × headcount)</span><span id="exp-travel" class="fin-val neg">-$0.000M</span></div>
+      <div class="fin-row"><span class="fin-label">Staff headcount</span><span id="exp-headcount" style="color:var(--text);font-family:var(--ui);font-size:12px">4 people</span></div>
+      <div class="fin-row" style="border-top:2px solid var(--border);font-weight:700"><span class="fin-label">TOTAL COST / RACE</span><span id="exp-total-race" class="fin-val neg">-$0.000M</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== RESEARCH & DEVELOPMENT ===================== -->
+<div class="screen" id="screen-rd">
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="rd-season-badge">◼ S1 — RD.1</div></div>
+  <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
+  <div class="page-title">RESEARCH &amp; DEVELOPMENT</div>
+  <div class="page-subtitle" id="rd-subtitle">APEX RACING — Car Development</div>
+  <div class="rd-layout">
+    <div class="px-box" style="margin-bottom:14px;padding:12px 16px;">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+        <div>
+          <div style="font-family:var(--pixel);font-size:6px;color:var(--dim)">RESEARCH POINTS</div>
+          <div style="font-family:var(--pixel);font-size:13px;color:var(--cyan);margin-top:3px" id="rd-points-display">0 RP</div>
+        </div>
+        <div>
+          <div style="font-family:var(--pixel);font-size:6px;color:var(--dim)">ENGINEERS</div>
+          <div style="font-family:var(--pixel);font-size:13px;color:var(--green);margin-top:3px" id="rd-engineers-display">0</div>
+        </div>
+        <div>
+          <div style="font-family:var(--pixel);font-size:6px;color:var(--dim)">RP / RACE</div>
+          <div style="font-family:var(--pixel);font-size:13px;color:var(--yellow);margin-top:3px" id="rd-rpr-display">0</div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-family:var(--pixel);font-size:6px;color:var(--dim)">NODES COMPLETED</div>
+          <div style="font-family:var(--pixel);font-size:13px;color:var(--text);margin-top:3px" id="rd-progress-display">0 / 52</div>
+        </div>
+      </div>
+      <div style="font-family:var(--ui);font-size:11px;color:var(--dim);margin-top:8px;line-height:1.6;">
+        Each engineer generates <span style="color:var(--cyan)">1 RP/race</span>. Most upgrades cost <span style="color:var(--yellow)">20–500 RP</span>. 
+        Some branches are <span style="color:var(--accent)">mutually exclusive</span> — choosing one path locks others. 
+        Later tiers require significantly more investment.
+      </div>
+    </div>
+    <div class="rd-branches" id="rd-branches">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== MARKETING / SPONSORS ===================== -->
+<div class="screen" id="screen-marketing">
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="mkt-season-badge">◼ S1 — RD.1</div></div>
+  <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
+  <div class="page-title">MARKETING &amp; SPONSORS</div>
+  <div class="page-subtitle" id="mkt-subtitle">APEX RACING — Commercial Operations</div>
+
+  <div class="manage-tabs" style="padding:0 20px 16px;">
+    <button class="manage-tab active" id="mkt-tab-primary"   onclick="switchMktTab('primary')">🏎️ PRIMARY</button>
+    <button class="manage-tab"        id="mkt-tab-secondary" onclick="switchMktTab('secondary')">👤 SECONDARY</button>
+    <button class="manage-tab"        id="mkt-tab-alternate" onclick="switchMktTab('alternate')">🔷 ALTERNATE</button>
+    <button class="manage-tab"        id="mkt-tab-active"    onclick="switchMktTab('active')">📋 ACTIVE DEALS</button>
+  </div>
+
+  <!-- PRIMARY TAB -->
+  <div id="mkt-tab-content-primary" style="padding:0 20px 30px;">
+    <div class="px-box" style="margin-bottom:14px;padding:12px 16px;">
+      <div style="font-family:var(--pixel);font-size:7px;color:var(--yellow);margin-bottom:6px;">🏎️ PRIMARY SPONSORS — CAR LIVERY</div>
+      <div style="font-family:var(--ui);font-size:11px;color:var(--dim);line-height:1.7">
+        Primary sponsors feature prominently on your car. They pay a <span style="color:var(--green)">race bonus</span> for strong finishes
+        and a larger <span style="color:var(--yellow)">season-end bonus</span> based on your final championship position.
+        Long-term contracts unlock better terms as your team proves itself.
+      </div>
+    </div>
+    <div id="mkt-primary-slots" style="margin-bottom:16px;"></div>
+    <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);margin-bottom:10px;letter-spacing:1px;">AVAILABLE PRIMARY SPONSORS</div>
+    <div id="mkt-primary-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;"></div>
+  </div>
+
+  <!-- SECONDARY TAB -->
+  <div id="mkt-tab-content-secondary" style="padding:0 20px 30px;display:none;">
+    <div class="px-box" style="margin-bottom:14px;padding:12px 16px;">
+      <div style="font-family:var(--pixel);font-size:7px;color:var(--yellow);margin-bottom:6px;">👤 SECONDARY SPONSORS — DRIVER SUIT &amp; HELMET</div>
+      <div style="font-family:var(--ui);font-size:11px;color:var(--dim);line-height:1.7">
+        Secondary sponsors are tied to individual drivers — their following determines which sponsors are available.
+        A larger fanbase unlocks better-paying deals. These pay lower than primary but reward driver performance.
+      </div>
+    </div>
+    <div id="mkt-secondary-content"></div>
+  </div>
+
+  <!-- ALTERNATE TAB -->
+  <div id="mkt-tab-content-alternate" style="padding:0 20px 30px;display:none;">
+    <div class="px-box" style="margin-bottom:14px;padding:12px 16px;">
+      <div style="font-family:var(--pixel);font-size:7px;color:var(--yellow);margin-bottom:6px;">🔷 ALTERNATE SPONSORS — MISCELLANEOUS</div>
+      <div style="font-family:var(--ui);font-size:11px;color:var(--dim);line-height:1.7">
+        Alternate sponsors are smaller, short-term deals — paddock hoardings, hospitality branding, pit lane gear.
+        Lower pay, no performance incentives, but quick to sign and easy to renew.
+      </div>
+    </div>
+    <div id="mkt-alternate-slots" style="margin-bottom:16px;"></div>
+    <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);margin-bottom:10px;letter-spacing:1px;">AVAILABLE ALTERNATE SPONSORS</div>
+    <div id="mkt-alternate-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;"></div>
+  </div>
+
+  <!-- ACTIVE DEALS TAB -->
+  <div id="mkt-tab-content-active" style="padding:0 20px 30px;display:none;">
+    <div id="mkt-active-list"></div>
   </div>
 </div>
 
@@ -1262,7 +1716,7 @@ body::after {
   <!-- MARKET MODE -->
   <div id="drivers-market-view">
     <div class="page-title">DRIVER MARKET</div>
-    <div class="page-subtitle" id="drivers-subtitle">Sign two drivers for your roster — budget remaining: <span id="drivers-budget-display" style="color:var(--green)">$75.0M</span></div>
+    <div class="page-subtitle" id="drivers-subtitle">Sign two drivers for your roster — budget remaining: <span id="drivers-budget-display" style="color:var(--green)">$50.0M</span></div>
     <div style="display:flex;gap:12px;padding:0 20px 16px;flex-wrap:wrap;">
       <div id="slot-0" style="flex:1;min-width:200px;background:var(--panel);border:2px dashed var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;">
         <div style="font-family:var(--pixel);font-size:6px;color:var(--dim)">P1 SEAT</div>
@@ -1287,6 +1741,23 @@ body::after {
       <button style="margin-left:auto;background:none;border:1px solid var(--dim);color:var(--dim);font-family:var(--pixel);font-size:5px;padding:5px 10px;cursor:pointer;" onclick="go('drivers')">⬅ RELEASE A DRIVER</button>
     </div>
     <div id="driver-profile-content" style="padding:0 20px 30px;"></div>
+  </div>
+</div>
+
+<!-- ===================== LIVERY PICKER POPUP ===================== -->
+<div id="livery-popup-overlay" onclick="if(event.target===this)closeLiveryPicker()">
+  <div id="livery-popup">
+    <div class="livery-popup-header">
+      <div>
+        <div style="font-family:var(--pixel);font-size:8px;color:var(--yellow)">CHOOSE LIVERY</div>
+        <div style="font-family:var(--ui);font-size:11px;color:var(--dim);margin-top:3px">Select a colour for your car</div>
+      </div>
+      <button onclick="closeLiveryPicker()" style="background:none;border:1px solid var(--dim);color:var(--dim);font-family:var(--pixel);font-size:6px;padding:5px 9px;cursor:pointer;">✕ CLOSE</button>
+    </div>
+    <div id="livery-grid" class="livery-grid"></div>
+    <div style="padding:0 18px 16px;">
+      <button id="livery-confirm-btn" onclick="confirmLivery()" style="width:100%;background:var(--yellow);border:none;color:#000;font-family:var(--pixel);font-size:7px;padding:12px;cursor:pointer;letter-spacing:1px;">✓ CONFIRM LIVERY</button>
+    </div>
   </div>
 </div>
 
@@ -1321,6 +1792,23 @@ body::after {
   <div id="d-familiarity"></div><div id="d-injury"></div>
   <div id="drivers-trophy-box"></div><div id="drivers-trophy-list"></div>
 </div>
+<!-- ===================== LIVERY PICKER POPUP ===================== -->
+<div id="livery-popup-overlay" onclick="if(event.target===this)closeLiveryPicker()">
+  <div id="livery-popup">
+    <div class="livery-popup-header">
+      <div>
+        <div style="font-family:var(--pixel);font-size:8px;color:var(--yellow)">CHOOSE LIVERY</div>
+        <div style="font-family:var(--ui);font-size:11px;color:var(--dim);margin-top:3px">Select a colour for your car</div>
+      </div>
+      <button onclick="closeLiveryPicker()" style="background:none;border:1px solid var(--dim);color:var(--dim);font-family:var(--pixel);font-size:6px;padding:5px 9px;cursor:pointer;">✕ CLOSE</button>
+    </div>
+    <div id="livery-grid" class="livery-grid"></div>
+    <div style="padding:0 18px 16px;">
+      <button id="livery-confirm-btn" onclick="confirmLivery()" style="width:100%;background:var(--yellow);border:none;color:#000;font-family:var(--pixel);font-size:7px;padding:12px;cursor:pointer;letter-spacing:1px;">✓ CONFIRM LIVERY</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== CAR ===================== -->
 <div class="screen" id="screen-car">
   <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
@@ -1351,18 +1839,20 @@ body::after {
           <rect x="102" y="11" width="24" height="4" fill="#555"/>
           <text x="108" y="30" fill="#fff" font-family="monospace" font-size="10" font-weight="bold">7</text>
         </svg>
-        <div style="font-family:var(--ui);font-size:11px;color:var(--dim);z-index:1">LIVERY: CRIMSON STRIKE</div>
+        <div id="car-livery-label" style="font-family:var(--ui);font-size:11px;color:var(--dim);z-index:1">LIVERY: CRIMSON STRIKE</div>
         <div class="road" style="position:relative;width:100%;height:16px;margin-top:6px"></div>
       </div>
       <div class="px-box">
         <div class="sec-title">LIVERY COLOR</div>
-        <div class="livery-swatches">
-          <div class="swatch selected" style="background:#dd0033" onclick="paintCar('#dd0033','#bb0028','#cc0022',this)" title="Crimson Strike"></div>
-          <div class="swatch" style="background:#0055dd" onclick="paintCar('#0055dd','#0033bb','#0044cc',this)" title="Azure Bolt"></div>
-          <div class="swatch" style="background:#00aa44" onclick="paintCar('#00aa44','#008833','#009940',this)" title="Emerald Rush"></div>
-          <div class="swatch" style="background:#ff7700" onclick="paintCar('#ff7700','#cc5500','#ee6600',this)" title="Solar Flare"></div>
-          <div class="swatch" style="background:#8822cc" onclick="paintCar('#8822cc','#6611aa','#7700bb',this)" title="Violet Storm"></div>
-          <div class="swatch" style="background:#111122" onclick="paintCar('#111122','#0a0a18','#0d0d20',this)" title="Stealth Black"></div>
+        <div style="padding:10px 14px 14px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div id="livery-current-dot" style="width:28px;height:28px;border-radius:3px;background:#dd0033;border:2px solid rgba(255,255,255,0.2);flex-shrink:0;"></div>
+            <div>
+              <div id="livery-current-name" style="font-family:var(--pixel);font-size:7px;color:var(--text)">CRIMSON STRIKE</div>
+              <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-top:2px">APEX RACING LIVERY</div>
+            </div>
+          </div>
+          <button onclick="openLiveryPicker()" style="width:100%;background:none;border:2px solid var(--border2);color:var(--text);font-family:var(--pixel);font-size:6px;padding:10px;cursor:pointer;letter-spacing:1px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--yellow)'" onmouseout="this.style.borderColor='var(--border2)'">🎨 CHANGE LIVERY</button>
         </div>
       </div>
     </div>
@@ -1399,7 +1889,7 @@ body::after {
     <div class="grid-2">
       <div class="fin-big-card px-box">
         <div class="sec-title">TOTAL BUDGET</div>
-        <div class="fin-big-val" style="color:var(--green)" id="fin-budget-val">$75.0M</div>
+        <div class="fin-big-val" style="color:var(--green)" id="fin-budget-val">$50.0M</div>
         <div class="budget-bar-wrap">
           <div class="budget-bar-track">
             <div class="budget-bar-fill" id="fin-budget-bar-fill" style="width:100%"></div>
@@ -1410,27 +1900,53 @@ body::after {
       </div>
       <div class="fin-big-card px-box">
         <div class="sec-title">PROJECTED END OF SEASON</div>
-        <div class="fin-big-val" style="color:var(--yellow)">$31.2M</div>
-        <div style="font-family:var(--ui);font-size:11px;color:var(--dim);padding:0 12px 12px;letter-spacing:1px">IF CURRENT TREND CONTINUES</div>
+        <div style="padding:4px 12px 6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-family:var(--ui);font-size:11px;color:var(--dim)">If avg</span>
+          <select id="proj-position-select" onchange="updateProjection()"
+            style="background:var(--panel2);border:1px solid var(--border);color:var(--yellow);font-family:var(--pixel);font-size:6px;padding:4px 6px;cursor:pointer;">
+            <option value="current" selected>Current Pace</option>
+            <option value="1">P1</option>
+            <option value="2">P2</option>
+            <option value="3">P3</option>
+            <option value="5">P5</option>
+            <option value="10">P10</option>
+            <option value="field">Field avg</option>
+          </select>
+          <span style="font-family:var(--ui);font-size:11px;color:var(--dim)">for remaining races:</span>
+        </div>
+        <div class="fin-big-val" id="fin-proj-val" style="color:var(--yellow)">—</div>
+        <div style="font-family:var(--ui);font-size:10px;color:var(--dim);padding:2px 12px 4px;" id="fin-proj-breakdown">calculating...</div>
+        <div style="font-family:var(--pixel);font-size:5px;color:var(--dim);padding:0 12px 10px;letter-spacing:1px" id="fin-proj-races">— RACES REMAINING</div>
       </div>
     </div>
     <div class="grid-2">
       <div class="px-box">
-        <div class="sec-title">INCOME</div>
-        <div class="fin-row"><span class="fin-label">Prize Money</span><span class="fin-val pos">+$4.2M</span></div>
-        <div class="fin-row"><span class="fin-label">TV Deal</span><span class="fin-val pos">+$1.8M</span></div>
-        <div class="fin-row"><span class="fin-label">Sponsorships</span><span class="fin-val pos">+$6.5M</span></div>
-        <div class="fin-row"><span class="fin-label">Merchandise</span><span class="fin-val pos">+$0.9M</span></div>
-        <div class="fin-row"><span class="fin-label">Total In</span><span class="fin-val pos">+$13.4M</span></div>
+        <div class="sec-title">INCOME THIS SEASON</div>
+        <div class="fin-row"><span class="fin-label">Prize Money</span><span class="fin-val pos" id="fin-inc-prize">+$0.0M</span></div>
+        <div class="fin-row"><span class="fin-label">TV Deal</span><span class="fin-val pos" id="fin-inc-tv">+$0.0M</span></div>
+        <div class="fin-row"><span class="fin-label">Sponsorships</span><span class="fin-val pos" id="fin-inc-sponsors">+$0.0M</span></div>
+        <div class="fin-row"><span class="fin-label">Merchandise</span><span class="fin-val pos" id="fin-inc-merch">+$0.0M</span></div>
+        <div class="fin-row" style="border-top:1px solid var(--border)"><span class="fin-label">Total In</span><span class="fin-val pos" id="fin-inc-total">+$0.0M</span></div>
       </div>
       <div class="px-box">
-        <div class="sec-title">EXPENDITURE</div>
-        <div class="fin-row"><span class="fin-label">Driver Salary</span><span class="fin-val neg" id="fin-driver-salary">-$0.0M</span></div>
+        <div class="sec-title">EXPENDITURE THIS SEASON</div>
+        <div class="fin-row"><span class="fin-label">Driver Salaries</span><span class="fin-val neg" id="fin-driver-salary">-$0.0M</span></div>
         <div id="fin-driver-salary-breakdown" style="padding:0 12px 4px;"></div>
-        <div class="fin-row"><span class="fin-label">Facilities</span><span class="fin-val neg">-$3.1M</span></div>
-        <div class="fin-row"><span class="fin-label">Travel</span><span class="fin-val neg">-$1.4M</span></div>
-        <div class="fin-row"><span class="fin-label">Marketing</span><span class="fin-val neg">-$0.8M</span></div>
-        <div class="fin-row" id="fin-total-out-row"><span class="fin-label">Total Out</span><span class="fin-val neg" id="fin-total-out">-$5.3M</span></div>
+        <div class="fin-row"><span class="fin-label">Staff Wages</span><span class="fin-val neg" id="fin-exp-wages">-$0.0M</span></div>
+        <div class="fin-row"><span class="fin-label">Facility Rent</span><span class="fin-val neg" id="fin-exp-rent">-$0.0M</span></div>
+        <div class="fin-row"><span class="fin-label">Travel</span><span class="fin-val neg" id="fin-exp-travel">-$0.0M</span></div>
+        <div class="fin-row" style="border-top:1px solid var(--border)"><span class="fin-label">Total Out</span><span class="fin-val neg" id="fin-total-out">-$0.0M</span></div>
+      </div>
+    </div>
+    <!-- BUDGET GRAPH -->
+    <div class="px-box" style="padding:14px 16px 16px;">
+      <div class="sec-title" style="margin-bottom:10px;">BUDGET HISTORY</div>
+      <div id="fin-graph-empty" style="display:none;font-family:var(--ui);font-size:12px;color:var(--dim);text-align:center;padding:30px 0;">
+        Complete your first race to begin tracking budget history.
+      </div>
+      <div id="fin-graph-wrap" style="position:relative;">
+        <canvas id="fin-budget-canvas" style="width:100%;display:block;"></canvas>
+        <div id="fin-graph-tooltip" style="display:none;position:absolute;background:var(--panel2);border:1px solid var(--border);padding:6px 10px;pointer-events:none;z-index:10;"></div>
       </div>
     </div>
   </div>
@@ -1702,7 +2218,7 @@ body::after {
       <button class="cam-btn" id="cam-team" onclick="setCamera('team',this)">🔴 APEX</button>
       <button class="cam-btn" id="cam-driver" onclick="setCamera('driver',this)">👤 P<span id="cam-driver-rank">1</span></button>
       <button class="cam-btn" id="cam-action" onclick="setCamera('action',this)">📡 BROADCAST</button>
-      <button class="cam-same-lap-toggle" id="cam-samelap" title="Lap filter auto-follows camera">LAP FILTER: AUTO</button>
+      <button class="cam-same-lap-toggle" id="cam-samelap" onclick="toggleSameLap(this)" title="Toggle lap filter">LAP FILTER: ON</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div id="sim-speed-btns" style="display:none;gap:6px;align-items:center;">
@@ -1718,6 +2234,13 @@ body::after {
   </div>
 
   <!-- Main race area: left standings | canvas | right standings -->
+  <div style="display:flex;flex:1;overflow:hidden;min-height:0;flex-direction:column;">
+
+  <!-- Mobile standings bar (hidden on desktop) -->
+  <div id="sim-mobile-standings" style="display:none;flex-shrink:0;background:rgba(6,6,18,0.97);border-bottom:1px solid var(--border);overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:2px 4px;">
+    <div id="sim-mobile-stand-list" style="display:inline-flex;gap:4px;align-items:center;height:28px;"></div>
+  </div>
+
   <div style="display:flex;flex:1;overflow:hidden;min-height:0;">
     <!-- Left standings panel (P1-P10) -->
     <div id="sim-standings-left" style="width:150px;flex-shrink:0;background:rgba(6,6,18,0.95);border-right:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;">
@@ -1756,6 +2279,7 @@ body::after {
       <div id="sim-stand-right-list" style="flex:1;overflow:hidden;position:relative;"></div>
     </div>
   </div>
+  </div>
 </div>
 
 <!-- ===================== PODIUM SCREEN ===================== -->
@@ -1772,11 +2296,26 @@ body::after {
   </div>
 </div>
 
+<!-- ===================== STANDINGS POPUP ===================== -->
+<div id="standings-popup-overlay" onclick="if(event.target===this)closeStandingsPopup()">
+  <div id="standings-popup">
+    <div class="sp-header">
+      <div>
+        <div id="sp-title" style="font-family:var(--pixel);font-size:8px;color:var(--yellow)"></div>
+        <div id="sp-subtitle" style="font-family:var(--ui);font-size:11px;color:var(--dim);margin-top:3px"></div>
+      </div>
+      <button class="sp-close" onclick="closeStandingsPopup()">✕ CLOSE</button>
+    </div>
+    <div id="sp-body" style="padding:16px 0 8px;"></div>
+  </div>
+</div>
+
 <!-- ===================== STANDINGS ===================== -->
 <div class="screen" id="screen-standings">
   <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
   <button class="back-btn" onclick="go('dashboard')">◀ BACK TO DASHBOARD</button>
   <div class="page-title">STANDINGS</div>
+  <div style="font-family:var(--ui);font-size:11px;color:var(--dim);padding:0 20px 4px;letter-spacing:1px;">🔍 Click any row for detailed stats</div>
   <div style="display:flex;gap:8px;padding:0 20px 12px;">
     <button class="driver-tab active" id="stand-tab-con" onclick="switchStandingsTab('constructors')">🏗️ CONSTRUCTORS</button>
     <button class="driver-tab" id="stand-tab-drv" onclick="switchStandingsTab('drivers')">🪖 DRIVERS</button>
@@ -2182,8 +2721,10 @@ function newSave(slotIdx) {
   currentSeason = 1;
   currentRaceIdx = 0;
   trophies = [];
-  playerBudget = 75;
+  playerBudget = 50;
   signedDriverIds = [null, null];
+  initManageState();
+  initSponsorState();
   completedRaces = [];
   racerGridOrder = null;
   // Reset race history
@@ -2213,8 +2754,25 @@ function loadSave(slotIdx) {
       currentRaceIdx = d.raceIdx||0;
       currentSeason = d.season||1;
       trophies = d.trophies||[];
-      playerBudget = d.budget||75;
+      playerBudget = d.budget||50;
       signedDriverIds = d.signedDriverIds||[null,null];
+      if(d.facilityLevel !== undefined) facilityLevel = d.facilityLevel;
+      if(d.staffCounts)  staffCounts  = Object.assign({pitcrew:0,engineers:0,mechanics:0,media:0,analysts:0}, d.staffCounts);
+      if(d.rdCompleted)  rdCompleted  = d.rdCompleted;
+      if(d.rdPoints !== undefined) rdPoints = d.rdPoints;
+      if(d.rdBonuses)    rdBonuses    = Object.assign({topSpeed:0,downforce:0,cornering:0,pace:0,reliability:0,braking:0,pitSpeed:0,tyres:0}, d.rdBonuses);
+      if(d.activeSponsorDeals) activeSponsorDeals = d.activeSponsorDeals;
+      if(d.seasonIncome) seasonIncome = Object.assign({prize:0,tv:0,sponsors:0,merch:0,wages:0,rent:0,travel:0,salaries:0}, d.seasonIncome);
+      if(d.budgetHistory) budgetHistory = d.budgetHistory;
+      // Reapply R&D bonuses to TEAM_CAR_STATS
+      if(rdBonuses && TEAM_CAR_STATS && TEAM_CAR_STATS.apex) {
+        TEAM_CAR_STATS.apex.topSpeed    += rdBonuses.topSpeed||0;
+        TEAM_CAR_STATS.apex.downforce   += rdBonuses.downforce||0;
+        TEAM_CAR_STATS.apex.cornering   += rdBonuses.cornering||0;
+        TEAM_CAR_STATS.apex.pace        += rdBonuses.pace||0;
+        TEAM_CAR_STATS.apex.reliability += rdBonuses.reliability||0;
+        TEAM_CAR_STATS.apex.braking     += rdBonuses.braking||0;
+      }
       if(d.completedRaces) completedRaces = d.completedRaces;
     } catch(e) { console.warn('Save load error', e); }
   }
@@ -2254,7 +2812,9 @@ function saveGame() {
     budget: playerBudget,
     signedDriverIds,
     points: races.filter(r=>r.past).reduce((sum,r)=>sum+(r.points||0),0),
-    trophies, completedRaces: completedRaces.slice(-5)
+    trophies, completedRaces: completedRaces.slice(-5),
+    facilityLevel, staffCounts, rdCompleted, rdPoints, rdBonuses,
+    activeSponsorDeals, seasonIncome, budgetHistory
   };
   try { localStorage.setItem(`pgp_save_${currentSaveSlot}`, JSON.stringify(d)); } catch(e){}
 }
@@ -2332,6 +2892,9 @@ function go(screen){
   if(screen==='drivers') setTimeout(renderDriversPage, 0);
   if(screen==='standings') setTimeout(()=>{ switchStandingsTab(document.getElementById('stand-tab-drv')&&document.getElementById('stand-tab-drv').classList.contains('active')?'drivers':'constructors'); }, 0);
   if(screen==='finances') setTimeout(updateFinancesPage, 0);
+  if(screen==='manage')   setTimeout(renderManageScreen, 0);
+  if(screen==='rd')       setTimeout(renderRDScreen, 0);
+  if(screen==='marketing') setTimeout(renderMktScreen, 0);
 }
 
 // ========================
@@ -2588,6 +3151,1528 @@ const FREE_AGENTS = [
 
 // ========================
 // Build standings table dynamically
+// ========================
+// MANAGE TEAM — STATE
+// ========================
+
+const FACILITIES = [
+  { id:'small',    name:'SMALL FACILITY',    icon:'🏠', cap:100, rent:2.0,  desc:'Up to 100 employees',  unlockCost:0   },
+  { id:'medium',   name:'MEDIUM FACILITY',   icon:'🏗️', cap:250, rent:5.5,  desc:'Up to 250 employees',  unlockCost:75  },
+  { id:'large',    name:'LARGE FACILITY',    icon:'🏭', cap:500, rent:11.0, desc:'Up to 500 employees',  unlockCost:180 },
+  { id:'campus',   name:'TECH CAMPUS',       icon:'🏙️', cap:999, rent:22.0, desc:'Unlimited employees',  unlockCost:400 },
+];
+
+const STAFF_CATEGORIES = [
+  { id:'pitcrew',   label:'PIT CREW',       icon:'🔩', cap:10, wage:0.08, desc:'Faster pit stops. Larger crew reduces stop time and error rate.'   },
+  { id:'engineers', label:'ENGINEERS',      icon:'🛠️', cap:60, wage:0.12, desc:'Generate 1 R&D point per race each. Required to unlock R&D tree.' },
+  { id:'mechanics', label:'MECHANICS',      icon:'🔧', cap:15, wage:0.07, desc:'Improve car reliability and reduce DNF / component failure chance.' },
+  { id:'media',     label:'MEDIA MANAGERS', icon:'📢', cap:1,  wage:0.15, desc:'Unlock the Marketing tab. Boosts fan growth and TV deal value.'    },
+  { id:'analysts',  label:'DATA ANALYSTS',  icon:'📊', cap:10, wage:0.10, desc:'Improve qualifying pace through data-driven setup optimisation.'   },
+];
+// Fixed roles counted in total but not individually managed (1 Team Manager + 1 Chief Scout always present)
+const FIXED_STAFF = 2; // team manager + scout
+
+// R&D nodes
+// ========================
+// R&D TREE — 52 nodes across 5 branches
+// Cost scale: Tier1=20-35, Tier2=50-80, Tier3=100-150, Tier4=200-280, Tier5=350-500
+// Engineers cap at 60 (small facility). 60 eng × 20 races = 1200 RP/season.
+// Realistically: ~10-15 eng early = 200-300 RP/season. Deep nodes need 2+ seasons.
+// ========================
+const RD_BRANCHES = [
+  {
+    id: 'aero',
+    label: '💨 AERODYNAMICS',
+    color: '#38b8ff',
+    tiers: [
+      {
+        label: 'TIER 1 — FOUNDATIONS',
+        nodes: [
+          { id:'aero_fw1',   title:'FRONT WING ANGLE',    desc:'Adjusted front wing angle. Marginal downforce gain.',          cost:22,  effect:'downforce',  delta:1, requires:[] },
+          { id:'aero_rw1',   title:'REAR WING PROFILE',   desc:'New rear wing profile reduces drag slightly.',                 cost:20,  effect:'topSpeed',   delta:1, requires:[] },
+        ]
+      },
+      {
+        label: 'TIER 2 — DEVELOPMENT',
+        nodes: [
+          { id:'aero_fw2',   title:'FRONT WING VORTEX',   desc:'Vortex generators improve front end grip.',                   cost:55,  effect:'cornering',  delta:1, requires:['aero_fw1'] },
+          { id:'aero_rw2',   title:'DRS EFFICIENCY',      desc:'Optimised DRS actuation. Better top-speed gain.',             cost:52,  effect:'topSpeed',   delta:1, requires:['aero_rw1'] },
+          { id:'aero_floor1',title:'FLOOR SEAL',          desc:'Improved floor seal reduces ground-effect leakage.',          cost:58,  effect:'downforce',  delta:1, requires:['aero_fw1','aero_rw1'] },
+        ]
+      },
+      {
+        label: 'TIER 3 — ADVANCED AERO',
+        nodes: [
+          { id:'aero_barge1',title:'BARGEBOARDS V1',      desc:'New bargeboard configuration channels airflow to diffuser.',  cost:105, effect:'downforce',  delta:1, requires:['aero_floor1'] },
+          // Exclusive choice: Low-downforce vs High-downforce philosophy
+          { id:'aero_lo',    title:'LOW-DRAG CONCEPT',    desc:'Sacrifice downforce for straight-line speed. +2 Top Speed.',  cost:120, effect:'topSpeed',   delta:2, requires:['aero_fw2','aero_rw2'], excludes:['aero_hi'] },
+          { id:'aero_hi',    title:'HIGH-DOWNFORCE CONCEPT',desc:'Max downforce philosophy. +2 Cornering, +1 Downforce.',    cost:120, effect:'cornering',  delta:2, requires:['aero_fw2','aero_floor1'], excludes:['aero_lo'] },
+        ]
+      },
+      {
+        label: 'TIER 4 — SPECIALIST',
+        nodes: [
+          { id:'aero_barge2',title:'BARGEBOARDS V2',      desc:'Refined bargeboard package. Consistent high-speed stability.',cost:210, effect:'downforce',  delta:1, requires:['aero_barge1'] },
+          { id:'aero_lo2',   title:'DRAG REDUCTION PKG',  desc:'Full low-drag overhaul. Top-speed benchmark improves.',      cost:240, effect:'topSpeed',   delta:2, requires:['aero_lo'] },
+          { id:'aero_hi2',   title:'EXTREME DOWNFORCE',   desc:'Venturi tunnel upgrade. Massive corner entry improvement.',  cost:240, effect:'cornering',  delta:2, requires:['aero_hi'] },
+        ]
+      },
+      {
+        label: 'TIER 5 — CHAMPIONSHIP LEVEL',
+        nodes: [
+          { id:'aero_full',  title:'FULL AERO CONCEPT',   desc:'Complete car-wide aero philosophy locked in. +1 all aero stats.',cost:420, effect:'downforce',delta:1, requires:['aero_barge2'], extraEffects:[{effect:'topSpeed',delta:1},{effect:'cornering',delta:1}] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'power',
+    label: '⚡ POWERTRAIN',
+    color: '#ffaa00',
+    tiers: [
+      {
+        label: 'TIER 1 — FOUNDATIONS',
+        nodes: [
+          { id:'pw_map1',    title:'FUEL MAP V1',          desc:'Revised fuel mapping. Marginal power delivery improvement.',  cost:24,  effect:'pace',       delta:1, requires:[] },
+          { id:'pw_cool1',   title:'COOLING DUCT V1',      desc:'Improved cooling reduces engine heat stress.',               cost:20,  effect:'reliability',delta:1, requires:[] },
+        ]
+      },
+      {
+        label: 'TIER 2 — DEVELOPMENT',
+        nodes: [
+          { id:'pw_map2',    title:'FUEL MAP V2',          desc:'Second-gen fuel maps. Smoother power delivery.',             cost:54,  effect:'pace',       delta:1, requires:['pw_map1'] },
+          { id:'pw_cool2',   title:'COOLING DUCT V2',      desc:'Enhanced cooling allows more aggressive engine modes.',      cost:50,  effect:'reliability',delta:1, requires:['pw_cool1'] },
+          { id:'pw_exhaust1',title:'EXHAUST ROUTING',      desc:'Revised exhaust path improves rear diffuser efficiency.',   cost:60,  effect:'downforce',  delta:1, requires:['pw_map1'] },
+        ]
+      },
+      {
+        label: 'TIER 3 — POWER PHILOSOPHY',
+        nodes: [
+          // Exclusive choice: aggressive power vs smooth deployment
+          { id:'pw_aggr',    title:'AGGRESSIVE ENGINE MODE',desc:'Higher RPM ceiling. +2 Pace, risks reliability slightly.',  cost:110, effect:'pace',       delta:2, requires:['pw_map2'], excludes:['pw_effi'] },
+          { id:'pw_effi',    title:'EFFICIENCY ENGINE MODE',desc:'Optimised fuel burn. +1 Pace, +2 Reliability.',            cost:110, effect:'reliability',delta:2, requires:['pw_map2','pw_cool2'], excludes:['pw_aggr'] },
+          { id:'pw_hyb1',    title:'HYBRID DEPLOYMENT V1', desc:'Improved ERS deployment in corners. +1 Cornering.',         cost:100, effect:'cornering',  delta:1, requires:['pw_exhaust1'] },
+        ]
+      },
+      {
+        label: 'TIER 4 — SPECIALIST',
+        nodes: [
+          { id:'pw_aggr2',   title:'MAX ATTACK MODE',      desc:'Qualifying-mode engine power. Significant pace boost.',     cost:220, effect:'pace',       delta:2, requires:['pw_aggr'] },
+          { id:'pw_effi2',   title:'MARATHON RELIABILITY', desc:'Race-grade reliability upgrade. DNF chance drops.',         cost:220, effect:'reliability',delta:2, requires:['pw_effi'] },
+          { id:'pw_hyb2',    title:'HYBRID DEPLOYMENT V2', desc:'Full ERS harvest + deploy optimisation. +2 Cornering.',    cost:200, effect:'cornering',  delta:2, requires:['pw_hyb1'] },
+        ]
+      },
+      {
+        label: 'TIER 5 — CHAMPIONSHIP LEVEL',
+        nodes: [
+          { id:'pw_spec',    title:'POWER UNIT SPECIFICATION',desc:'New homologated PU spec. +1 Pace, +1 Reliability, +1 Cornering.',cost:450, effect:'pace',delta:1, requires:['pw_aggr2','pw_hyb2'], extraEffects:[{effect:'reliability',delta:1},{effect:'cornering',delta:1}] },
+          { id:'pw_spec2',   title:'ENDURANCE SPECIFICATION',desc:'Reliability-focused PU. +3 Reliability, +1 Pace.',       cost:450, effect:'reliability',delta:3, requires:['pw_effi2','pw_hyb2'], extraEffects:[{effect:'pace',delta:1}] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'chassis',
+    label: '🔩 CHASSIS & SUSPENSION',
+    color: '#00e87a',
+    tiers: [
+      {
+        label: 'TIER 1 — FOUNDATIONS',
+        nodes: [
+          { id:'ch_susp1',   title:'SUSPENSION GEOMETRY V1',desc:'Revised geometry improves tyre contact patch.',            cost:26,  effect:'cornering',  delta:1, requires:[] },
+          { id:'ch_floor1',  title:'FLOOR STIFFNESS',       desc:'Stiffer floor reduces flex under aero load.',             cost:22,  effect:'downforce',  delta:1, requires:[] },
+        ]
+      },
+      {
+        label: 'TIER 2 — DEVELOPMENT',
+        nodes: [
+          { id:'ch_susp2',   title:'SUSPENSION GEOMETRY V2',desc:'Second iteration. Improved mechanical grip.',             cost:58,  effect:'cornering',  delta:1, requires:['ch_susp1'] },
+          { id:'ch_floor2',  title:'FLOOR UNDERCUT',        desc:'Undercut reshaping boosts diffuser output.',              cost:55,  effect:'downforce',  delta:1, requires:['ch_floor1'] },
+          { id:'ch_weight1', title:'WEIGHT REDUCTION I',    desc:'Carbon fibre bodywork swap. Marginal mass saving.',       cost:62,  effect:'pace',       delta:1, requires:['ch_floor1'] },
+        ]
+      },
+      {
+        label: 'TIER 3 — HANDLING PHILOSOPHY',
+        nodes: [
+          // Exclusive: oversteery setup vs understeer/stable
+          { id:'ch_ovs',     title:'ROTATION-BIASED SETUP', desc:'Oversteer-prone setup. Higher ceiling for skilled drivers.',cost:115, effect:'cornering', delta:2, requires:['ch_susp2'], excludes:['ch_und'] },
+          { id:'ch_und',     title:'STABILITY-BIASED SETUP',desc:'Forgiving platform. Consistent tyre wear. +1 Tyres, +1 Cornering.',cost:115, effect:'tyres',delta:1, requires:['ch_susp2'], excludes:['ch_ovs'], extraEffects:[{effect:'cornering',delta:1}] },
+          { id:'ch_weight2', title:'WEIGHT REDUCTION II',   desc:'Structural optimisation. Further mass reduction.',        cost:108, effect:'pace',       delta:1, requires:['ch_weight1'] },
+        ]
+      },
+      {
+        label: 'TIER 4 — SPECIALIST',
+        nodes: [
+          { id:'ch_ovs2',    title:'AGGRESSIVE ROTATION PKG',desc:'Push-rod front suspension enables sharper turn-in.',     cost:230, effect:'cornering',  delta:2, requires:['ch_ovs'] },
+          { id:'ch_und2',    title:'PLATFORM STABILITY PKG', desc:'Pull-rod rear optimises consistent load transfer.',      cost:230, effect:'tyres',      delta:2, requires:['ch_und'] },
+          { id:'ch_weight3', title:'WEIGHT REDUCTION III',   desc:'Final structural lightening. Compliance with floor regulations.',cost:210, effect:'pace',delta:1, requires:['ch_weight2'] },
+        ]
+      },
+      {
+        label: 'TIER 5 — CHAMPIONSHIP LEVEL',
+        nodes: [
+          { id:'ch_concept', title:'NEW CHASSIS CONCEPT',   desc:'Ground-up redesigned monocoque. +2 Cornering, +1 Pace, +1 Downforce.',cost:480, effect:'cornering',delta:2, requires:['ch_floor2'], extraEffects:[{effect:'pace',delta:1},{effect:'downforce',delta:1}] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'brakes',
+    label: '🛑 BRAKES & TYRES',
+    color: '#ff6644',
+    tiers: [
+      {
+        label: 'TIER 1 — FOUNDATIONS',
+        nodes: [
+          { id:'br_duct1',   title:'BRAKE DUCT V1',         desc:'Improved brake duct cooling. Reduces fade under hard braking.',cost:22, effect:'braking', delta:1, requires:[] },
+          { id:'br_comp1',   title:'TYRE COMPOUND STUDY I', desc:'Engineers analyse compound data. +1 Tyre Management.',       cost:20, effect:'tyres',    delta:1, requires:[] },
+        ]
+      },
+      {
+        label: 'TIER 2 — DEVELOPMENT',
+        nodes: [
+          { id:'br_duct2',   title:'BRAKE DUCT V2',         desc:'Carbon composite brake ducts. Better airflow.',              cost:52, effect:'braking',  delta:1, requires:['br_duct1'] },
+          { id:'br_bias1',   title:'BRAKE BIAS MAP V1',     desc:'Driver-adjustable bias. +1 Braking, tactical improvement.',  cost:55, effect:'braking',  delta:1, requires:['br_duct1'] },
+          { id:'br_comp2',   title:'TYRE COMPOUND STUDY II',desc:'Deeper tyre model. Better pit timing and wear prediction.',  cost:58, effect:'tyres',    delta:1, requires:['br_comp1'] },
+        ]
+      },
+      {
+        label: 'TIER 3 — BRAKING PHILOSOPHY',
+        nodes: [
+          // Exclusive: late braking power vs tyre preservation
+          { id:'br_late',    title:'LATE-BRAKING PACKAGE',  desc:'Extreme braking stability. Big advantage under late braking.', cost:110, effect:'braking',delta:2, requires:['br_bias1'], excludes:['br_cons'] },
+          { id:'br_cons',    title:'CONSERVATIVE BRAKE PKG',desc:'Cooler brakes, longer life. Better tyre preservation overall.',cost:110, effect:'tyres',  delta:2, requires:['br_comp2'], excludes:['br_late'] },
+        ]
+      },
+      {
+        label: 'TIER 4 — SPECIALIST',
+        nodes: [
+          { id:'br_late2',   title:'MONO-BLOC CALIPER',     desc:'Single-piece caliper reduces weight and improves feel.',     cost:215, effect:'braking',  delta:2, requires:['br_late'] },
+          { id:'br_cons2',   title:'THERMAL TYRE BLANKET',  desc:'Enhanced pre-heat protocol. Tyres last longer per stint.',   cost:215, effect:'tyres',    delta:2, requires:['br_cons'] },
+          { id:'br_duct3',   title:'BRAKE DUCT V3',         desc:'Full carbon cooling system. Zero thermal performance loss.', cost:200, effect:'braking',  delta:1, requires:['br_duct2'] },
+        ]
+      },
+      {
+        label: 'TIER 5 — CHAMPIONSHIP LEVEL',
+        nodes: [
+          { id:'br_master',  title:'BRAKING MASTERY PKG',   desc:'Total braking system overhaul. +2 Braking, +2 Tyres.',      cost:400, effect:'braking',  delta:2, requires:['br_duct3'], extraEffects:[{effect:'tyres',delta:2}] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ops',
+    label: '📊 OPERATIONS & DATA',
+    color: '#cc99ff',
+    tiers: [
+      {
+        label: 'TIER 1 — FOUNDATIONS',
+        nodes: [
+          { id:'op_telem1',  title:'TELEMETRY BASELINE',    desc:'Basic telemetry suite installed. Data collection begins.',  cost:18,  effect:'tyres',    delta:1, requires:[] },
+          { id:'op_pit1',    title:'PIT STOP TRAINING V1',  desc:'Standardised drills. Marginal pit stop improvement.',      cost:20,  effect:'pitSpeed', delta:1, requires:[] },
+        ]
+      },
+      {
+        label: 'TIER 2 — DEVELOPMENT',
+        nodes: [
+          { id:'op_telem2',  title:'REAL-TIME TYRE MODEL',  desc:'Live tyre temperature and wear modelling during the race.',  cost:50, effect:'tyres',    delta:1, requires:['op_telem1'] },
+          { id:'op_pit2',    title:'PIT STOP TRAINING V2',  desc:'Specialist pit coach. Wheel gun crew upgraded.',            cost:52, effect:'pitSpeed', delta:1, requires:['op_pit1'] },
+          { id:'op_strat1',  title:'STRATEGY SIMULATION V1',desc:'Pre-race compound strategy modelling. Fewer calls gambles.', cost:55, effect:'tyres',   delta:1, requires:['op_telem1'] },
+        ]
+      },
+      {
+        label: 'TIER 3 — ANALYTICAL EDGE',
+        nodes: [
+          // Exclusive: pure pace data vs tyre longevity data
+          { id:'op_pace',    title:'PACE ANALYSIS DEPT',    desc:'Data team focused on raw lap time optimisation. +2 Pace.',  cost:100, effect:'pace',     delta:2, requires:['op_strat1'], excludes:['op_tyre'] },
+          { id:'op_tyre',    title:'TYRE LONGEVITY DEPT',   desc:'Data team focused on tyre modelling. +3 Tyre Management.',  cost:100, effect:'tyres',    delta:3, requires:['op_strat1'], excludes:['op_pace'] },
+          { id:'op_pit3',    title:'PIT STOP TRAINING V3',  desc:'Elite crew, target <2.5s stops. +2 Pit Speed.',            cost:105, effect:'pitSpeed', delta:2, requires:['op_pit2'] },
+        ]
+      },
+      {
+        label: 'TIER 4 — SPECIALIST',
+        nodes: [
+          { id:'op_pace2',   title:'SIMULATOR PROGRAMME',   desc:'Full-scale simulator. Driver setup time vastly reduced.',   cost:210, effect:'pace',     delta:1, requires:['op_pace'] },
+          { id:'op_tyre2',   title:'PREDICTIVE TYRE SYSTEM',desc:'AI-driven tyre prediction. Near-perfect stint management.', cost:210, effect:'tyres',   delta:2, requires:['op_tyre'] },
+          { id:'op_pit4',    title:'PIT STOP MASTERY',      desc:'World-class crew. Championship-contending pit times.',      cost:200, effect:'pitSpeed', delta:2, requires:['op_pit3'] },
+        ]
+      },
+      {
+        label: 'TIER 5 — CHAMPIONSHIP LEVEL',
+        nodes: [
+          { id:'op_command', title:'RACE COMMAND CENTRE',   desc:'Real-time multi-variable strategy system. +1 Pace, +2 Tyres, +1 Pit Speed.', cost:390, effect:'pace', delta:1, requires:['op_pace2','op_tyre2'], extraEffects:[{effect:'tyres',delta:2},{effect:'pitSpeed',delta:1}] },
+        ]
+      }
+    ]
+  }
+];
+
+// Flat lookup
+function getRdNode(id) {
+  for(const br of RD_BRANCHES) for(const tier of br.tiers) for(const n of tier.nodes) if(n.id===id) return n;
+  return null;
+}
+
+// All node IDs excluded by the currently completed set
+function getExcludedIds() {
+  const excl = new Set();
+  rdCompleted.forEach(id => {
+    const n = getRdNode(id);
+    if(n && n.excludes) n.excludes.forEach(e => excl.add(e));
+  });
+  return excl;
+}
+
+// Game state (initialised in initManageState, persisted in saveGame)
+let facilityLevel = 0; // index into FACILITIES
+let staffCounts   = { pitcrew:0, engineers:0, mechanics:0, media:0, analysts:0 };
+let rdCompleted   = []; // array of RD node ids completed
+let rdPoints      = 0;
+
+// Per-category stat bonuses applied to TEAM_CAR_STATS.apex
+let rdBonuses = { topSpeed:0, downforce:0, cornering:0, pace:0, reliability:0, braking:0, pitSpeed:0, tyres:0 };
+
+let seasonIncome  = { prize:0, tv:0, sponsors:0, merch:0, wages:0, rent:0, travel:0, salaries:0 };
+let budgetHistory = []; // [{race:1, label:'R1', budget:50.0, income:0, costs:0}]
+
+function initManageState() {
+  facilityLevel = 0;
+  staffCounts   = { pitcrew:0, engineers:0, mechanics:0, media:0, analysts:0 };
+  rdCompleted   = [];
+  rdPoints      = 0;
+  rdBonuses     = { topSpeed:0, downforce:0, cornering:0, pace:0, reliability:0, braking:0, pitSpeed:0, tyres:0 };
+  seasonIncome  = { prize:0, tv:0, sponsors:0, merch:0, wages:0, rent:0, travel:0, salaries:0 };
+  budgetHistory = [];
+}
+
+function getTotalStaff() {
+  // Hireable staff + 2 fixed (team manager + chief scout) + 2 drivers
+  return Object.values(staffCounts).reduce((a,b)=>a+b,0) + FIXED_STAFF + 2;
+}
+function getHireableStaff() {
+  return Object.values(staffCounts).reduce((a,b)=>a+b,0);
+}
+
+function getFacilityCap() {
+  return FACILITIES[facilityLevel].cap;
+}
+
+function getStaffWages() {
+  return STAFF_CATEGORIES.reduce((sum,cat) => sum + (staffCounts[cat.id]||0) * cat.wage, 0);
+}
+
+function getTravelCostPerRace() {
+  // getTotalStaff() already includes fixed staff (2) + drivers (2)
+  return getTotalStaff() * 0.01;
+}
+
+function checkUnlocks() {
+  // R&D tab
+  const hasEngineers = (staffCounts.engineers||0) >= 1;
+  const rdCard = document.getElementById('hq-card-rd');
+  if(rdCard) {
+    rdCard.style.opacity = hasEngineers ? '1' : '0.5';
+    rdCard.style.cursor  = hasEngineers ? 'pointer' : 'not-allowed';
+    const title = rdCard.querySelector('.hq-card-title');
+    if(title) title.textContent = hasEngineers ? 'R&D' : 'R&D 🔒';
+    const icon = rdCard.querySelector('.hq-card-top');
+    if(icon) icon.textContent = hasEngineers ? '🔬' : '🔬🔒';
+  }
+  // Marketing tab
+  const hasMedia = (staffCounts.media||0) >= 1;
+  const mktCard = document.getElementById('hq-card-marketing');
+  if(mktCard) {
+    mktCard.style.opacity = hasMedia ? '1' : '0.5';
+    mktCard.style.cursor  = hasMedia ? 'pointer' : 'not-allowed';
+    mktCard.onclick = hasMedia ? ()=>go('marketing') : null;
+    const title = mktCard.querySelector('.hq-card-title');
+    if(title) title.textContent = hasMedia ? 'MARKETING' : 'MARKETING 🔒';
+    const icon = mktCard.querySelector('.hq-card-top');
+    if(icon) icon.textContent = hasMedia ? '📢' : '📢🔒';
+  }
+}
+
+function goToRD() {
+  if((staffCounts.engineers||0) < 1) {
+    alert('You need at least 1 engineer before accessing R&D. Hire engineers in Manage Team → Staff.');
+    return;
+  }
+  go('rd');
+}
+
+// ---- MANAGE TEAM UI ----
+
+function switchManageTab(tab) {
+  ['facility','staff','expenses'].forEach(t => {
+    document.getElementById('manage-tab-'+t).style.display = t===tab ? '' : 'none';
+    const btn = document.getElementById('mtab-'+t);
+    if(btn) { btn.classList.toggle('active', t===tab); }
+  });
+  if(tab==='facility')  renderFacilityTab();
+  if(tab==='staff')     renderStaffTab();
+  if(tab==='expenses')  renderExpensesTab();
+}
+
+function renderFacilityTab() {
+  const fac = FACILITIES[facilityLevel];
+  document.getElementById('facility-icon').textContent         = fac.icon;
+  document.getElementById('facility-name-display').textContent  = fac.name;
+  document.getElementById('facility-desc-display').textContent  = fac.desc + ' · $' + fac.rent.toFixed(1) + 'M/season rent';
+  const staff = getTotalStaff();
+  const cap   = fac.cap;
+  const pct   = Math.min(100, Math.round(staff / cap * 100));
+  document.getElementById('facility-employees-display').textContent = staff + ' / ' + cap;
+  const bar = document.getElementById('facility-bar');
+  if(bar) { bar.style.width = pct + '%'; bar.style.background = pct>85?'var(--accent)':pct>60?'var(--yellow)':'var(--green)'; }
+
+  const grid = document.getElementById('facility-grid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  FACILITIES.forEach((f,i) => {
+    const current = i === facilityLevel;
+    const locked  = i > facilityLevel + 1 || (i > 0 && f.unlockCost > playerBudget);
+    const canUpgrade = i === facilityLevel + 1 && f.unlockCost <= playerBudget;
+    const card = document.createElement('div');
+    card.className = 'facility-card' + (current?' selected':'') + (locked&&!canUpgrade?' locked-card':'');
+    card.innerHTML = `
+      <div style="font-size:1.8rem;margin-bottom:8px">${f.icon}</div>
+      <div class="facility-name">${f.name}</div>
+      <div class="facility-stat"><span style="color:var(--dim)">Max Staff</span><span style="color:var(--text)">${f.cap === 999 ? 'Unlimited' : f.cap}</span></div>
+      <div class="facility-stat"><span style="color:var(--dim)">Rent</span><span style="color:var(--accent)">$${f.rent.toFixed(1)}M/season</span></div>
+      <div class="facility-stat"><span style="color:var(--dim)">Upgrade Cost</span><span style="color:${f.unlockCost===0?'var(--green)':'var(--yellow)'}">${f.unlockCost===0?'FREE':'$'+f.unlockCost+'M'}</span></div>
+      <div style="margin-top:10px;">
+        ${current
+          ? '<div style="font-family:var(--pixel);font-size:6px;color:var(--green);text-align:center;padding:6px 0">✓ CURRENT</div>'
+          : canUpgrade
+            ? '<button onclick="upgradeFacility('+i+')" style="width:100%;background:var(--yellow);border:none;color:#000;font-family:var(--pixel);font-size:5px;padding:8px;cursor:pointer;">UPGRADE — $'+f.unlockCost+'M</button>'
+            : i < facilityLevel
+              ? '<div style="font-family:var(--pixel);font-size:6px;color:var(--dim);text-align:center;padding:6px 0">PREVIOUS</div>'
+              : '<div style="font-family:var(--pixel);font-size:6px;color:var(--dim);text-align:center;padding:6px 0">🔒 UPGRADE FACILITY FIRST</div>'
+        }
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function upgradeFacility(idx) {
+  const f = FACILITIES[idx];
+  if(playerBudget < f.unlockCost) { alert('Not enough budget!'); return; }
+  if(idx !== facilityLevel + 1)   { alert('Must upgrade in order.'); return; }
+  playerBudget -= f.unlockCost;
+  facilityLevel = idx;
+  updateBudgetDisplay();
+  saveGame();
+  renderFacilityTab();
+}
+
+function renderStaffTab() {
+  const cap   = getFacilityCap();
+  const total = getTotalStaff();          // includes fixed + drivers
+  const hireable = getHireableStaff();
+  const pct   = Math.min(100, Math.round(total / cap * 100));
+  document.getElementById('staff-total-display').textContent = total + ' / ' + (cap === 999 ? '∞' : cap);
+  const bar = document.getElementById('staff-capacity-bar');
+  if(bar) { bar.style.width = pct + '%'; bar.style.background = pct>85?'var(--accent)':pct>60?'var(--yellow)':'var(--green)'; }
+
+  const container = document.getElementById('staff-categories');
+  if(!container) return;
+  container.innerHTML = '';
+
+  // Travel rate disclaimer banner
+  const banner = document.createElement('div');
+  banner.style.cssText = 'background:rgba(255,204,0,0.07);border:1px solid rgba(255,204,0,0.25);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;';
+  banner.innerHTML = `<span style="font-size:1.2rem">✈️</span><div style="font-family:var(--ui);font-size:11px;color:var(--dim);line-height:1.6;">
+    <span style="color:var(--yellow);font-family:var(--pixel);font-size:6px;">TRAVEL COSTS</span><br>
+    Every employee (including drivers, team manager &amp; scout) costs <span style="color:var(--yellow)">$0.01M per race</span> in travel expenses.
+    Currently <span style="color:var(--text)">${total} people</span> travelling = <span style="color:var(--accent)">$${(total * 0.01).toFixed(2)}M per race</span>.
+  </div>`;
+  container.appendChild(banner);
+
+  // Fixed-role info row
+  const fixedRow = document.createElement('div');
+  fixedRow.className = 'staff-category';
+  fixedRow.innerHTML = `
+    <div class="staff-cat-header">
+      <div>
+        <div class="staff-cat-title">📋 FIXED ROLES</div>
+        <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-top:2px">Always present — cannot be hired or fired</div>
+      </div>
+      <div class="staff-cat-count" style="color:var(--dim)">4</div>
+    </div>
+    <div class="staff-row">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.1rem">🏆</span>
+        <div><div style="font-family:var(--ui);font-size:12px">TEAM MANAGER</div><div style="font-family:var(--ui);font-size:10px;color:var(--dim)">Fixed role · counts toward facility cap</div></div>
+      </div>
+      <span style="font-family:var(--pixel);font-size:5px;color:var(--dim)">FIXED</span>
+    </div>
+    <div class="staff-row">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.1rem">🔍</span>
+        <div><div style="font-family:var(--ui);font-size:12px">CHIEF SCOUT</div><div style="font-family:var(--ui);font-size:10px;color:var(--dim)">Fixed role · counts toward facility cap</div></div>
+      </div>
+      <span style="font-family:var(--pixel);font-size:5px;color:var(--dim)">FIXED</span>
+    </div>
+    <div class="staff-row">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.1rem">🧑‍✈️</span>
+        <div><div style="font-family:var(--ui);font-size:12px">DRIVERS (×2)</div><div style="font-family:var(--ui);font-size:10px;color:var(--dim)">Managed in Drivers section · counts toward cap</div></div>
+      </div>
+      <span style="font-family:var(--pixel);font-size:5px;color:var(--dim)">FIXED</span>
+    </div>`;
+  container.appendChild(fixedRow);
+
+  // Hireable categories — stepper UI
+  STAFF_CATEGORIES.forEach(cat => {
+    const count    = staffCounts[cat.id] || 0;
+    const facCap   = getFacilityCap();
+    const roomLeft = facCap - total;          // slots free in facility
+    const catRoom  = cat.cap - count;         // slots free in this category
+    const canAdd   = Math.min(roomLeft, catRoom);
+    const pctFill  = Math.round(count / cat.cap * 100);
+    const fillCol  = pctFill >= 100 ? 'var(--accent)' : pctFill >= 70 ? 'var(--yellow)' : 'var(--green)';
+
+    const section = document.createElement('div');
+    section.className = 'staff-category';
+    section.innerHTML = `
+      <div class="staff-cat-header">
+        <div style="flex:1;">
+          <div class="staff-cat-title">${cat.icon} ${cat.label}</div>
+          <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-top:2px">${cat.desc}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="staff-cat-count" style="color:${fillCol}">${count} / ${cat.cap}</div>
+          <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">$${cat.wage.toFixed(2)}M/ea/yr</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px;">
+        <!-- fill bar -->
+        <div style="height:4px;background:rgba(255,255,255,0.07);margin-bottom:12px;">
+          <div style="height:4px;width:${pctFill}%;background:${fillCol};transition:width 0.3s;"></div>
+        </div>
+        <!-- stepper row -->
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-family:var(--ui);font-size:11px;color:var(--dim);flex:1;min-width:80px;">Adjust headcount:</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button onclick="fireStaff('${cat.id}',5)"  class="staff-fire-btn" ${count<5?'disabled style="opacity:.35;cursor:not-allowed"':''}>−5</button>
+            <button onclick="fireStaff('${cat.id}',1)"  class="staff-fire-btn" ${count<1?'disabled style="opacity:.35;cursor:not-allowed"':''}>−1</button>
+            <div style="font-family:var(--pixel);font-size:10px;color:var(--text);min-width:28px;text-align:center;">${count}</div>
+            <button onclick="hireStaff('${cat.id}',1)"  class="staff-hire-btn" ${canAdd<1?'disabled style="opacity:.35;cursor:not-allowed"':''}>+1</button>
+            <button onclick="hireStaff('${cat.id}',5)"  class="staff-hire-btn" ${canAdd<5?'disabled style="opacity:.35;cursor:not-allowed"':''}>+5</button>
+            <button onclick="hireStaff('${cat.id}',10)" class="staff-hire-btn" ${canAdd<10?'disabled style="opacity:.35;cursor:not-allowed"':''}>+10</button>
+          </div>
+        </div>
+        <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-top:7px;">
+          Total wages: <span style="color:var(--yellow)">$${(count * cat.wage).toFixed(2)}M/season</span>
+          · Max for this tier: <span style="color:var(--text)">${cat.cap}</span>
+        </div>
+      </div>`;
+    container.appendChild(section);
+  });
+}
+
+function hireStaff(catId, qty) {
+  qty = parseInt(qty) || 1;
+  const cat = STAFF_CATEGORIES.find(c=>c.id===catId);
+  if(!cat) return;
+  const total    = getTotalStaff();
+  const cap      = getFacilityCap();
+  const count    = staffCounts[catId] || 0;
+  const maxAdd   = Math.min(qty, cap - total, cat.cap - count);
+  if(maxAdd <= 0) {
+    if(total >= cap) alert('Facility is at capacity! Upgrade your facility first.');
+    else alert('Maximum ' + cat.label + ' reached for this facility tier.');
+    return;
+  }
+  const cost = cat.wage * maxAdd;
+  if(playerBudget < cost) { alert('Not enough budget! Need $' + cost.toFixed(2) + 'M'); return; }
+  playerBudget -= cost;
+  staffCounts[catId] = count + maxAdd;
+  updateBudgetDisplay();
+  checkUnlocks();
+  saveGame();
+  renderStaffTab();
+  renderExpensesTab();
+}
+
+function fireStaff(catId, qty) {
+  qty = parseInt(qty) || 1;
+  const count = staffCounts[catId] || 0;
+  if(count <= 0) return;
+  const removeQty = Math.min(qty, count);
+  if(!confirm('Dismiss ' + removeQty + ' ' + catId + '? Their wages will no longer be charged.')) return;
+  staffCounts[catId] = count - removeQty;
+  checkUnlocks();
+  saveGame();
+  renderStaffTab();
+  renderExpensesTab();
+}
+
+function renderExpensesTab() {
+  const fac  = FACILITIES[facilityLevel];
+  const drvSalary = signedDriverIds.reduce((sum,id) => {
+    if(id===null) return sum;
+    const fa = FREE_AGENTS[id];
+    return sum + (fa ? fa.salary : 0);
+  }, 0);
+  const wages       = getStaffWages();
+  const totalSeason = fac.rent + drvSalary + wages;
+  const travel      = getTravelCostPerRace();
+  const headcnt     = getTotalStaff();
+  const wagesRace   = wages / 20;
+  const salaryRace  = drvSalary / 20;
+  const totalRace   = wagesRace + salaryRace + travel;
+
+  document.getElementById('exp-rent').textContent          = '-$' + fac.rent.toFixed(1) + 'M/season';
+  document.getElementById('exp-salaries').textContent      = '-$' + drvSalary.toFixed(2) + 'M/season';
+  document.getElementById('exp-wages').textContent         = '-$' + wages.toFixed(2) + 'M/season';
+  document.getElementById('exp-total-season').textContent  = '-$' + totalSeason.toFixed(2) + 'M/season';
+  document.getElementById('exp-wages-race').textContent    = '-$' + wagesRace.toFixed(3) + 'M';
+  document.getElementById('exp-salaries-race').textContent = '-$' + salaryRace.toFixed(3) + 'M';
+  document.getElementById('exp-travel').textContent        = '-$' + travel.toFixed(3) + 'M';
+  document.getElementById('exp-headcount').textContent     = headcnt + ' people';
+  document.getElementById('exp-total-race').textContent    = '-$' + totalRace.toFixed(3) + 'M';
+}
+
+function renderManageScreen() {
+  checkUnlocks();
+  switchManageTab('facility');
+}
+
+// ---- R&D UI ----
+
+// Apply a node's stat effects to TEAM_CAR_STATS.apex
+function applyRdEffects(node) {
+  const STATS = TEAM_CAR_STATS.apex;
+  if(!STATS) return;
+  const applyOne = (eff, d) => {
+    if(eff==='topSpeed')    STATS.topSpeed    = Math.min(99, STATS.topSpeed    + d);
+    if(eff==='downforce')   STATS.downforce   = Math.min(99, STATS.downforce   + d);
+    if(eff==='cornering')   STATS.cornering   = Math.min(99, STATS.cornering   + d);
+    if(eff==='pace')        STATS.pace        = Math.min(99, STATS.pace        + d);
+    if(eff==='reliability') STATS.reliability = Math.min(99, STATS.reliability + d);
+    if(eff==='braking')     STATS.braking     = Math.min(99, STATS.braking     + d);
+    if(eff==='tyres')       {} // tracked in rdBonuses only
+    if(eff==='pitSpeed')    {} // tracked in rdBonuses only
+    // update rdBonuses tracker
+    if(rdBonuses[eff] !== undefined) rdBonuses[eff] += d;
+  };
+  applyOne(node.effect, node.delta);
+  if(node.extraEffects) node.extraEffects.forEach(e=>applyOne(e.effect, e.delta));
+}
+
+let _rdOpenBranches = { aero:true, power:false, chassis:false, brakes:false, ops:false };
+
+function toggleRdBranch(branchId) {
+  _rdOpenBranches[branchId] = !_rdOpenBranches[branchId];
+  renderRDScreen();
+}
+
+function renderRDScreen() {
+  const engCount = staffCounts.engineers || 0;
+  const totalNodes = RD_BRANCHES.reduce((s,b)=>s+b.tiers.reduce((ss,t)=>ss+t.nodes.length,0),0);
+  document.getElementById('rd-points-display').textContent    = rdPoints + ' RP';
+  document.getElementById('rd-engineers-display').textContent = engCount;
+  document.getElementById('rd-rpr-display').textContent       = engCount + ' RP';
+  document.getElementById('rd-progress-display').textContent  = rdCompleted.length + ' / ' + totalNodes;
+
+  const container = document.getElementById('rd-branches');
+  if(!container) return;
+  container.innerHTML = '';
+  const excluded = getExcludedIds();
+
+  RD_BRANCHES.forEach(branch => {
+    const open = !!_rdOpenBranches[branch.id];
+    // Count completed in this branch
+    const branchNodeIds = branch.tiers.flatMap(t=>t.nodes.map(n=>n.id));
+    const doneCount = branchNodeIds.filter(id=>rdCompleted.includes(id)).length;
+    const totalCount = branchNodeIds.length;
+
+    const branchDiv = document.createElement('div');
+    branchDiv.className = 'rd-branch';
+    branchDiv.style.setProperty('--bcol', branch.color);
+
+    const headerHTML = `<div class="rd-branch-header ${open?'open':''}" onclick="toggleRdBranch('${branch.id}')" style="border-color:${open?branch.color:'var(--border)'}">
+      <span class="rd-branch-label" style="color:${branch.color}">${branch.label}</span>
+      <span class="rd-branch-progress">${doneCount}/${totalCount} RESEARCHED</span>
+      <span class="rd-branch-chevron" style="color:${branch.color}">▶</span>
+    </div>`;
+
+    let bodyHTML = `<div class="rd-branch-body ${open?'open':''}" style="border-color:${branch.color}">`;
+    branch.tiers.forEach(tier => {
+      bodyHTML += `<div class="rd-tier"><div class="rd-tier-label">${tier.label}</div><div class="rd-tier-nodes">`;
+      tier.nodes.forEach(node => {
+        const done     = rdCompleted.includes(node.id);
+        const excl     = excluded.has(node.id);
+        const reqsMet  = node.requires.every(r => rdCompleted.includes(r));
+        const canAfford= rdPoints >= node.cost;
+        const available= reqsMet && !done && !excl;
+
+        let cls = 'rd-node';
+        if(done)  cls += ' rd-done';
+        else if(excl) cls += ' rd-excluded';
+        else if(!reqsMet) cls += ' rd-locked';
+        else if(canAfford) cls += ' rd-active';
+        else cls += ' rd-locked';
+
+        // Build requires label (pretty names)
+        const reqLabel = node.requires.length
+          ? node.requires.map(r=>{ const n2=getRdNode(r); return n2?n2.title:r; }).join(' + ')
+          : '';
+
+        // Exclusion tag
+        const exclLabel = node.excludes
+          ? node.excludes.map(e=>{ const n2=getRdNode(e); return n2?n2.title:e; }).join(' / ')
+          : '';
+
+        // Effect summary
+        const effects = [{effect:node.effect,delta:node.delta}, ...(node.extraEffects||[])];
+        const effectStr = effects.map(e=>`+${e.delta} ${e.effect.replace('topSpeed','Top Spd').replace('downforce','Downforce').replace('cornering','Cornering').replace('reliability','Reliability').replace('pitSpeed','Pit Spd').replace('pace','Pace').replace('tyres','Tyres')}`).join(', ');
+
+        bodyHTML += `<div class="${cls}">
+          ${exclLabel ? `<div class="rd-node-excl-tag">⚡ LOCKS: ${exclLabel}</div>` : ''}
+          <div class="rd-node-title">${node.title}</div>
+          <div class="rd-node-desc">${node.desc}</div>
+          <div style="font-family:var(--pixel);font-size:5px;color:${done?'var(--green)':'var(--cyan)'};margin-bottom:6px;">${effectStr}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-family:var(--pixel);font-size:6px;color:${canAfford&&available?'var(--yellow)':'var(--dim)'}">${node.cost} RP</span>
+            ${reqLabel && !done && !excl ? `<span style="font-family:var(--ui);font-size:9px;color:var(--dim)">Req: ${reqLabel}</span>` : ''}
+          </div>
+          ${done
+            ? `<div style="font-family:var(--pixel);font-size:5px;color:var(--green);text-align:center;padding:3px;">✓ RESEARCHED</div>`
+            : excl
+              ? `<div style="font-family:var(--pixel);font-size:5px;color:var(--accent);text-align:center;padding:3px;">✗ PATH LOCKED</div>`
+              : available
+                ? `<button class="rd-btn" ${canAfford?`onclick="purchaseRD('${node.id}')"`:'disabled'}>${canAfford?'RESEARCH — '+node.cost+' RP':'NEED '+node.cost+' RP'}</button>`
+                : `<div style="font-family:var(--pixel);font-size:5px;color:var(--dim);text-align:center;padding:3px;">🔒 PREREQ NEEDED</div>`
+          }
+        </div>`;
+      });
+      bodyHTML += `</div></div>`;
+    });
+    bodyHTML += `</div>`;
+
+    branchDiv.innerHTML = headerHTML + bodyHTML;
+    container.appendChild(branchDiv);
+  });
+}
+
+function purchaseRD(nodeId) {
+  const node = getRdNode(nodeId);
+  if(!node || rdCompleted.includes(nodeId)) return;
+  const excluded = getExcludedIds();
+  if(excluded.has(nodeId)) { alert('This upgrade path is locked by a previous choice.'); return; }
+  if(!node.requires.every(r=>rdCompleted.includes(r))) { alert('Prerequisites not met.'); return; }
+  if(rdPoints < node.cost) { alert('Not enough Research Points! Need '+node.cost+' RP, have '+rdPoints+' RP.'); return; }
+  rdPoints -= node.cost;
+  rdCompleted.push(nodeId);
+  applyRdEffects(node);
+  saveGame();
+  renderRDScreen();
+  // Update rd-points display immediately
+  const el = document.getElementById('rd-points-display');
+  if(el) el.textContent = rdPoints + ' RP';
+}
+
+// Award R&D points after each race (called from finishRace)
+function awardRdPoints() {
+  const eng = staffCounts.engineers || 0;
+  if(eng > 0) {
+    rdPoints += eng;
+    saveGame();
+  }
+}
+
+
+// ========================
+// SPONSOR SYSTEM
+// ========================
+
+// parseFans: "1.8M" -> 1.8, "0.6M" -> 0.6, "300K" -> 0.3
+function parseFans(s) {
+  if(!s) return 0;
+  s = String(s).toUpperCase().trim();
+  if(s.endsWith('M')) return parseFloat(s)*1;
+  if(s.endsWith('K')) return parseFloat(s)*0.001;
+  return parseFloat(s)||0;
+}
+
+// Fake SVG logo generator — unique per sponsor using brand colors
+function makeSponsorLogo(sp) {
+  const b = sp.logoColor, t = sp.logoText, fg = sp.logoFg||'#fff';
+  return `<div class="sponsor-logo" style="background:${b};color:${fg}">${t}</div>`;
+}
+
+// ── PRIMARY SPONSORS (car livery) ─────────────────────────────────────────────
+// Slots: teams can hold 1 PRIMARY at a time
+// raceBonus: per-finish-position array [P1..P10], seasonBonus: [P1..P5 champ]
+const PRIMARY_SPONSORS = [
+  {
+    id:'apex_fuel', name:'APEX FUEL CO.', tagline:'Power Every Lap',
+    logoColor:'#cc2200', logoFg:'#fff', logoText:'AFC',
+    tier:'primary', years:1,
+    signFee: 0.5,
+    raceBonus:  [0.12, 0.08, 0.06, 0.04, 0.03, 0.02, 0.01, 0.01, 0.0, 0.0],
+    seasonBonus:[2.0, 1.2, 0.8, 0.4, 0.2],
+    desc:'Fuel & lubricant supplier. Rewards race wins heavily.',
+    fanReq: 0,
+  },
+  {
+    id:'velocita', name:'VELOCITÀ', tagline:'Italian Performance',
+    logoColor:'#1a1a2e', logoFg:'#e8c84a', logoText:'VCT',
+    tier:'primary', years:2,
+    signFee: 1.0,
+    raceBonus:  [0.15, 0.10, 0.07, 0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.0],
+    seasonBonus:[3.5, 2.0, 1.2, 0.6, 0.3],
+    desc:'Luxury Italian automotive brand. Longer deal, bigger end-of-season payout.',
+    fanReq: 0,
+  },
+  {
+    id:'stratos_bank', name:'STRATOS BANK', tagline:'Build Your Future',
+    logoColor:'#0a3d7a', logoFg:'#fff', logoText:'STB',
+    tier:'primary', years:2,
+    signFee: 0.8,
+    raceBonus:  [0.10, 0.07, 0.05, 0.04, 0.03, 0.02, 0.01, 0.01, 0.0, 0.0],
+    seasonBonus:[2.8, 1.6, 0.9, 0.4, 0.2],
+    desc:'Financial services firm. Conservative pay, dependable over two seasons.',
+    fanReq: 0,
+  },
+  {
+    id:'nova_energy', name:'NOVA ENERGY', tagline:'Charge The Grid',
+    logoColor:'#ffaa00', logoFg:'#000', logoText:'NVE',
+    tier:'primary', years:1,
+    signFee: 0.3,
+    raceBonus:  [0.08, 0.05, 0.04, 0.03, 0.02, 0.01, 0.0, 0.0, 0.0, 0.0],
+    seasonBonus:[1.2, 0.7, 0.4, 0.2, 0.1],
+    desc:'Electric vehicle startup. Short commitment, moderate payouts.',
+    fanReq: 0,
+  },
+  {
+    id:'zenith_tech', name:'ZENITH TECH', tagline:'Engineering Tomorrow',
+    logoColor:'#00aacc', logoFg:'#fff', logoText:'ZTK',
+    tier:'primary', years:3,
+    signFee: 2.0,
+    raceBonus:  [0.20, 0.14, 0.10, 0.07, 0.05, 0.03, 0.02, 0.01, 0.01, 0.0],
+    seasonBonus:[5.0, 3.0, 1.8, 0.9, 0.5],
+    desc:'Global tech conglomerate. Premium deal — 3-year lock-in, top-tier bonuses.',
+    fanReq: 0,
+  },
+  {
+    id:'meridian_oil', name:'MERIDIAN OIL', tagline:'The Fuel of Champions',
+    logoColor:'#3d2200', logoFg:'#ffcc55', logoText:'MRD',
+    tier:'primary', years:2,
+    signFee: 1.2,
+    raceBonus:  [0.14, 0.09, 0.07, 0.05, 0.03, 0.02, 0.01, 0.01, 0.0, 0.0],
+    seasonBonus:[3.0, 1.8, 1.0, 0.5, 0.25],
+    desc:'Oil & energy giant. Solid mid-tier deal with strong end-of-year incentives.',
+    fanReq: 0,
+  },
+];
+
+// ── SECONDARY SPONSORS (driver-specific) ──────────────────────────────────────
+// Linked to a driver slot (0 or 1). fanReq in millions.
+const SECONDARY_SPONSORS = [
+  {
+    id:'blaze_wear', name:'BLAZE WEAR', tagline:'Race Day Apparel',
+    logoColor:'#cc4400', logoFg:'#fff', logoText:'BZW',
+    tier:'secondary', years:1,
+    signFee: 0.1,
+    basePay: 0.04, // per race
+    winBonus: 0.08, podiumBonus: 0.03,
+    seasonBonus:[0.4, 0.2, 0.1, 0.05, 0.02],
+    desc:'Sportswear brand. Helmet logo deal, performance-linked per-race fee.',
+    fanReq: 0,
+  },
+  {
+    id:'pulse_drinks', name:'PULSE DRINKS', tagline:'Energy Unleashed',
+    logoColor:'#00cc66', logoFg:'#fff', logoText:'PLS',
+    tier:'secondary', years:1,
+    signFee: 0.15,
+    basePay: 0.06,
+    winBonus: 0.12, podiumBonus: 0.05,
+    seasonBonus:[0.6, 0.35, 0.18, 0.08, 0.03],
+    desc:'Energy drink brand. Suit logo. Rewards race wins with solid bonuses.',
+    fanReq: 0.5,
+  },
+  {
+    id:'apex_watch', name:'APEX WATCH CO.', tagline:'Precision. Always.',
+    logoColor:'#1a1a1a', logoFg:'#d4aa44', logoText:'AWC',
+    tier:'secondary', years:2,
+    signFee: 0.5,
+    basePay: 0.10,
+    winBonus: 0.20, podiumBonus: 0.08,
+    seasonBonus:[1.2, 0.7, 0.4, 0.2, 0.1],
+    desc:'Luxury watch house. 2-year helmet branding. Premium pay for popular drivers.',
+    fanReq: 1.0,
+  },
+  {
+    id:'grid_mobile', name:'GRID MOBILE', tagline:'Stay Connected',
+    logoColor:'#0044bb', logoFg:'#fff', logoText:'GRM',
+    tier:'secondary', years:1,
+    signFee: 0.2,
+    basePay: 0.07,
+    winBonus: 0.14, podiumBonus: 0.05,
+    seasonBonus:[0.7, 0.4, 0.2, 0.1, 0.05],
+    desc:'Telecom brand. Suit arm logo. Good standard pay, moderate win bonuses.',
+    fanReq: 0.8,
+  },
+  {
+    id:'kronos_finance', name:'KRONOS FINANCE', tagline:'Your Money, Moving',
+    logoColor:'#2d0055', logoFg:'#cc99ff', logoText:'KRF',
+    tier:'secondary', years:2,
+    signFee: 0.8,
+    basePay: 0.14,
+    winBonus: 0.25, podiumBonus: 0.10,
+    seasonBonus:[1.8, 1.0, 0.6, 0.3, 0.15],
+    desc:'High-profile fintech firm. 2-year helmet deal. Requires a strong fanbase.',
+    fanReq: 1.5,
+  },
+  {
+    id:'starline_air', name:'STARLINE AIR', tagline:'Above the Competition',
+    logoColor:'#004488', logoFg:'#fff', logoText:'SLA',
+    tier:'secondary', years:3,
+    signFee: 2.0,
+    basePay: 0.22,
+    winBonus: 0.40, podiumBonus: 0.16,
+    seasonBonus:[3.0, 1.8, 1.0, 0.5, 0.25],
+    desc:'International airline. Premium 3-year deal. Only signs with high-profile drivers.',
+    fanReq: 2.5,
+  },
+];
+
+// ── ALTERNATE SPONSORS (misc) ─────────────────────────────────────────────────
+// Up to 3 alternate slots. Short commitments, flat race fees only.
+const ALTERNATE_SPONSORS = [
+  {
+    id:'pit_grub', name:'PIT GRUB', tagline:'Fuel Your Pit Stop',
+    logoColor:'#aa4400', logoFg:'#fff', logoText:'PG',
+    tier:'alternate', years:1, signFee:0,
+    racePay:0.01, desc:'Fast food chain. Paddock hoarding and hospitality branding.',
+    fanReq:0,
+  },
+  {
+    id:'trackside_tyres', name:'TRACKSIDE', tagline:'Grip. Every Corner.',
+    logoColor:'#222233', logoFg:'#66aaff', logoText:'TRS',
+    tier:'alternate', years:1, signFee:0,
+    racePay:0.015, desc:'Tyre accessories brand. Pit lane gear co-branding.',
+    fanReq:0,
+  },
+  {
+    id:'volt_power', name:'VOLT POWER', tagline:'Current Champions',
+    logoColor:'#ccaa00', logoFg:'#000', logoText:'VPW',
+    tier:'alternate', years:1, signFee:0,
+    racePay:0.02, desc:'Battery manufacturer. Minor branding, easy one-year deal.',
+    fanReq:0,
+  },
+  {
+    id:'circuit_cafe', name:'CIRCUIT CAFÉ', tagline:'Coffee at Every Corner',
+    logoColor:'#3d2200', logoFg:'#ffcc99', logoText:'CC',
+    tier:'alternate', years:1, signFee:0,
+    racePay:0.012, desc:'Paddock hospitality sponsor. Coffee brand. Low key.',
+    fanReq:0,
+  },
+  {
+    id:'overpass_media', name:'OVERPASS MEDIA', tagline:'Your Story. Our Screen.',
+    logoColor:'#330066', logoFg:'#cc99ff', logoText:'OPM',
+    tier:'alternate', years:2, signFee:0.1,
+    racePay:0.025, desc:'Digital media company. 2-year paddock branding deal.',
+    fanReq:0,
+  },
+  {
+    id:'torque_tools', name:'TORQUE TOOLS', tagline:'Built for the Track',
+    logoColor:'#334433', logoFg:'#aaffaa', logoText:'TQT',
+    tier:'alternate', years:1, signFee:0,
+    racePay:0.018, desc:'Hand tools manufacturer. Workshop and pit crew branding.',
+    fanReq:0,
+  },
+  {
+    id:'halo_optics', name:'HALO OPTICS', tagline:'See the Race',
+    logoColor:'#003344', logoFg:'#55ddff', logoText:'HLO',
+    tier:'alternate', years:1, signFee:0,
+    racePay:0.016, desc:'Eyewear brand. Pit lane crew glasses and branding.',
+    fanReq:0,
+  },
+  {
+    id:'apex_brakes', name:'APEX BRAKES', tagline:'Stop On A Dime',
+    logoColor:'#880000', logoFg:'#ffbbbb', logoText:'APB',
+    tier:'alternate', years:1, signFee:0,
+    racePay:0.022, desc:'Performance brake component brand. Rear wing logo placement.',
+    fanReq:0,
+  },
+];
+
+// ── SPONSOR STATE ─────────────────────────────────────────────────────────────
+// activeSponsorDeals: array of deal objects
+// { id, sponsorId, tier, driverSlot(secondary), yearsLeft, racesRemaining, totalEarned }
+let activeSponsorDeals = [];
+
+function initSponsorState() {
+  activeSponsorDeals = [];
+}
+
+function getSponsorById(id) {
+  return [...PRIMARY_SPONSORS, ...SECONDARY_SPONSORS, ...ALTERNATE_SPONSORS].find(s=>s.id===id);
+}
+
+function hasDeal(sponsorId) {
+  return activeSponsorDeals.some(d=>d.sponsorId===sponsorId);
+}
+
+function getDriverFans(slot) {
+  const d = drivers[slot];
+  return d ? parseFans(d.fans) : 0;
+}
+
+function signSponsor(sponsorId, driverSlot) {
+  const sp = getSponsorById(sponsorId);
+  if(!sp) return;
+  if(hasDeal(sponsorId)) { alert('Already signed with this sponsor!'); return; }
+
+  // Check fan requirement for secondary
+  if(sp.tier === 'secondary' && driverSlot !== undefined) {
+    const fans = getDriverFans(driverSlot);
+    if(fans < sp.fanReq) { alert('Driver does not have a large enough following for this deal.'); return; }
+  }
+
+  // Check slot limits
+  if(sp.tier === 'primary') {
+    const existing = activeSponsorDeals.filter(d=>d.tier==='primary');
+    if(existing.length >= 1) { alert('You already have a Primary sponsor. Release it first.'); return; }
+  }
+  if(sp.tier === 'secondary') {
+    const existing = activeSponsorDeals.filter(d=>d.tier==='secondary' && d.driverSlot===driverSlot);
+    if(existing.length >= 1) { alert('This driver already has a Secondary sponsor.'); return; }
+  }
+  if(sp.tier === 'alternate') {
+    const existing = activeSponsorDeals.filter(d=>d.tier==='alternate');
+    if(existing.length >= 3) { alert('Maximum 3 Alternate sponsors. Release one first.'); return; }
+  }
+
+  // Deduct sign fee
+  if(sp.signFee > 0) {
+    if(playerBudget < sp.signFee) { alert('Not enough budget for signing fee ($'+sp.signFee+'M).'); return; }
+    playerBudget -= sp.signFee;
+    updateBudgetDisplay();
+  }
+
+  const totalRaces = sp.years * 20;
+  activeSponsorDeals.push({
+    sponsorId, tier: sp.tier,
+    driverSlot: sp.tier==='secondary' ? driverSlot : undefined,
+    yearsLeft: sp.years, racesLeft: totalRaces,
+    totalEarned: 0,
+  });
+  saveGame();
+  renderMktScreen();
+}
+
+function getBuyoutCost(deal) {
+  const sp = getSponsorById(deal.sponsorId);
+  if(!sp) return 0;
+  // Buyout = remaining races × per-race average value × 0.75 penalty multiplier
+  let perRace = 0;
+  if(sp.tier === 'primary')   perRace = sp.raceBonus[4] || 0.03;   // use P5 as "avg"
+  if(sp.tier === 'secondary') perRace = sp.basePay || 0.04;
+  if(sp.tier === 'alternate') perRace = sp.racePay || 0.015;
+  const buyout = perRace * deal.racesLeft * 0.75;
+  return Math.max(0.10, Math.round(buyout * 100) / 100);
+}
+
+function releaseSponsor(sponsorId) {
+  const deal = activeSponsorDeals.find(d => d.sponsorId === sponsorId);
+  if(!deal) return;
+  const sp = getSponsorById(sponsorId);
+  if(!sp) return;
+
+  const totalRaces = sp.years * 20;
+  const racesServed = totalRaces - deal.racesLeft;
+  const pctDone = Math.round(racesServed / totalRaces * 100);
+
+  // No buyout needed if deal is essentially complete
+  if(deal.racesLeft <= 0) {
+    activeSponsorDeals = activeSponsorDeals.filter(d => d.sponsorId !== sponsorId);
+    saveGame(); renderMktScreen(); return;
+  }
+
+  const buyout = getBuyoutCost(deal);
+  const canAfford = playerBudget >= buyout;
+
+  // Show custom buyout confirmation overlay
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML = `
+    <div style="background:var(--panel);border:2px solid var(--accent);padding:28px 32px;max-width:380px;width:90%;box-shadow:8px 8px 0 #000;">
+      <div style="font-family:var(--pixel);font-size:9px;color:var(--accent);margin-bottom:12px;">⚠ SPONSOR BUYOUT CLAUSE</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        ${makeSponsorLogo(sp)}
+        <div>
+          <div style="font-family:var(--pixel);font-size:7px;color:var(--yellow)">${sp.name}</div>
+          <div style="font-family:var(--ui);font-size:11px;color:var(--dim)">${deal.tier.toUpperCase()} DEAL</div>
+        </div>
+      </div>
+      <div style="font-family:var(--ui);font-size:12px;color:var(--text);line-height:1.7;margin-bottom:10px;">
+        This deal has <span style="color:var(--yellow)">${deal.racesLeft} races</span> remaining (${pctDone}% complete).<br>
+        Early termination requires paying a <span style="color:var(--accent)">buyout fee</span> to the sponsor.
+      </div>
+      <div style="background:var(--panel2);border:1px solid var(--border);padding:12px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;font-family:var(--ui);font-size:11px;margin-bottom:4px;">
+          <span style="color:var(--dim)">Races remaining</span>
+          <span style="color:var(--text)">${deal.racesLeft} races</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--ui);font-size:11px;margin-bottom:4px;">
+          <span style="color:var(--dim)">Earnings so far</span>
+          <span style="color:var(--green)">+$${deal.totalEarned.toFixed(2)}M</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--pixel);font-size:7px;border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+          <span style="color:var(--accent)">BUYOUT FEE</span>
+          <span style="color:var(--accent)">-$${buyout.toFixed(2)}M</span>
+        </div>
+      </div>
+      ${!canAfford ? `<div style="font-family:var(--pixel);font-size:5px;color:var(--accent);margin-bottom:10px;text-align:center;">⚠ INSUFFICIENT FUNDS — NEED $${buyout.toFixed(2)}M</div>` : ''}
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('div[style*=fixed]').remove()"
+          style="flex:1;background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--pixel);font-size:5px;padding:9px;cursor:pointer;">
+          KEEP DEAL
+        </button>
+        <button ${!canAfford?'disabled':''} onclick="confirmReleaseSponsor('${sponsorId}',${buyout});this.closest('div[style*=fixed]').remove();"
+          style="flex:1;background:${canAfford?'var(--accent)':'var(--border)'};border:none;color:${canAfford?'#fff':'var(--dim)'};font-family:var(--pixel);font-size:5px;padding:9px;cursor:${canAfford?'pointer':'not-allowed'};">
+          PAY $${buyout.toFixed(2)}M &amp; RELEASE
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+function confirmReleaseSponsor(sponsorId, buyoutCost) {
+  playerBudget -= buyoutCost;
+  updateBudgetDisplay();
+  activeSponsorDeals = activeSponsorDeals.filter(d => d.sponsorId !== sponsorId);
+  saveGame();
+  renderMktScreen();
+}
+
+// Called from endRace — pay out per-race bonuses
+function processSponsorRacePayouts(finishPos) {
+  let total = 0;
+  activeSponsorDeals.forEach(deal => {
+    const sp = getSponsorById(deal.sponsorId);
+    if(!sp || deal.racesLeft <= 0) return;
+    let pay = 0;
+    if(sp.tier === 'primary') {
+      const idx = Math.min(finishPos-1, sp.raceBonus.length-1);
+      pay = (sp.raceBonus[idx]||0);
+    } else if(sp.tier === 'secondary') {
+      // Use best driver position if not driver-specific finish tracked
+      pay = sp.basePay;
+      if(finishPos === 1) pay += sp.winBonus;
+      else if(finishPos <= 3) pay += sp.podiumBonus;
+    } else if(sp.tier === 'alternate') {
+      pay = sp.racePay;
+    }
+    playerBudget += pay;
+    deal.totalEarned += pay;
+    deal.racesLeft = Math.max(0, deal.racesLeft - 1);
+    total += pay;
+  });
+  // Remove expired deals
+  activeSponsorDeals = activeSponsorDeals.filter(d=>d.racesLeft>0);
+  if(total > 0) {
+    seasonIncome.sponsors = (seasonIncome.sponsors||0) + total;
+    updateBudgetDisplay(); saveGame();
+  }
+  return total;
+}
+
+// Called from checkSeasonEnd — season-end championship position bonus
+function processSponsorSeasonPayouts(champPos) {
+  let total = 0;
+  activeSponsorDeals.forEach(deal => {
+    const sp = getSponsorById(deal.sponsorId);
+    if(!sp || !sp.seasonBonus) return;
+    const idx = Math.min((champPos||10)-1, sp.seasonBonus.length-1);
+    const pay = sp.seasonBonus[idx]||0;
+    playerBudget += pay;
+    deal.totalEarned += pay;
+    total += pay;
+    deal.yearsLeft = Math.max(0, deal.yearsLeft-1);
+  });
+  if(total > 0) { updateBudgetDisplay(); saveGame(); }
+  return total;
+}
+
+// ── MARKETING SCREEN RENDER ───────────────────────────────────────────────────
+
+function switchMktTab(tab) {
+  ['primary','secondary','alternate','active'].forEach(t => {
+    document.getElementById('mkt-tab-content-'+t).style.display = t===tab?'':'none';
+    const btn = document.getElementById('mkt-tab-'+t);
+    if(btn) btn.classList.toggle('active', t===tab);
+  });
+  if(tab==='primary')   renderMktPrimary();
+  if(tab==='secondary') renderMktSecondary();
+  if(tab==='alternate') renderMktAlternate();
+  if(tab==='active')    renderMktActive();
+}
+
+function renderMktScreen() {
+  // Update season badge
+  const sb = document.getElementById('mkt-season-badge');
+  if(sb) sb.textContent = '◼ S'+currentSeason+' — RD.'+(currentRaceIdx+1);
+  // Determine active tab
+  const tabs = ['primary','secondary','alternate','active'];
+  const activeTab = tabs.find(t => {
+    const el = document.getElementById('mkt-tab-content-'+t);
+    return el && el.style.display !== 'none';
+  }) || 'primary';
+  switchMktTab(activeTab);
+}
+
+function sponsorCardHTML(sp, signed, canSign, driverSlot) {
+  const lockedFan = sp.fanReq > 0 && sp.tier==='secondary' && driverSlot!==undefined && getDriverFans(driverSlot) < sp.fanReq;
+  const earnedDeal = activeSponsorDeals.find(d=>d.sponsorId===sp.id);
+  const racesLeft  = earnedDeal ? earnedDeal.racesLeft : '—';
+  const totalEarned= earnedDeal ? '$'+earnedDeal.totalEarned.toFixed(2)+'M' : '—';
+  let badge = '';
+  if(sp.tier==='primary')   badge = '<span class="sponsor-badge badge-p">PRIMARY</span>';
+  if(sp.tier==='secondary') badge = '<span class="sponsor-badge badge-s">SECONDARY</span>';
+  if(sp.tier==='alternate') badge = '<span class="sponsor-badge badge-a">ALTERNATE</span>';
+
+  let payLine = '';
+  if(sp.tier==='primary') {
+    payLine = `P1: +$${sp.raceBonus[0].toFixed(2)}M &nbsp;|&nbsp; P3: +$${sp.raceBonus[2].toFixed(2)}M &nbsp;|&nbsp; P10: +$${(sp.raceBonus[9]||0).toFixed(2)}M`;
+  } else if(sp.tier==='secondary') {
+    payLine = `Base: $${sp.basePay.toFixed(2)}M/race &nbsp;|&nbsp; Win: +$${sp.winBonus.toFixed(2)}M &nbsp;|&nbsp; Podium: +$${sp.podiumBonus.toFixed(2)}M`;
+  } else {
+    payLine = `Flat: $${sp.racePay.toFixed(3)}M/race`;
+  }
+
+  const btnLabel = signed ? 'ACTIVE ✓' : lockedFan ? `🔒 NEED ${sp.fanReq}M FANS` : canSign ? (sp.signFee>0?`SIGN — $${sp.signFee}M FEE`:'SIGN DEAL') : 'SLOT FULL';
+  const btnDisabled = signed || lockedFan || !canSign;
+
+  const onclickAttr = !btnDisabled
+    ? (sp.tier==='secondary'
+        ? `onclick="signSponsor('${sp.id}',${driverSlot})"`
+        : `onclick="signSponsor('${sp.id}')"`)
+    : '';
+
+  return `<div class="sponsor-card ${signed?'signed':''} ${(!canSign&&!signed)||lockedFan?'unavailable':''}">
+    <div class="sponsor-logo-bar">
+      ${makeSponsorLogo(sp)}
+      <div>
+        <div class="sponsor-name">${sp.name}</div>
+        <div class="sponsor-tagline">${sp.tagline}</div>
+      </div>
+      <div style="margin-left:auto">${badge}</div>
+    </div>
+    <div class="sponsor-body">
+      <div style="font-family:var(--ui);font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">${sp.desc}</div>
+      <div class="sponsor-stat-row"><span class="sponsor-stat-label">Term</span><span class="sponsor-stat-val">${sp.years} yr${sp.years>1?'s':''} (${sp.years*20} races)</span></div>
+      <div class="sponsor-stat-row"><span class="sponsor-stat-label">Sign Fee</span><span class="sponsor-stat-val" style="color:${sp.signFee>0?'var(--accent)':'var(--green)'}">${sp.signFee>0?'-$'+sp.signFee+'M':'FREE'}</span></div>
+      <div class="sponsor-stat-row"><span class="sponsor-stat-label">Race Pay</span><span class="sponsor-stat-val" style="color:var(--green);font-size:10px">${payLine}</span></div>
+      <div class="sponsor-stat-row"><span class="sponsor-stat-label">Season Bonus (P1)</span><span class="sponsor-stat-val" style="color:var(--yellow)">+$${(sp.seasonBonus?sp.seasonBonus[0]:0).toFixed(2)}M</span></div>
+      ${sp.fanReq > 0 ? `<div class="sponsor-stat-row"><span class="sponsor-stat-label">Fan Requirement</span><span class="sponsor-stat-val" style="color:${lockedFan?'var(--accent)':'var(--green)'}">${sp.fanReq}M ${lockedFan?'🔒':'✓'}</span></div>` : ''}
+      ${signed ? `<div class="sponsor-stat-row"><span class="sponsor-stat-label">Races Left</span><span class="sponsor-stat-val">${racesLeft}</span></div>` : ''}
+      ${signed ? `<div class="sponsor-stat-row"><span class="sponsor-stat-label">Total Earned</span><span class="sponsor-stat-val" style="color:var(--green)">${totalEarned}</span></div>` : ''}
+      <button class="sponsor-sign-btn" ${btnDisabled?'disabled':onclickAttr}>${btnLabel}</button>
+      ${signed ? `<button style="width:100%;margin-top:4px;padding:5px;cursor:pointer;font-family:var(--pixel);font-size:5px;background:none;border:1px solid var(--dim);color:var(--dim);" onclick="releaseSponsor('${sp.id}')">RELEASE DEAL</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderMktPrimary() {
+  const grid = document.getElementById('mkt-primary-grid');
+  const slots = document.getElementById('mkt-primary-slots');
+  if(!grid || !slots) return;
+  const deal = activeSponsorDeals.find(d=>d.tier==='primary');
+  const hasSlot = !deal;
+  slots.innerHTML = `<div class="slot-box ${deal?'filled':''}" style="margin-bottom:14px;">
+    <span style="font-size:1.3rem">${deal?'🏎️':'⬜'}</span>
+    <div>
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim)">PRIMARY SPONSOR SLOT</div>
+      <div style="font-family:var(--ui);font-size:12px;color:${deal?'var(--green)':'rgba(112,120,184,0.5)'}">
+        ${deal ? getSponsorById(deal.sponsorId).name+' — '+deal.racesLeft+' races left' : 'Empty — sign a primary sponsor below'}
+      </div>
+    </div>
+  </div>`;
+  grid.innerHTML = PRIMARY_SPONSORS.map(sp => {
+    const signed = hasDeal(sp.id);
+    const canSign = hasSlot || signed;
+    return sponsorCardHTML(sp, signed, canSign);
+  }).join('');
+}
+
+function renderMktSecondary() {
+  const container = document.getElementById('mkt-secondary-content');
+  if(!container) return;
+  container.innerHTML = '';
+  [0,1].forEach(slot => {
+    const d = drivers[slot];
+    if(!d || d.name === 'TBD') return;
+    const fans = getDriverFans(slot);
+    const deal = activeSponsorDeals.find(dd=>dd.tier==='secondary'&&dd.driverSlot===slot);
+    const hasDealSlot = !!deal;
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-bottom:22px;';
+    section.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:10px 14px;background:var(--panel);border:2px solid var(--border);">
+        <div style="font-size:1.4rem">🧑‍✈️</div>
+        <div>
+          <div style="font-family:var(--pixel);font-size:8px;color:var(--yellow)">${d.name} — P${slot+1}</div>
+          <div style="font-family:var(--ui);font-size:11px;color:var(--dim)">Following: <span style="color:var(--cyan)">${d.fans}</span> &nbsp;|&nbsp; ${deal?'<span style="color:var(--green)">Deal active: '+getSponsorById(deal.sponsorId).name+'</span>':'<span style="color:var(--dim)">No secondary deal</span>'}</div>
+        </div>
+      </div>
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">AVAILABLE FOR ${d.name.toUpperCase()}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;">
+        ${SECONDARY_SPONSORS.map(sp=>{
+          const signed = hasDeal(sp.id);
+          const canSign = !hasDealSlot || signed;
+          return sponsorCardHTML(sp, signed, canSign, slot);
+        }).join('')}
+      </div>`;
+    container.appendChild(section);
+  });
+}
+
+function renderMktAlternate() {
+  const grid  = document.getElementById('mkt-alternate-grid');
+  const slots = document.getElementById('mkt-alternate-slots');
+  if(!grid || !slots) return;
+  const altDeals = activeSponsorDeals.filter(d=>d.tier==='alternate');
+  const canAdd = altDeals.length < 3;
+  let slotHTML = '';
+  for(let i=0;i<3;i++){
+    const d = altDeals[i];
+    slotHTML += `<div class="slot-box ${d?'filled':''}" style="flex:1;min-width:200px;">
+      <span style="font-size:1.2rem">${d?'🔷':'⬜'}</span>
+      <div>
+        <div style="font-family:var(--pixel);font-size:5px;color:var(--dim)">ALTERNATE SLOT ${i+1}</div>
+        <div style="font-family:var(--ui);font-size:11px;color:${d?'var(--green)':'rgba(112,120,184,0.4)'}">
+          ${d ? getSponsorById(d.sponsorId).name+' — '+d.racesLeft+' races' : 'Empty'}
+        </div>
+      </div>
+    </div>`;
+  }
+  slots.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">${slotHTML}</div>`;
+  grid.innerHTML = ALTERNATE_SPONSORS.map(sp => {
+    const signed = hasDeal(sp.id);
+    const canSign = canAdd || signed;
+    return sponsorCardHTML(sp, signed, canSign);
+  }).join('');
+}
+
+function renderMktActive() {
+  const list = document.getElementById('mkt-active-list');
+  if(!list) return;
+  if(activeSponsorDeals.length === 0) {
+    list.innerHTML = '<div style="font-family:var(--ui);font-size:13px;color:var(--dim);text-align:center;padding:40px 0;">No active sponsor deals.<br><span style="font-size:11px">Sign sponsors from the Primary, Secondary, or Alternate tabs.</span></div>';
+    return;
+  }
+  list.innerHTML = activeSponsorDeals.map(deal => {
+    const sp = getSponsorById(deal.sponsorId);
+    if(!sp) return '';
+    const tierCol = deal.tier==='primary'?'var(--yellow)':deal.tier==='secondary'?'#80d4ff':'#aaaaee';
+    const drvLabel = deal.tier==='secondary' && deal.driverSlot!==undefined
+      ? ' — '+drivers[deal.driverSlot]?.name : '';
+    const totalRaces = sp.years * 20;
+    const buyout = getBuyoutCost(deal);
+    const progressPct = Math.round((1 - deal.racesLeft / totalRaces) * 100);
+    const canAfford = playerBudget >= buyout;
+    return `<div class="active-deal-row">
+      <div class="active-deal-header">
+        ${makeSponsorLogo(sp)}
+        <div>
+          <div style="font-family:var(--pixel);font-size:8px;color:${tierCol}">${sp.name}</div>
+          <div style="font-family:var(--ui);font-size:11px;color:var(--dim)">${deal.tier.toUpperCase()}${drvLabel}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="font-family:var(--pixel);font-size:8px;color:var(--green)">+$${deal.totalEarned.toFixed(2)}M EARNED</div>
+          <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">${deal.racesLeft} races remaining</div>
+        </div>
+      </div>
+      <div style="padding:8px 14px 10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <div style="height:4px;background:rgba(255,255,255,0.06);flex:1;min-width:100%;margin-bottom:4px;">
+          <div style="height:4px;background:${tierCol};width:${progressPct}%;transition:width 0.3s;"></div>
+        </div>
+        <div style="font-family:var(--ui);font-size:10px;color:var(--dim);flex:1;line-height:1.6;">${sp.desc}</div>
+        <button onclick="releaseSponsor('${sp.id}')"
+          style="background:none;border:1px solid ${canAfford?'var(--accent)':'var(--dim)'};color:${canAfford?'var(--accent)':'var(--dim)'};font-family:var(--pixel);font-size:5px;padding:5px 10px;cursor:pointer;white-space:nowrap;">
+          BUYOUT: $${buyout.toFixed(2)}M
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ========================
+// STANDINGS POPUP
+// ========================
+
+// Team bonus → per-stat derivation (mirroring getTeamBonus values)
+// Stats are scaled so each team's values differ meaningfully
+const TEAM_CAR_STATS = {
+  voltex:  { pace:97, downforce:91, topSpeed:96, reliability:95, braking:93, cornering:92 },
+  strata:  { pace:88, downforce:94, topSpeed:84, reliability:89, braking:88, cornering:91 },
+  apex:    { pace:85, downforce:87, topSpeed:92, reliability:91, braking:83, cornering:88 },
+  orion:   { pace:82, downforce:85, topSpeed:88, reliability:87, braking:82, cornering:84 },
+  kraken:  { pace:79, downforce:81, topSpeed:85, reliability:83, braking:79, cornering:80 },
+  phantom: { pace:78, downforce:80, topSpeed:83, reliability:82, braking:77, cornering:79 },
+  nova:    { pace:76, downforce:78, topSpeed:80, reliability:80, braking:75, cornering:77 },
+  vortex:  { pace:74, downforce:76, topSpeed:79, reliability:78, braking:73, cornering:75 },
+  delta:   { pace:71, downforce:74, topSpeed:76, reliability:76, braking:71, cornering:72 },
+  zenith:  { pace:66, downforce:69, topSpeed:71, reliability:70, braking:67, cornering:68 },
+};
+
+function statBar(label, val, max, color) {
+  const pct = Math.round(val / max * 100);
+  return `<div class="sp-stat-row">
+    <div class="sp-stat-label">
+      <span style="color:var(--dim)">${label}</span>
+      <span style="color:${color};font-family:var(--pixel);font-size:7px">${val}</span>
+    </div>
+    <div class="sp-bar-bg"><div class="sp-bar-fg" style="width:${pct}%;background:${color}"></div></div>
+  </div>`;
+}
+
+function metaRow(label, val, valColor) {
+  return `<div class="sp-meta-row">
+    <span class="sp-meta-label">${label}</span>
+    <span style="color:${valColor||'var(--text)'}">${val}</span>
+  </div>`;
+}
+
+function showDriverPopup(driverName) {
+  // Find driver in drivers array or free agents used in race
+  let d = drivers.find(dr => dr.name === driverName);
+  if(!d) {
+    // Try matching from race results / racer objects
+    const allRacers = [...drivers];
+    d = allRacers.find(dr => dr.name === driverName);
+  }
+  if(!d) return;
+
+  const team = teams.find(t => t.name === d.team) || teams[0];
+  const col = team.color || '#888';
+
+  // Race result stats from championship history
+  const drvData = buildDriverStandingsData().find(x => x.name === d.name);
+  const champPts = drvData ? drvData.pts : 0;
+  const champWins = drvData ? drvData.wins : (d.wins||0);
+  const champPodiums = drvData ? drvData.podiums : (d.podiums||0);
+
+  // Overall rating (same formula as race engine)
+  const overall = Math.round(d.skill*0.38 + d.control*0.32 + d.craft*0.3);
+
+  const body = `
+    <div style="display:flex;align-items:center;gap:12px;padding:0 18px 14px;border-bottom:1px solid var(--border);margin-bottom:14px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-family:var(--pixel);font-size:9px;color:#000;flex-shrink:0;">#${d.number}</div>
+      <div>
+        <div style="font-family:var(--ui);font-size:13px;font-weight:700;color:var(--text)">${d.nationality}</div>
+        <div style="font-family:var(--ui);font-size:11px;color:${col}">● ${d.team}</div>
+        ${d.injury ? `<div style="font-family:var(--ui);font-size:11px;margin-top:2px">${d.injury}</div>` : ''}
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-family:var(--pixel);font-size:10px;color:var(--yellow)">${overall}</div>
+        <div style="font-family:var(--ui);font-size:9px;color:var(--dim)">OVERALL</div>
+      </div>
+    </div>
+    <div style="padding:0 0 12px;">
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);padding:0 18px;margin-bottom:10px;letter-spacing:1px;">DRIVER ATTRIBUTES</div>
+      ${statBar('SKILL', d.skill, 100, 'var(--green)')}
+      ${statBar('CONTROL', d.control, 100, 'var(--blue)')}
+      ${statBar('OVERTAKING', d.overtake, 100, 'var(--accent)')}
+      ${statBar('TYRE MANAGEMENT', d.tires, 100, 'var(--yellow)')}
+      ${statBar('QUALIFYING PACE', d.quali, 100, 'var(--cyan)')}
+      ${statBar('RACE CRAFT', d.craft, 100, 'var(--purple)')}
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);padding:0 18px;margin-bottom:6px;letter-spacing:1px;">SEASON STATS</div>
+      ${metaRow('CHAMPIONSHIP PTS', champPts, 'var(--yellow)')}
+      ${metaRow('WINS', champWins, champWins > 0 ? 'var(--yellow)' : 'var(--text)')}
+      ${metaRow('PODIUMS', champPodiums, champPodiums > 0 ? 'var(--green)' : 'var(--text)')}
+      ${metaRow('DNFs', d.dnf||0, (d.dnf||0) > 2 ? 'var(--accent)' : 'var(--dim)')}
+      ${metaRow('FAMILIARITY', (d.familiarity||0)+'%', 'var(--cyan)')}
+      ${metaRow('SALARY', d.salary||'—', 'var(--text)')}
+      ${metaRow('CONTRACT', (d.contract||'?')+' YRS', 'var(--text)')}
+      ${metaRow('FANS', d.fans||'—', 'var(--text)')}
+      ${metaRow('ATTITUDE', d.attitude||'—', 'var(--yellow)')}
+    </div>`;
+
+  document.getElementById('sp-title').textContent = d.name;
+  document.getElementById('sp-subtitle').textContent = d.sub || '';
+  document.getElementById('sp-body').innerHTML = body;
+  document.getElementById('standings-popup-overlay').classList.add('active');
+}
+
+function showTeamPopup(teamId) {
+  const team = teams.find(t => t.id === teamId);
+  if(!team) return;
+
+  const stats = TEAM_CAR_STATS[teamId] || TEAM_CAR_STATS.zenith;
+  const col = team.color || '#888';
+
+  // Find drivers for this team
+  const teamDrivers = drivers.filter(d => d.team === team.name);
+
+  // Grade based on pace
+  const grade = stats.pace >= 95 ? 'S' : stats.pace >= 90 ? 'A+' : stats.pace >= 85 ? 'A' :
+    stats.pace >= 82 ? 'B+' : stats.pace >= 78 ? 'B' : stats.pace >= 74 ? 'C+' : stats.pace >= 70 ? 'C' : 'D';
+  const gradeCol = stats.pace >= 95 ? 'var(--yellow)' : stats.pace >= 88 ? 'var(--green)' : stats.pace >= 80 ? 'var(--cyan)' : stats.pace >= 74 ? 'var(--text)' : 'var(--dim)';
+
+  const driverCards = teamDrivers.map(d => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 18px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;" onclick="showDriverPopup('${d.name.replace(/'/g,"\'")}')">
+      <div style="width:28px;height:28px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-family:var(--pixel);font-size:7px;color:#000;flex-shrink:0;">#${d.number}</div>
+      <div style="flex:1;">
+        <div style="font-family:var(--ui);font-size:12px;font-weight:700">${d.name}</div>
+        <div style="font-family:var(--ui);font-size:10px;color:var(--dim)">${d.sub||''}</div>
+      </div>
+      <div style="font-family:var(--pixel);font-size:8px;color:var(--green)">${Math.round(d.skill*0.38+d.control*0.32+d.craft*0.3)}</div>
+      <div style="font-family:var(--pixel);font-size:7px;color:var(--dim)">▶</div>
+    </div>`).join('');
+
+  const body = `
+    <div style="display:flex;align-items:center;gap:14px;padding:0 18px 14px;border-bottom:1px solid var(--border);margin-bottom:14px;">
+      <div style="width:40px;height:8px;background:${col};border-radius:1px;flex-shrink:0;"></div>
+      <div>
+        <div style="font-family:var(--ui);font-size:12px;color:var(--dim)">${team.flag} ${team.country}</div>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-family:var(--pixel);font-size:12px;color:${gradeCol}">${grade}</div>
+        <div style="font-family:var(--ui);font-size:9px;color:var(--dim)">OVERALL</div>
+      </div>
+    </div>
+    <div style="padding:0 0 12px;">
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);padding:0 18px;margin-bottom:10px;letter-spacing:1px;">CAR PERFORMANCE</div>
+      ${statBar('OVERALL PACE', stats.pace, 100, col)}
+      ${statBar('DOWNFORCE', stats.downforce, 100, 'var(--blue)')}
+      ${statBar('TOP SPEED', stats.topSpeed, 100, 'var(--green)')}
+      ${statBar('RELIABILITY', stats.reliability, 100, 'var(--yellow)')}
+      ${statBar('BRAKING', stats.braking, 100, 'var(--purple)')}
+      ${statBar('CORNERING', stats.cornering, 100, 'var(--cyan)')}
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);padding:0 18px;margin-bottom:6px;letter-spacing:1px;">SEASON RECORD</div>
+      ${metaRow('CHAMPIONSHIP PTS', team.pts, 'var(--yellow)')}
+      ${metaRow('WINS', team.wins, team.wins > 0 ? 'var(--yellow)' : 'var(--text)')}
+      ${metaRow('PODIUMS', team.podiums, team.podiums > 0 ? 'var(--green)' : 'var(--text)')}
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);padding:0 18px;margin-bottom:6px;letter-spacing:1px;">DRIVERS</div>
+      ${driverCards}
+    </div>`;
+
+  document.getElementById('sp-title').textContent = team.name;
+  document.getElementById('sp-subtitle').textContent = 'CONSTRUCTOR PROFILE';
+  document.getElementById('sp-body').innerHTML = body;
+  document.getElementById('standings-popup-overlay').classList.add('active');
+}
+
+function closeStandingsPopup() {
+  document.getElementById('standings-popup-overlay').classList.remove('active');
+}
+
+// Keyboard close
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeStandingsPopup(); });
+
 function renderStandings() {
   const tbody = document.getElementById('standings-tbody');
   if (!tbody) return;
@@ -2602,7 +4687,7 @@ function renderStandings() {
     else posStyle = `background:var(--border);color:var(--text)`;
     const gap = pos===1 ? '—' : `-${sorted[0].pts - t.pts}`;
     const barW = Math.round(t.pts/max*100);
-    return `<tr ${t.my?'class="my-team"':''}>
+    return `<tr ${t.my?'class="my-team"':''} onclick="showTeamPopup('${t.id}')" style="cursor:pointer">
       <td><span class="pos-badge" style="${posStyle}">${pos}</span></td>
       <td style="font-weight:700${t.my?';color:var(--accent)':''}">${t.name}${t.my?' ◀':''}</td>
       <td>${t.flag} ${t.country}</td>
@@ -2893,7 +4978,7 @@ function renderDriverStandings() {
     const gap=pos===1?'—':'-'+(sorted[0].pts-d.pts);
     const barW=Math.round(d.pts/max*100);
     const col=d.color||teamColorMap[d.team]||'#888';
-    return '<tr '+(d.isPlayer?'class="my-team"':'')+'>'+
+    return '<tr '+(d.isPlayer?'class="my-team"':'')+'onclick="showDriverPopup(\'' + d.name.replace(/'/g,"\\'") + '\')" style="cursor:pointer">'+
       '<td><span class="pos-badge" style="'+posStyle+'">'+pos+'</span></td>'+
       '<td style="font-weight:700'+(d.isPlayer?';color:var(--accent)':'')+'">'+d.name+(d.isPlayer?' ◀':'')+' <span style="color:var(--dim);font-size:9px">#'+d.number+'</span></td>'+
       '<td><span style="color:'+col+'">●</span> '+((d.team||'').split(' ')[0])+'</td>'+
@@ -3046,35 +5131,387 @@ function selectDriverProfile(idx) {
 // ========================
 // FINANCES live update
 // ========================
+// FINANCES — helpers
+// ========================
+const TV_DEAL_SEASON = 1.8;   // total TV money per full season
+const PRIZE_SCALE = [0.50,0.36,0.28,0.18,0.12,0.08,0.05,0.03,0.02,0.01]; // per race by pos
+
+function getSeasonPrizeMoney() {
+  return (races||[]).filter(r=>r.past&&r.finish).reduce((sum,r)=>
+    sum+(PRIZE_SCALE[Math.min(r.finish-1,9)]||0), 0);
+}
+
+function getSeasonSponsorIncome() {
+  if(typeof activeSponsorDeals==='undefined') return 0;
+  return activeSponsorDeals.reduce((s,d)=>s+(d.totalEarned||0),0);
+}
+
+function getCurrentAvgPos() {
+  const played = (races||[]).filter(r=>r.past&&r.finish);
+  if(!played.length) return null;
+  return played.reduce((s,r)=>s+r.finish,0)/played.length;
+}
+
+function deductPreRaceCostsPreview() {
+  const drvSalary = signedDriverIds.reduce((sum,id)=>{
+    if(id===null) return sum;
+    const fa=FREE_AGENTS[id];
+    return sum+(fa?fa.salary:0);
+  },0);
+  return (getStaffWages()+drvSalary)/20 + getTravelCostPerRace();
+}
+
+function estimateSponsorIncomePerRace(pos) {
+  if(typeof activeSponsorDeals==='undefined') return 0;
+  const p = typeof pos==='string'&&pos==='field' ? 8 : Math.round(Number(pos));
+  let total=0;
+  activeSponsorDeals.forEach(deal=>{
+    const sp=getSponsorById(deal.sponsorId);
+    if(!sp||deal.racesLeft<=0) return;
+    if(sp.tier==='primary'){
+      total+=sp.raceBonus[Math.min(p-1,sp.raceBonus.length-1)]||0;
+    } else if(sp.tier==='secondary'){
+      let pay=sp.basePay;
+      if(p===1) pay+=sp.winBonus;
+      else if(p<=3) pay+=sp.podiumBonus;
+      total+=pay;
+    } else {
+      total+=sp.racePay;
+    }
+  });
+  return total;
+}
+
 function updateFinancesPage() {
-  const totalSalary = getSignedSalary();
-  const other = 5.3;
-  const totalOut = totalSalary + other;
-  const salaryEl=document.getElementById('fin-driver-salary');
-  if(salaryEl) salaryEl.textContent=totalSalary>0?('-$'+totalSalary.toFixed(1)+'M'):'-$0.0M';
-  const breakdownEl=document.getElementById('fin-driver-salary-breakdown');
-  if(breakdownEl){
-    const lines=[];
-    signedDriverIds.forEach((id)=>{
+  // ── INCOME from actual tracked seasonIncome ──
+  const si = seasonIncome || {};
+  const prize    = si.prize    || 0;
+  const tvDeal   = si.tv       || 0;
+  const sponsors = si.sponsors || 0;
+  const merch    = si.merch    || 0;
+  const totalIn  = prize + tvDeal + sponsors + merch;
+
+  const setEl = (id, v, sign='+') => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = sign+'$'+Math.abs(v).toFixed(2)+'M';
+  };
+  setEl('fin-inc-prize',    prize);
+  setEl('fin-inc-tv',       tvDeal);
+  setEl('fin-inc-sponsors', sponsors);
+  setEl('fin-inc-merch',    merch);
+  setEl('fin-inc-total',    totalIn);
+
+  // ── EXPENDITURE from actual tracked seasonIncome ──
+  const salariesPaid = si.salaries || 0;
+  const wagesPaid    = si.wages    || 0;
+  const rentPaid     = si.rent     || 0;
+  const travelPaid   = si.travel   || 0;
+  const totalOut     = salariesPaid + wagesPaid + rentPaid + travelPaid;
+
+  const salaryEl = document.getElementById('fin-driver-salary');
+  if(salaryEl) salaryEl.textContent = '-$'+salariesPaid.toFixed(2)+'M';
+
+  const breakdownEl = document.getElementById('fin-driver-salary-breakdown');
+  if(breakdownEl) {
+    const lines = [];
+    signedDriverIds.forEach(id => {
       if(id===null) return;
-      const fa=FREE_AGENTS[id];
-      if(fa) lines.push('<div class="fin-row" style="padding:1px 0;"><span class="fin-label" style="font-size:10px;color:var(--dim);padding-left:12px;">└ '+fa.name+'</span><span class="fin-val neg" style="font-size:10px;">-$'+fa.salary+'M/yr</span></div>');
+      const fa = FREE_AGENTS[id];
+      if(fa) lines.push(`<div class="fin-row" style="padding:1px 0;"><span class="fin-label" style="font-size:10px;color:var(--dim);padding-left:12px;">└ ${fa.name}</span><span class="fin-val neg" style="font-size:10px;">-$${fa.salary}M/yr</span></div>`);
     });
-    breakdownEl.innerHTML=lines.join('');
+    breakdownEl.innerHTML = lines.join('');
   }
-  const budgetEl=document.getElementById('fin-budget-val');
-  if(budgetEl) budgetEl.textContent='$'+playerBudget.toFixed(1)+'M';
-  const startBudget=75;
-  const spentPct=Math.max(0,Math.round((startBudget-playerBudget)/startBudget*100));
-  const remPct=100-spentPct;
-  const barFill=document.getElementById('fin-budget-bar-fill');
-  const barSpend=document.getElementById('fin-budget-bar-spend');
-  const pctEl=document.getElementById('fin-budget-pct');
-  if(barFill) barFill.style.width=remPct+'%';
-  if(barSpend) barSpend.style.width=spentPct+'%';
-  if(pctEl) pctEl.textContent=remPct+'% REMAINING | '+spentPct+'% SPENT';
-  const totalOutEl=document.getElementById('fin-total-out');
-  if(totalOutEl) totalOutEl.textContent='-$'+totalOut.toFixed(1)+'M';
+  setEl('fin-exp-wages',  wagesPaid,  '-');
+  setEl('fin-exp-rent',   rentPaid,   '-');
+  setEl('fin-exp-travel', travelPaid, '-');
+  setEl('fin-total-out',  totalOut,   '-');
+
+  // ── BUDGET CARD ──
+  const budgetEl = document.getElementById('fin-budget-val');
+  if(budgetEl) budgetEl.textContent = '$'+playerBudget.toFixed(1)+'M';
+  const startBudget = 50;
+  const spentPct = Math.max(0, Math.min(100, Math.round((startBudget - playerBudget) / startBudget * 100)));
+  const remPct   = 100 - spentPct;
+  const barFill  = document.getElementById('fin-budget-bar-fill');
+  const barSpend = document.getElementById('fin-budget-bar-spend');
+  const pctEl    = document.getElementById('fin-budget-pct');
+  if(barFill)  barFill.style.width  = remPct+'%';
+  if(barSpend) barSpend.style.width = spentPct+'%';
+  if(pctEl)    pctEl.textContent    = remPct+'% REMAINING | '+spentPct+'% SPENT';
+
+  updateProjection();
+  renderBudgetGraph();
+}
+
+function renderBudgetGraph() {
+  const canvas  = document.getElementById('fin-budget-canvas');
+  const empty   = document.getElementById('fin-graph-empty');
+  const wrap    = document.getElementById('fin-graph-wrap');
+  if(!canvas) return;
+
+  const data = budgetHistory || [];
+
+  if(data.length === 0) {
+    if(empty) empty.style.display = 'block';
+    canvas.style.display = 'none';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+  canvas.style.display = 'block';
+
+  // Sizing
+  const W = canvas.parentElement.clientWidth || 600;
+  const H = Math.max(180, Math.min(260, W * 0.35));
+  const PAD = { top:28, right:16, bottom:36, left:56 };
+  canvas.width  = W;
+  canvas.height = H;
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  // Build full-season x-axis: all 20 race slots
+  const totalRaces = (races||[]).length || 20;
+  const startBudget = 50;
+
+  // All values including start point
+  const pts = [{ race:0, label:'START', budget: startBudget }].concat(data);
+  const budgets = pts.map(p => p.budget);
+  const minBudget = Math.min(...budgets, 0);
+  const maxBudget = Math.max(...budgets, startBudget + 5);
+  const pad = (maxBudget - minBudget) * 0.08;
+  const yMin = minBudget - pad;
+  const yMax = maxBudget + pad;
+
+  const gW = W - PAD.left - PAD.right;
+  const gH = H - PAD.top  - PAD.bottom;
+
+  // Coordinate helpers
+  const xOf = (raceNum) => PAD.left + (raceNum / totalRaces) * gW;
+  const yOf = (val)     => PAD.top  + (1 - (val - yMin) / (yMax - yMin)) * gH;
+
+  // ── Grid lines ──
+  const ySteps = 5;
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  for(let i = 0; i <= ySteps; i++) {
+    const val = yMin + (yMax - yMin) * (i / ySteps);
+    const y   = yOf(val);
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + gW, y); ctx.stroke();
+    // Y-axis labels
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('$' + val.toFixed(0) + 'M', PAD.left - 6, y + 3);
+  }
+
+  // Zero line (if in range)
+  if(yMin < 0 && yMax > 0) {
+    const y0 = yOf(0);
+    ctx.strokeStyle = 'rgba(255,80,60,0.4)';
+    ctx.setLineDash([4,4]);
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y0); ctx.lineTo(PAD.left + gW, y0); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Start budget reference line
+  const yStart = yOf(startBudget);
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.setLineDash([3,5]);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD.left, yStart); ctx.lineTo(PAD.left + gW, yStart); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.font = '9px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('START', PAD.left + 3, yStart - 3);
+
+  // ── Race labels on X axis (every 5th) ──
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '9px sans-serif';
+  ctx.textAlign = 'center';
+  for(let i = 1; i <= totalRaces; i++) {
+    if(i % 5 === 0 || i === 1 || i === totalRaces) {
+      ctx.fillText('R' + i, xOf(i), H - PAD.bottom + 14);
+      // Tick
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(xOf(i), PAD.top + gH);
+      ctx.lineTo(xOf(i), PAD.top + gH + 4);
+      ctx.stroke();
+    }
+  }
+
+  // ── Area fill under line ──
+  if(pts.length > 1) {
+    ctx.beginPath();
+    ctx.moveTo(xOf(pts[0].race), yOf(pts[0].budget));
+    for(let i = 1; i < pts.length; i++) {
+      ctx.lineTo(xOf(pts[i].race), yOf(pts[i].budget));
+    }
+    ctx.lineTo(xOf(pts[pts.length-1].race), PAD.top + gH);
+    ctx.lineTo(xOf(pts[0].race), PAD.top + gH);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + gH);
+    grad.addColorStop(0,   'rgba(0,220,130,0.18)');
+    grad.addColorStop(0.6, 'rgba(0,220,130,0.06)');
+    grad.addColorStop(1,   'rgba(0,220,130,0.00)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  // ── Main line ──
+  if(pts.length > 1) {
+    ctx.beginPath();
+    ctx.moveTo(xOf(pts[0].race), yOf(pts[0].budget));
+    for(let i = 1; i < pts.length; i++) {
+      ctx.lineTo(xOf(pts[i].race), yOf(pts[i].budget));
+    }
+    ctx.strokeStyle = '#00e87a';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+
+  // ── Dots for each data point ──
+  pts.forEach((p, i) => {
+    const x = xOf(p.race), y = yOf(p.budget);
+    const isLow = p.budget < startBudget * 0.5;
+    const dotCol = p.race === 0 ? 'rgba(255,255,255,0.4)' : isLow ? '#ff6644' : '#00e87a';
+    ctx.beginPath();
+    ctx.arc(x, y, i === 0 ? 3 : 4, 0, Math.PI * 2);
+    ctx.fillStyle = dotCol;
+    ctx.fill();
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+
+  // ── Projected dotted line for remaining races ──
+  if(data.length > 0 && data.length < totalRaces) {
+    const last = pts[pts.length - 1];
+    // Use current pace avg net per race
+    const avgNet = data.length > 0
+      ? (last.budget - startBudget) / data.length
+      : 0;
+    const projX = xOf(last.race);
+    const projEnd = xOf(totalRaces);
+    const projEndBudget = last.budget + avgNet * (totalRaces - last.race);
+    ctx.beginPath();
+    ctx.moveTo(projX, yOf(last.budget));
+    ctx.lineTo(projEnd, yOf(projEndBudget));
+    ctx.strokeStyle = 'rgba(255,204,0,0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // End dot
+    ctx.beginPath();
+    ctx.arc(projEnd, yOf(projEndBudget), 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,204,0,0.6)';
+    ctx.fill();
+    // End label
+    ctx.fillStyle = 'rgba(255,204,0,0.7)';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('~$' + projEndBudget.toFixed(1) + 'M', projEnd - 4, yOf(projEndBudget) - 6);
+  }
+
+  // ── Tooltip on mousemove ──
+  canvas._pts = pts;
+  canvas._meta = { PAD, gW, gH, totalRaces, xOf, yOf, W, H };
+  canvas.onmousemove = function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (W / rect.width);
+    const tip = document.getElementById('fin-graph-tooltip');
+    if(!tip) return;
+    // Find nearest point
+    let best = null, bestDist = 999;
+    canvas._pts.forEach(p => {
+      const px = xOf(p.race);
+      const d = Math.abs(mx - px);
+      if(d < bestDist) { bestDist = d; best = p; }
+    });
+    if(best && bestDist < gW / totalRaces * 0.7) {
+      const finLabel = best.race === 0 ? 'Season Start' : (best.finish ? 'P' + best.finish : 'Race ' + best.race);
+      tip.style.display = 'block';
+      tip.style.left = Math.min(xOf(best.race) + 10, W - 130) + 'px';
+      tip.style.top  = Math.max(yOf(best.budget) - 44, 4) + 'px';
+      tip.innerHTML = `<div style="font-family:var(--pixel);font-size:5px;color:var(--dim);margin-bottom:3px">${best.label||'R'+best.race} — ${finLabel}</div>
+        <div style="font-family:var(--pixel);font-size:8px;color:var(--green)">$${best.budget.toFixed(2)}M</div>`;
+    } else {
+      tip.style.display = 'none';
+    }
+  };
+  canvas.onmouseleave = function() {
+    const tip = document.getElementById('fin-graph-tooltip');
+    if(tip) tip.style.display = 'none';
+  };
+}
+
+function updateProjection() {
+  const sel       = document.getElementById('proj-position-select');
+  const projVal   = document.getElementById('fin-proj-val');
+  const projBreak = document.getElementById('fin-proj-breakdown');
+  const projRaces = document.getElementById('fin-proj-races');
+  if(!sel||!projVal) return;
+
+  const totalRaces  = (races||[]).length||20;
+  const racesPlayed = (races||[]).filter(r=>r.past).length;
+  const racesLeft   = totalRaces-racesPlayed;
+
+  if(racesLeft<=0){
+    projVal.textContent='$'+playerBudget.toFixed(1)+'M';
+    projVal.style.color='var(--green)';
+    if(projBreak) projBreak.textContent='Season complete';
+    if(projRaces) projRaces.textContent='SEASON ENDED';
+    return;
+  }
+
+  const posKey = sel.value;
+  let effectivePos, posLabel;
+
+  if(posKey==='current'){
+    const avg=getCurrentAvgPos();
+    if(avg===null){
+      projVal.textContent='—';
+      projVal.style.color='var(--dim)';
+      if(projBreak) projBreak.textContent='No races completed yet';
+      if(projRaces) projRaces.textContent=racesLeft+' RACES REMAINING';
+      return;
+    }
+    effectivePos=Math.round(avg);
+    posLabel='Current Pace (avg P'+avg.toFixed(1)+')';
+  } else if(posKey==='field'){
+    effectivePos=8; posLabel='Field Avg';
+  } else {
+    effectivePos=parseInt(posKey); posLabel='P'+posKey;
+  }
+
+  const prizePerRace  = PRIZE_SCALE[Math.min(effectivePos-1,9)]||0.01;
+  const tvPerRace     = TV_DEAL_SEASON/totalRaces;
+  const merchPerRace  = 0.05;
+  const sponsorPerRace= estimateSponsorIncomePerRace(effectivePos);
+  const costPerRace   = deductPreRaceCostsPreview();
+
+  const incomePerRace = prizePerRace+tvPerRace+merchPerRace+sponsorPerRace;
+  const netPerRace    = incomePerRace-costPerRace;
+  const projected     = playerBudget+(netPerRace*racesLeft);
+
+  const col = projected>playerBudget?'var(--green)':projected>0?'var(--yellow)':'var(--accent)';
+  projVal.style.color=col;
+  projVal.textContent='$'+Math.max(0,projected).toFixed(1)+'M';
+
+  const ns=netPerRace>=0?'+':'-';
+  if(projBreak) projBreak.innerHTML=
+    `<span style="color:var(--green)">+$${prizePerRace.toFixed(2)}M</span> prize &nbsp;`+
+    `<span style="color:var(--green)">+$${sponsorPerRace.toFixed(2)}M</span> sponsors &nbsp;`+
+    `<span style="color:var(--green)">+$${(tvPerRace+merchPerRace).toFixed(2)}M</span> other &nbsp;`+
+    `<span style="color:var(--accent)">−$${costPerRace.toFixed(2)}M</span> costs `+
+    `= <span style="color:${col}">${ns}$${Math.abs(netPerRace).toFixed(2)}M/race</span>`;
+  if(projRaces) projRaces.textContent=racesLeft+' RACES LEFT — '+posLabel.toUpperCase();
 }
 
 // ========================
@@ -3100,21 +5537,166 @@ function openSimConfirmGated(){
 // ========================
 // finishRace (post-podium)
 // ========================
+function deductPreRaceCosts() {
+  const drvSalary = signedDriverIds.reduce((sum,id) => {
+    if(id===null) return sum;
+    const fa = FREE_AGENTS[id];
+    return sum + (fa ? fa.salary : 0);
+  }, 0);
+  const wages    = getStaffWages();
+  const travel   = getTravelCostPerRace();
+  const wagesInst  = wages / 20;
+  const salaryInst = drvSalary / 20;
+  const instalment = wagesInst + salaryInst + travel;
+  playerBudget -= instalment;
+  seasonIncome.wages    = (seasonIncome.wages||0)    + wagesInst;
+  seasonIncome.salaries = (seasonIncome.salaries||0) + salaryInst;
+  seasonIncome.travel   = (seasonIncome.travel||0)   + travel;
+  // Rent is prorated once per race
+  const rentSlice = FACILITIES[facilityLevel].rent / 20;
+  playerBudget -= rentSlice;
+  seasonIncome.rent = (seasonIncome.rent||0) + rentSlice;
+  updateBudgetDisplay();
+  saveGame();
+  return instalment + rentSlice;
+}
+
 function finishRace(){
+  awardRdPoints();
   currentRaceIdx=Math.min(currentRaceIdx+1,races.length-1);
   updateDashboard(); updateRaceDay(); go('races');
 }
 
 // Car livery
-function paintCar(main,dark,mid,el){
-  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
-  el.classList.add('selected');
-  document.querySelectorAll('#car-livery-svg [id^="car-"]').forEach(el=>{
-    if(el.id==='car-body'||el.id==='car-top') el.setAttribute('fill',main);
-    else if(el.id==='car-nose'||el.id==='car-pod-l'||el.id==='car-pod-r') el.setAttribute('fill',dark);
-    else if(el.id==='car-fw') el.setAttribute('fill',mid);
-  });
+// ========================
+// LIVERY SYSTEM
+// ========================
+
+// 20 liveries — distinct from all 9 AI teams:
+// voltex:#ffcc00, strata:#38b8ff, orion:#00e87a, kraken:#cc66ff,
+// nova:#ff6b35, phantom:#ff3366, delta:#00e5ff, vortex:#ffa500, zenith:#aaffaa
+const LIVERIES = [
+  { name:'CRIMSON STRIKE',  main:'#dd0033', dark:'#aa0022', mid:'#cc0028' },
+  { name:'COBALT FURY',     main:'#1144dd', dark:'#0033aa', mid:'#0a39cc' },
+  { name:'RACING GREEN',    main:'#006622', dark:'#004411', mid:'#005519' },
+  { name:'MIDNIGHT BLACK',  main:'#111122', dark:'#0a0a1a', mid:'#0d0d1e' },
+  { name:'PURE WHITE',      main:'#e8e8f0', dark:'#b0b0c0', mid:'#d0d0de' },
+  { name:'STEALTH GREY',    main:'#4a4a5a', dark:'#333340', mid:'#3e3e4e' },
+  { name:'ROSE GOLD',       main:'#c97750', dark:'#a05535', mid:'#b56640' },
+  { name:'DEEP MAROON',     main:'#7a0020', dark:'#550012', mid:'#680018' },
+  { name:'OCEAN TEAL',      main:'#007788', dark:'#005566', mid:'#006677' },
+  { name:'ELECTRIC LIME',   main:'#88cc00', dark:'#669900', mid:'#77bb00' },
+  { name:'DEEP NAVY',       main:'#0a1a55', dark:'#060f33', mid:'#081444' },
+  { name:'HOT MAGENTA',     main:'#cc0077', dark:'#990055', mid:'#bb0066' },
+  { name:'BURNT SIENNA',    main:'#cc5500', dark:'#993300', mid:'#bb4400' },
+  { name:'ARCTIC BLUE',     main:'#4488cc', dark:'#2266aa', mid:'#3377bb' },
+  { name:'FOREST SHADOW',   main:'#2d6644', dark:'#1a4430', mid:'#246038' },
+  { name:'TOXIC YELLOW',    main:'#ccbb00', dark:'#998800', mid:'#bbaa00' },
+  { name:'BLOOD ORANGE',    main:'#dd3300', dark:'#aa2200', mid:'#cc2800' },
+  { name:'ULTRAVIOLET',     main:'#5500cc', dark:'#3d0099', mid:'#4800bb' },
+  { name:'GUNMETAL',        main:'#2a3540', dark:'#151e25', mid:'#202c33' },
+  { name:'CHAMPAGNE',       main:'#c8a860', dark:'#a08040', mid:'#b89450' },
+];
+
+let _pendingLiveryIdx = 0;
+let _activeLiveryIdx  = 0;
+
+function darkenHex(hex, factor) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return '#' + [r,g,b].map(c => Math.round(c*factor).toString(16).padStart(2,'0')).join('');
 }
+
+function applyLiveryToSVG(livery) {
+  document.querySelectorAll('#car-livery-svg [id^="car-"]').forEach(el => {
+    if(el.id==='car-body'||el.id==='car-top') el.setAttribute('fill', livery.main);
+    else if(el.id==='car-nose'||el.id==='car-pod-l'||el.id==='car-pod-r') el.setAttribute('fill', livery.dark);
+    else if(el.id==='car-fw') el.setAttribute('fill', livery.mid);
+  });
+  const label = document.getElementById('car-livery-label');
+  if(label) label.textContent = 'LIVERY: ' + livery.name;
+  const dot = document.getElementById('livery-current-dot');
+  if(dot) dot.style.background = livery.main;
+  const nameEl = document.getElementById('livery-current-name');
+  if(nameEl) nameEl.textContent = livery.name;
+}
+
+function applyLiveryGlobally(livery) {
+  const main = livery.main;
+  const dark = livery.dark;
+  const mid  = livery.mid;
+
+  // Update team color — drives race sprite, standings dots
+  const apexTeam = teams.find(t => t.my);
+  if(apexTeam) apexTeam.color = main;
+
+  // Update driver svgCol for both player drivers
+  drivers.forEach(d => { if(d.team === 'APEX RACING') { d.svgCol = main; d.helmetCol = dark; } });
+
+  // Update dashboard car SVG
+  const db = document.getElementById('dash-car-body');
+  const dt = document.getElementById('dash-car-top');
+  const dn = document.getElementById('dash-car-nose');
+  const dpl = document.getElementById('dash-car-pod-l');
+  const dpr = document.getElementById('dash-car-pod-r');
+  const dfw = document.getElementById('dash-car-fw');
+  if(db) db.setAttribute('fill', main);
+  if(dt) dt.setAttribute('fill', main);
+  if(dn) dn.setAttribute('fill', dark);
+  if(dpl) dpl.setAttribute('fill', dark);
+  if(dpr) dpr.setAttribute('fill', dark);
+  if(dfw) dfw.setAttribute('fill', mid);
+
+  // Update dashboard sublabel
+  const sub = document.getElementById('dash-car-sublabel');
+  if(sub) {
+    const parts = sub.textContent.split('✦');
+    sub.innerHTML = livery.name + ' LIVERY &nbsp;✦&nbsp;' + (parts[1]||' ENGINE 98% ') + '&nbsp;✦&nbsp;' + (parts[2]||' MEDIUMS');
+  }
+
+  // Bust sprite cache so race redraws in new color immediately
+  if(typeof _carSpriteCache !== 'undefined') {
+    Object.keys(_carSpriteCache).forEach(k => delete _carSpriteCache[k]);
+  }
+}
+
+function openLiveryPicker() {
+  const grid = document.getElementById('livery-grid');
+  grid.innerHTML = '';
+  LIVERIES.forEach((liv, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'livery-tile' + (i === _activeLiveryIdx ? ' selected' : '');
+    tile.style.background = `linear-gradient(135deg, ${liv.main} 60%, ${liv.dark} 100%)`;
+    tile.innerHTML = `<span>${liv.name}</span>`;
+    tile.onclick = () => {
+      _pendingLiveryIdx = i;
+      grid.querySelectorAll('.livery-tile').forEach(t => t.classList.remove('selected'));
+      tile.classList.add('selected');
+      // Live-preview on SVG only
+      applyLiveryToSVG(LIVERIES[i]);
+    };
+    grid.appendChild(tile);
+  });
+  _pendingLiveryIdx = _activeLiveryIdx;
+  document.getElementById('livery-popup-overlay').classList.add('active');
+}
+
+function closeLiveryPicker() {
+  // Revert SVG preview to active livery if user didn't confirm
+  applyLiveryToSVG(LIVERIES[_activeLiveryIdx]);
+  document.getElementById('livery-popup-overlay').classList.remove('active');
+}
+
+function confirmLivery() {
+  const livery = LIVERIES[_pendingLiveryIdx];
+  _activeLiveryIdx = _pendingLiveryIdx;
+  applyLiveryToSVG(livery);
+  applyLiveryGlobally(livery);
+  document.getElementById('livery-popup-overlay').classList.remove('active');
+}
+
+// Legacy no-op to avoid any stray calls
+function paintCar(main,dark,mid,el){}
+
 
 // Tire opt click
 document.querySelectorAll('.tire-opt').forEach(t=>{
@@ -3622,6 +6204,11 @@ function buildStatsGrid(r) {
 }
 
 
+function buildStandingsSnap(r) {
+  // Standings snapshot is rendered inside buildStatsGrid — this stub prevents errors
+  return document.createDocumentFragment();
+}
+
 function buildForecastSection(r) {
   const frag = document.createDocumentFragment();
 
@@ -3660,7 +6247,7 @@ document.addEventListener('click', function(e) {
 // Season tracking
 let currentSeason = 1;
 let trophies = []; // {season, position, type:'constructors'/'drivers'}
-let playerBudget = 75; // $M — starts at $75M for new save
+let playerBudget = 50; // $M — starts at $50M for new save
 let signedDriverIds = [null, null]; // indices into FREE_AGENTS array; null = unsigned
 
 function getNextRace() {
@@ -4143,16 +6730,20 @@ function openSimConfirm() {
   document.getElementById('sim-confirm-race-name').textContent=`ROUND ${r.rd} — ${r.circuit.toUpperCase()}`;
   const grid=getGridForRace(r.rd);
   const g1=grid.findIndex(id=>id===0)+1, g2=grid.findIndex(id=>id===1)+1;
+  const drvSalary = signedDriverIds.reduce((sum,id)=>{ const fa=id!==null&&FREE_AGENTS[id]; return sum+(fa?fa.salary:0); },0);
+  const instalment = ((getStaffWages() + drvSalary) / 20 + getTravelCostPerRace());
   document.getElementById('sim-confirm-details').innerHTML=
     `<b style="color:var(--text)">${drivers[0].name}</b> starts P${g1}<br>`+
     `<b style="color:var(--text)">${drivers[1].name}</b> starts P${g2}<br>`+
-    `<span style="color:var(--dim)">10 laps · ${r.length} · ${r.type}</span>`;
+    `<span style="color:var(--dim)">10 laps · ${r.length} · ${r.type}</span><br>`+
+    `<span style="color:var(--accent);font-size:10px">💸 Pre-race costs: -$${instalment.toFixed(3)}M</span>`;
   document.getElementById('sim-confirm-overlay').style.display='flex';
 }
 function closeSimConfirm() { document.getElementById('sim-confirm-overlay').style.display='none'; }
 
 function startSimulation() {
   closeSimConfirm();
+  deductPreRaceCosts();
   const r=races[currentRaceIdx];
   const trackPts=extractTrackPoints(r.trackSVG);
   if(!trackPts){alert('Track data missing');return;}
@@ -4295,7 +6886,7 @@ function startSimulation() {
   sameLapFilter=true;
   actionCamState={target:null,eventLabel:'',labelTimer:0,scanTimer:0,lingerTimer:0,excludedIds:new Set(),recentDnfShown:false,eventType:'',pitGroup:null};
   const sameLapBtn=document.getElementById('cam-samelap');
-  if(sameLapBtn){sameLapBtn.textContent='LAP FILTER: AUTO';sameLapBtn.classList.add('on');}
+  if(sameLapBtn){sameLapBtn.textContent='LAP FILTER: ON';sameLapBtn.classList.add('on');}
   cameraTarget={x:trackCX, y:trackCY, zoom:1};
   cameraActual={x:trackCX, y:trackCY, zoom:1};
   document.querySelectorAll('#sim-cam-btns .cam-btn').forEach(b=>b.classList.remove('active'));
@@ -4329,8 +6920,7 @@ function exitRaceEarly(){
   // Hide canvas area visually
   const wrap=document.getElementById('sim-canvas-wrap');
   if(wrap) wrap.style.display='none';
-  document.getElementById('sim-standings-left').style.display='none';
-  document.getElementById('sim-standings-right').style.display='none';
+  // standings remain visible after race
   // Show dashboard button, hide exit button
   document.getElementById('sim-exit-btn').style.display='none';
   document.getElementById('sim-dash-btn').style.display='block';
@@ -5236,6 +7826,48 @@ function drawScene(ctx,W,H,s,isGrid){
     ctx.restore();
   }
 
+  // ---- Starting grid markers (U-shaped boxes) — shown before race starts ----
+  // Always draw grid boxes throughout the race
+  {
+    const numRows = 10;
+    for(let gridPos = 0; gridPos < numRows * 2; gridPos++){
+      const row  = Math.floor(gridPos / 2);
+      const side = gridPos % 2; // 0=left of track, 1=right
+      const tNorm = ((1.0 - (row + 1) * 0.004) % 1 + 1) % 1;
+      const center = getPointAt(pts, tNorm);
+      const angle  = getAngleAt(pts, tNorm);
+      const tIdx   = Math.floor(tNorm * n);
+      const hw     = trackWidths[tIdx];
+      const latOff = side === 0 ? 0.28 : -0.28;
+      const perpX  = Math.cos(angle + Math.PI/2) * latOff * hw;
+      const perpY  = Math.sin(angle + Math.PI/2) * latOff * hw;
+      const wx = center.x + perpX, wy = center.y + perpY;
+      const ps = toScreen(wx, wy, tr);
+
+      const bw = Math.max(hw * tr.scale * 0.22, 2);  // box width (along track = car length)
+      const bh = Math.max(hw * tr.scale * 0.28, 2);  // box height (across track = car width)
+      const lw = Math.max(tr.scale * 0.4, 0.6);
+
+      ctx.save();
+      ctx.translate(ps.x, ps.y);
+      ctx.rotate(angle);
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = lw;
+      ctx.lineJoin = 'round';
+      // U open at back (negative x = behind car, positive x = forward)
+      // Left side (-y), front wall (+x), right side (+y) — open at -x
+      ctx.beginPath();
+      ctx.moveTo(-bw/2, -bh/2);   // back-left (open end)
+      ctx.lineTo( bw/2, -bh/2);   // front-left
+      ctx.lineTo( bw/2,  bh/2);   // front-right
+      ctx.lineTo(-bw/2,  bh/2);   // back-right (open end)
+      ctx.stroke();
+
+
+      ctx.restore();
+    }
+  }
+
   // ---- CARS with same-lap filter ----
   let refLap=-1;
   if(sameLapFilter&&s.sortedForStandings&&s.sortedForStandings.length>0){
@@ -5245,11 +7877,11 @@ function drawScene(ctx,W,H,s,isGrid){
     else if(cameraMode==='leader') focusedRc=sorted[0];
     else if(cameraMode==='team') focusedRc=sorted.find(r=>r.isPlayer)||sorted[0];
     else if(cameraMode==='action'&&actionCamState.target) focusedRc=actionCamState.target;
-    if(focusedRc) refLap=focusedRc.lap;
+    if(focusedRc) refLap = focusedRc.finished ? s.totalLaps - 1 : focusedRc.lap;
   }
 
   s.racers.forEach(rc=>{
-    const onSameLap=!sameLapFilter||refLap<0||rc.lap===refLap||rc.finished||rc.retired;
+    const onSameLap=!sameLapFilter||refLap<0||rc.lap===refLap||rc.lap===refLap+1||rc.retired;
     if(rc.isPitting){ drawCarInPit(ctx,rc,s,tr,onSameLap); return; }
     if(rc.retired){ drawCarInPit(ctx,rc,s,tr,onSameLap); return; }
     if(rc.finished){ drawCarInPit(ctx,rc,s,tr,onSameLap); return; }
@@ -5265,7 +7897,8 @@ function drawScene(ctx,W,H,s,isGrid){
     drawCar(ctx,ps.x,ps.y,angle,rc,tr.scale,onSameLap);
   });
 
-  if(isGrid){ /* cars already rendered above */ }
+  // Always draw grid boxes throughout the race
+  { /* cars already rendered above */ }
 }
 
 function drawCarInPit(ctx,rc,s,tr,onSameLap){
@@ -5347,7 +7980,7 @@ let actionCamState = { target: null, eventLabel: '', labelTimer: 0, scanTimer: 0
 
 function toggleSameLap(btn) {
   sameLapFilter = !sameLapFilter;
-  btn.textContent = `LAP FILTER: ${sameLapFilter ? 'ON' : 'OFF'}`;
+  btn.textContent = 'LAP FILTER: ' + (sameLapFilter ? 'ON' : 'OFF');
   btn.classList.toggle('on', sameLapFilter);
 }
 
@@ -5468,7 +8101,7 @@ function initStandingsDom(racers){
       <div class="ssc-pos" id="sscpos-${rc.id}">${i+1}</div>
       <div class="ssc-dot" style="background:${rc.color}"></div>
       <div class="ssc-info">
-        <div class="ssc-name">${rc.shortName} <span style="color:var(--dim);font-size:9px">#${rc.number}</span></div>
+        <div class="ssc-name">${rc.shortName}</div>
         <div class="ssc-sub" id="scssub-${rc.id}">L1</div>
       </div>
       <div id="ssctire-${rc.id}" style="display:flex;align-items:center;padding-right:4px;">${tireBadge(rc.tireCompound||'MEDIUM')}</div>`;
@@ -5542,6 +8175,17 @@ function updateStandingsDom(s){
     }
   });
   if(_lapDisplayEl) _lapDisplayEl.textContent='LAP '+Math.min(leaderLap+1,s.totalLaps)+'/'+s.totalLaps;
+
+  // Update mobile chips order
+  const mobileList2 = document.getElementById('sim-mobile-stand-list');
+  if(mobileList2 && mobileList2.children.length){
+    sorted.forEach((rc,i)=>{
+      const posEl2 = document.getElementById('mob-pos-'+rc.id);
+      if(posEl2) posEl2.textContent = i+1;
+      const chip = document.getElementById('mob-chip-'+rc.id);
+      if(chip) mobileList2.appendChild(chip);
+    });
+  }
 }
 
 // ---- END RACE ----
@@ -5561,6 +8205,26 @@ function endRace(skipFlag){
   r.fastLap=generateFastLap(r);
   r.fastLapFL=Math.random()<0.18;
   r.points=posToPoints(myR1+1)+(r.fastLapFL?1:0);
+  // Track prize money earned this race
+  const PRIZE_SCALE_ER = [0.50,0.36,0.28,0.18,0.12,0.08,0.05,0.03,0.02,0.01];
+  const racePrize = PRIZE_SCALE_ER[Math.min(myR1,9)]||0;
+  playerBudget += racePrize;
+  seasonIncome.prize = (seasonIncome.prize||0) + racePrize;
+  // TV deal: flat per-race slice
+  const tvSlice = 1.8 / (races.length||20);
+  playerBudget += tvSlice;
+  seasonIncome.tv = (seasonIncome.tv||0) + tvSlice;
+  // Merch: flat per-race trickle
+  playerBudget += 0.05;
+  seasonIncome.merch = (seasonIncome.merch||0) + 0.05;
+  processSponsorRacePayouts(myR1+1);
+  // Snapshot budget after all race income (costs were deducted before race start)
+  budgetHistory.push({
+    race:  currentRaceIdx + 1,
+    label: 'R' + (currentRaceIdx + 1),
+    budget: Math.round(playerBudget * 100) / 100,
+    finish: myR1 + 1
+  });
   r.pitStop=`Lap ${sorted[myR1]?.pitLap||Math.floor(s.totalLaps*0.5)}`;
   r.pitTires='M→H';
   r.standings={after:ordinal(myR1+1),gap:'—'};
