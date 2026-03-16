@@ -12829,7 +12829,8 @@ window.closeModeChooser=function(){document.getElementById("mode-chooser-overlay
 window.startSinglePlayer=function(){closeModeChooser();if(window._origNewSave)window._origNewSave(leagueSaveSlot);};
 window.showLeagueOptions=function(){
   document.getElementById("mode-chooser-overlay").classList.remove("active");
-  document.getElementById("league-options-overlay").style.display="flex";
+  const lo=document.getElementById("league-options-overlay");
+  lo.style.display="flex";
 };
 
 // ── Generate code
@@ -13190,6 +13191,9 @@ const hookGo=()=>{
   if(typeof go==="function"){
     const prev=go;
     go=function(screen){
+      // Hide league overlays before any navigation
+      const lo=document.getElementById("league-options-overlay");
+      if(lo)lo.style.display="none";
       if(screen==="leaderboard"){prev("leaderboard");updateYourStats();window.syncLeaderboard();return;}
       if(screen==="league-create"||screen==="league-join"||screen==="league-lobby"||screen==="league-hub"){prev(screen);return;}
       if(screen==="league-browser"){prev("league-browser");window.loadPublicLeagues();return;}
