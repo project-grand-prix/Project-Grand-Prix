@@ -1992,6 +1992,12 @@ body::after {
 
 <!-- HIDDEN: old CAR placeholder overrides real one below — keep real CAR screen -->
 <script>document.getElementById('screen-car')?.remove();</script>
+<script>
+// ── TILESET CONFIGURATION ──────────────────────────────────
+// Upload tileset.png to your repo root and it will be used automatically.
+// Set to null to use primitive (non-tileset) scenery rendering.
+window.TILESET_URL = 'Tileset.png';
+</script>
 
 <!-- ===================== DRIVERS ===================== (old content scrapped above) -->
 <div style="display:none"><!-- legacy driver portrait elements kept for JS compatibility -->
@@ -9064,8 +9070,8 @@ function startSimulation() {
   actionCamState={target:null,eventLabel:'',labelTimer:0,scanTimer:0,lingerTimer:0,excludedIds:new Set(),recentDnfShown:false,eventType:'',pitGroup:null};
   const sameLapBtn=document.getElementById('cam-samelap');
   if(sameLapBtn){sameLapBtn.textContent='LAP FILTER: ON';sameLapBtn.classList.add('on');}
-  cameraTarget={x:trackCX, y:trackCY, zoom:1};
-  cameraActual={x:trackCX, y:trackCY, zoom:1};
+  cameraTarget={x:trackCX, y:trackCY, zoom:2};
+  cameraActual={x:trackCX, y:trackCY, zoom:2};
   document.querySelectorAll('#sim-cam-btns .cam-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('cam-full').classList.add('active');
 
@@ -9115,8 +9121,8 @@ function simLoop(){
 
   if(s.phase==='countdown'){
     // During countdown, ensure camera is at track center (snap instantly for full view)
-    cameraActual.x=s.trackCX; cameraActual.y=s.trackCY; cameraActual.zoom=1;
-    cameraTarget.x=s.trackCX; cameraTarget.y=s.trackCY; cameraTarget.zoom=1;
+    cameraActual.x=s.trackCX; cameraActual.y=s.trackCY; cameraActual.zoom=2;
+    cameraTarget.x=s.trackCX; cameraTarget.y=s.trackCY; cameraTarget.zoom=2;
     // Only draw if canvas is ready
     if(canvas.width>10&&canvas.height>10){
       drawScene(ctx,W,H,s,true);
@@ -9595,7 +9601,7 @@ function updateCamera(s){
     const rc = sorted[driverCamIdx] || sorted[0];
     if(rc){
       const pt = getFocus(rc);
-      cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=3.5;
+      cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=5.0;
       document.getElementById('cam-driver-rank').textContent = driverCamIdx+1;
       document.getElementById('sim-cam-driver-name').textContent = rc.shortName+' #'+rc.number;
       document.getElementById('sim-cam-driver-pos').textContent = `P${driverCamIdx+1} · LAP ${Math.min(rc.lap+1,s.totalLaps)}${rc.retired?' · DNF':rc.finished?' · ✓':''}`;
@@ -9739,7 +9745,7 @@ function updateCamera(s){
     if(actionCamState.target){
       const isPitEvent = actionCamState.eventType === 'pit';
       // Pit event: zoom out to show entire pit lane area
-      const zoomLevel = isPitEvent ? 1.4 : 3.8;
+      const zoomLevel = isPitEvent ? 2.5 : 5.5;
 
       const pt = isPitEvent
         ? { x: trackCX, y: trackCY }  // center of track shows pit lane
@@ -9758,14 +9764,14 @@ function updateCamera(s){
 
   // ---- STANDARD CAMERAS ----
   else if(cameraMode==='full'){
-    cameraTarget.x=trackCX; cameraTarget.y=trackCY; cameraTarget.zoom=1;
+    cameraTarget.x=trackCX; cameraTarget.y=trackCY; cameraTarget.zoom=2;
   } else if(cameraMode==='leader'){
     const active=s.racers.filter(r=>!r.finished&&!r.retired);
     const focus=active.length>0
       ? active.reduce((b,r)=>(r.lap+r.t)>(b.lap+b.t)?r:b,active[0])
       : (s.racers.filter(r=>r.finished&&!r.retired).sort((a,b)=>a.finishOrder-b.finishOrder)[0]||s.racers[0]);
     const pt=getFocus(focus);
-    cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=3.2;
+    cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=5.0;
     document.getElementById('sim-cam-driver-name').textContent=focus.name;
     document.getElementById('sim-cam-driver-pos').textContent=`P${focus.rank+1} · LAP ${Math.min(focus.lap+1,s.totalLaps)}`;
     document.getElementById('sim-driver-portrait-cam').style.display='block';
@@ -9774,7 +9780,7 @@ function updateCamera(s){
     const pool=active.length>0?active:s.racers.filter(r=>r.isPlayer);
     const best=pool.reduce((b,r)=>r.rank<b.rank?r:b,pool[0]);
     const pt=getFocus(best);
-    cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=3.2;
+    cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=5.0;
     document.getElementById('sim-cam-driver-name').textContent=best.name;
     document.getElementById('sim-cam-driver-pos').textContent=`P${best.rank+1} · LAP ${Math.min(best.lap+1,s.totalLaps)}`;
     document.getElementById('sim-driver-portrait-cam').style.display='block';
@@ -9812,6 +9818,96 @@ let sceneryType = 'city';
 let sceneryObjects = [];
 const SCENERY_TYPES = ['city','forest','desert','night'];
 
+// ---- TILESET ----
+// Tileset is 1080x1080, 10 cols x 11 rows = 108px per tile
+// Set window.TILESET_URL before the game loads to use a custom path
+const TS = 108; // tile size in pixels
+let _tilesetImg = null;
+let _tilesetReady = false;
+
+function loadTileset() {
+  if (_tilesetImg) return;
+  // Try to use a tileset URL — can be set via window.TILESET_URL
+  // or falls back to graceful primitive rendering
+  const src = window.TILESET_URL || null;
+  if (!src) return; // no tileset configured, use primitive fallback
+  _tilesetImg = new Image();
+  _tilesetImg.crossOrigin = 'anonymous';
+  _tilesetImg.onload = () => { _tilesetReady = true; console.log('[PGP] Tileset loaded.'); };
+  _tilesetImg.onerror = () => { _tilesetReady = false; console.warn('[PGP] Tileset failed to load:', src); };
+  _tilesetImg.src = src;
+}
+
+// Tile definitions [col, row] in the tileset
+const TILES = {
+  // Ground / grass
+  grass:          [0, 0],
+  grass2:         [1, 0],
+  dirt:           [2, 0],
+  gravel:         [3, 0],
+  // Trees
+  tree_oak:       [4, 2],
+  tree_round:     [5, 2],
+  tree_med:       [6, 2],
+  tree_pine:      [7, 2],
+  tree_small:     [8, 2],
+  tree_tiny:      [9, 2],
+  // Hedges
+  hedge:          [0, 1],
+  hedge_sq:       [1, 1],
+  flowers_w:      [2, 1],
+  flowers_y:      [3, 1],
+  // Grandstands
+  stand_grey:     [0, 6],
+  stand_blue:     [1, 6],
+  stand_white:    [2, 6],
+  stand_flags:    [3, 6],
+  stand_blue2:    [5, 6],
+  stand_dark:     [6, 6],
+  stand_grey2:    [7, 6],
+  // Tyre walls / barriers
+  tyre_black:     [0, 7],
+  tyre_red:       [1, 7],
+  tyre_blue:      [2, 7],
+  tyre_white:     [3, 7],
+  barrier_metal:  [0, 8],
+  barrier_conc:   [2, 8],
+  // Kerbs / track elements
+  kerb_rw:        [0, 9],
+  kerb_curve:     [1, 9],
+  chevron:        [2, 9],
+  kerb_rw2:       [4, 9],
+  kerb_sausage:   [5, 9],
+  chequered:      [9, 9],
+  // Buildings
+  bldg_small:     [0, 3],
+  bldg_med:       [1, 3],
+  bldg_tall:      [2, 3],
+  bldg_glass:     [3, 3],
+  bldg_blue:      [4, 3],
+  bldg_tower:     [5, 3],
+  bldg_grey:      [6, 3],
+  bldg_brown:     [7, 3],
+  // Lamp / gazebo
+  lamp:           [7, 2],
+  gazebo:         [4, 2],
+};
+
+function drawTile(ctx, tileKey, sx, sy, size, angle=0) {
+  if (!_tilesetReady || !_tilesetImg) return;
+  const t = TILES[tileKey];
+  if (!t) return;
+  const [col, row] = t;
+  ctx.save();
+  ctx.translate(sx, sy);
+  if (angle) ctx.rotate(angle);
+  ctx.drawImage(_tilesetImg,
+    col * TS, row * TS, TS, TS,   // source rect in tileset
+    -size/2, -size/2, size, size   // dest centered on sx,sy
+  );
+  ctx.restore();
+}
+
 function seededRng(seed) {
   let s = seed | 0;
   return function() {
@@ -9824,57 +9920,115 @@ function initScenery(raceIdx) {
   scenerySeed = ((raceIdx + 1) * 7919) | 0;
   sceneryType = SCENERY_TYPES[raceIdx % SCENERY_TYPES.length];
   sceneryObjects = [];
+  loadTileset();
   const rng = seededRng(scenerySeed);
 
+  // Scenery is now track-relative — placed along track normals
+  // Objects store: { type, progress(0-1), side(1=outer,-1=inner), dist, size, angle, tileKey }
+  // They get resolved to screen coords each frame in drawScene
+
+  const treeKeys = ['tree_oak','tree_round','tree_med','tree_pine','tree_small'];
+  const standKeys = ['stand_grey','stand_blue','stand_white','stand_flags','stand_blue2','stand_dark'];
+  const buildKeys = ['bldg_small','bldg_med','bldg_tall','bldg_glass','bldg_blue','bldg_tower'];
+
   if (sceneryType === 'city') {
-    for (let i = 0; i < 80; i++) {
-      sceneryObjects.push({
-        type: 'building',
-        x: rng()*220+10, y: rng()*160+10,
-        w: 4+rng()*12, h: 8+rng()*40,
-        color: `hsl(${220+rng()*40},${20+rng()*30}%,${12+rng()*18}%)`,
-        windows: rng()>0.4, lit: rng()>0.5,
-      });
+    // Grandstands along outer straights
+    for (let i = 0; i < 18; i++) {
+      const progress = rng();
+      sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
+        progress, side: 1, dist: 1.8 + rng()*0.8, size: 12, angle: 0, type:'stand' });
     }
-    for (let i = 0; i < 25; i++) {
-      sceneryObjects.push({ type:'light_pole', x:rng()*220, y:rng()*160, h:6+rng()*4 });
+    // Buildings further back outside
+    for (let i = 0; i < 24; i++) {
+      sceneryObjects.push({ tileKey: buildKeys[Math.floor(rng()*buildKeys.length)],
+        progress: rng(), side: 1, dist: 3.5 + rng()*3, size: 9+rng()*6, angle: 0, type:'building' });
     }
-  } else if (sceneryType === 'forest') {
-    for (let i = 0; i < 120; i++) {
-      sceneryObjects.push({
-        type: 'tree',
-        x: rng()*230+5, y: rng()*170+5,
-        r: 4+rng()*10,
-        color: `hsl(${110+rng()*50},${35+rng()*40}%,${15+rng()*20}%)`,
-        trunk: `hsl(${25+rng()*20},${40+rng()*20}%,${14+rng()*10}%)`,
-      });
+    // Tyre walls tight on outer
+    for (let i = 0; i < 30; i++) {
+      const tk = rng() > 0.5 ? 'tyre_red' : 'tyre_black';
+      sceneryObjects.push({ tileKey: tk,
+        progress: rng(), side: 1, dist: 1.1 + rng()*0.3, size: 4, angle: rng()*Math.PI*2, type:'tyre' });
     }
+    // Trees in infield
     for (let i = 0; i < 20; i++) {
-      sceneryObjects.push({ type:'bush', x:rng()*230+5, y:rng()*170+5, r:2+rng()*5, color:`hsl(${130+rng()*40},${30+rng()*30}%,${10+rng()*15}%)` });
+      sceneryObjects.push({ tileKey: treeKeys[Math.floor(rng()*treeKeys.length)],
+        progress: rng(), side: -1, dist: 2 + rng()*4, size: 7+rng()*5, angle: 0, type:'tree' });
     }
-  } else if (sceneryType === 'desert') {
+    // Lamp posts along inner
+    for (let i = 0; i < 16; i++) {
+      sceneryObjects.push({ tileKey: 'lamp',
+        progress: i/16 + rng()*0.02, side: -1, dist: 1.3 + rng()*0.3, size: 5, angle: 0, type:'lamp' });
+    }
+
+  } else if (sceneryType === 'forest') {
+    // Dense trees everywhere outside
     for (let i = 0; i < 50; i++) {
-      sceneryObjects.push({
-        type: 'cactus', x:rng()*230+5, y:rng()*170+5,
-        h:6+rng()*16, w:2+rng()*3,
-        color:`hsl(${90+rng()*30},${20+rng()*25}%,${16+rng()*14}%)`,
-      });
+      sceneryObjects.push({ tileKey: treeKeys[Math.floor(rng()*treeKeys.length)],
+        progress: rng(), side: 1, dist: 1.5 + rng()*5, size: 8+rng()*8, angle: 0, type:'tree' });
     }
     for (let i = 0; i < 30; i++) {
-      sceneryObjects.push({ type:'rock', x:rng()*230+5, y:rng()*170+5, r:2+rng()*7, color:`hsl(${20+rng()*30},${8+rng()*15}%,${18+rng()*12}%)` });
+      sceneryObjects.push({ tileKey: treeKeys[Math.floor(rng()*treeKeys.length)],
+        progress: rng(), side: -1, dist: 1.5 + rng()*4, size: 7+rng()*7, angle: 0, type:'tree' });
     }
+    // Some grandstands peeking through
+    for (let i = 0; i < 6; i++) {
+      sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
+        progress: rng(), side: 1, dist: 1.8 + rng()*1, size: 11, angle: 0, type:'stand' });
+    }
+    // Tyre walls at corners
+    for (let i = 0; i < 20; i++) {
+      sceneryObjects.push({ tileKey: 'tyre_red',
+        progress: rng(), side: 1, dist: 1.1 + rng()*0.2, size: 4, angle: rng()*Math.PI*2, type:'tyre' });
+    }
+    // Hedges inner
+    for (let i = 0; i < 15; i++) {
+      sceneryObjects.push({ tileKey: rng()>0.5?'hedge':'hedge_sq',
+        progress: rng(), side: -1, dist: 1.4 + rng()*2, size: 6+rng()*4, angle: 0, type:'hedge' });
+    }
+
+  } else if (sceneryType === 'desert') {
+    // Barriers
+    for (let i = 0; i < 25; i++) {
+      sceneryObjects.push({ tileKey: rng()>0.5?'barrier_metal':'barrier_conc',
+        progress: rng(), side: 1, dist: 1.2 + rng()*0.4, size: 5, angle: 0, type:'barrier' });
+    }
+    // Gravel traps outer
+    for (let i = 0; i < 15; i++) {
+      sceneryObjects.push({ tileKey: 'gravel',
+        progress: rng(), side: 1, dist: 1.5 + rng()*1.5, size: 10+rng()*8, angle: 0, type:'ground' });
+    }
+    // Sparse stands
+    for (let i = 0; i < 10; i++) {
+      sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
+        progress: rng(), side: 1, dist: 2.5 + rng()*2, size: 12, angle: 0, type:'stand' });
+    }
+    // Tyre walls
+    for (let i = 0; i < 20; i++) {
+      sceneryObjects.push({ tileKey: rng()>0.5?'tyre_black':'tyre_blue',
+        progress: rng(), side: rng()>0.5?1:-1, dist: 1.1+rng()*0.3, size: 4, angle: rng()*Math.PI*2, type:'tyre' });
+    }
+
   } else { // night
-    for (let i = 0; i < 100; i++) {
-      sceneryObjects.push({
-        type: 'skyscraper',
-        x:rng()*220+10, y:rng()*160+10,
-        w:5+rng()*14, h:12+rng()*55,
-        color:`hsl(${210+rng()*60},${15+rng()*25}%,${8+rng()*12}%)`,
-        windows: true, lit: rng()>0.3,
-      });
+    // Dense stands all around
+    for (let i = 0; i < 24; i++) {
+      sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
+        progress: rng(), side: 1, dist: 1.7 + rng()*1, size: 13, angle: 0, type:'stand' });
     }
-    for (let i = 0; i < 40; i++) {
-      sceneryObjects.push({ type:'neon', x:rng()*230, y:rng()*170, r:1+rng()*3, hue:rng()*360 });
+    // Tall buildings
+    for (let i = 0; i < 20; i++) {
+      sceneryObjects.push({ tileKey: buildKeys[Math.floor(rng()*buildKeys.length)],
+        progress: rng(), side: 1, dist: 3 + rng()*4, size: 10+rng()*8, angle: 0, type:'building' });
+    }
+    // Tyre walls
+    for (let i = 0; i < 25; i++) {
+      const tk = rng()>0.5?'tyre_red':'tyre_blue';
+      sceneryObjects.push({ tileKey: tk,
+        progress: rng(), side: rng()>0.5?1:-1, dist: 1.1+rng()*0.2, size: 4, angle: rng()*Math.PI*2, type:'tyre' });
+    }
+    // Lamps inner and outer
+    for (let i = 0; i < 20; i++) {
+      sceneryObjects.push({ tileKey: 'lamp',
+        progress: i/20, side: rng()>0.5?1:-1, dist: 1.4+rng()*0.3, size: 5, angle: 0, type:'lamp' });
     }
   }
 }
@@ -9927,56 +10081,47 @@ function drawScene(ctx,W,H,s,isGrid){
     ctx.fillStyle=dg; ctx.fillRect(0,H*0.4,W,H*0.3);
   }
 
-  // ---- DRAW SCENERY OBJECTS (in SVG space, transformed to screen) ----
-  sceneryObjects.forEach(obj => {
-    const sx=obj.x*tr.scale+tr.offsetX;
-    const sy=obj.y*tr.scale+tr.offsetY;
-    const sc=tr.scale;
-    if(obj.type==='building'||obj.type==='skyscraper'){
-      const bw=obj.w*sc, bh=obj.h*sc;
-      ctx.fillStyle=obj.color; ctx.fillRect(sx-bw/2,sy-bh,bw,bh);
-      if(obj.windows&&sc>0.6){
-        const cols=Math.max(Math.floor(obj.w/3),1), rows2=Math.max(Math.floor(obj.h/5),1);
-        const ww=Math.max(bw/cols*0.4,1), wh=Math.max(bh/rows2*0.35,1);
-        for(let r=0;r<rows2;r++) for(let c=0;c<cols;c++){
-          const lit=((r*cols+c+Math.floor(scenerySeed/7))%3!==0)===obj.lit;
-          ctx.fillStyle=lit?'rgba(255,230,150,0.65)':'rgba(20,30,50,0.8)';
-          ctx.fillRect(sx-bw/2+c*(bw/cols)+1,sy-bh+r*(bh/rows2)+1,ww,wh);
-        }
-      }
-    } else if(obj.type==='tree'){
-      const r2=obj.r*sc;
-      ctx.fillStyle=obj.trunk||'#3a2a18'; ctx.fillRect(sx-r2*0.18,sy,r2*0.36,r2*0.6);
-      ctx.fillStyle=obj.color; ctx.beginPath(); ctx.arc(sx,sy-r2*0.1,r2,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.arc(sx-r2*0.25,sy-r2*0.4,r2*0.55,0,Math.PI*2); ctx.fill();
-    } else if(obj.type==='bush'){
-      ctx.fillStyle=obj.color; ctx.globalAlpha=0.7;
-      ctx.beginPath(); ctx.arc(sx,sy,obj.r*sc,0,Math.PI*2); ctx.fill();
-      ctx.globalAlpha=1;
-    } else if(obj.type==='cactus'){
-      const h2=obj.h*sc, w2=obj.w*sc;
-      ctx.fillStyle=obj.color;
-      ctx.fillRect(sx-w2/2,sy-h2,w2,h2);
-      ctx.fillRect(sx-w2*2.5,sy-h2*0.65,w2*2,w2*0.8);
-      ctx.fillRect(sx+w2/2,sy-h2*0.5,w2*2,w2*0.8);
-    } else if(obj.type==='rock'){
-      ctx.fillStyle=obj.color; ctx.globalAlpha=0.85;
-      ctx.beginPath(); ctx.ellipse(sx,sy,obj.r*sc,obj.r*sc*0.6,0,0,Math.PI*2); ctx.fill();
-      ctx.globalAlpha=1;
-    } else if(obj.type==='light_pole'){
-      const h2=obj.h*sc;
-      ctx.fillStyle='#444466'; ctx.fillRect(sx-1,sy-h2,2,h2);
-      ctx.fillStyle='rgba(255,220,100,0.9)';
-      ctx.beginPath(); ctx.arc(sx,sy-h2,Math.max(2*sc,1.5),0,Math.PI*2); ctx.fill();
-    } else if(obj.type==='neon'&&sc>0.3){
-      const nr=obj.r*sc*5;
-      const gl=ctx.createRadialGradient(sx,sy,0,sx,sy,nr);
-      gl.addColorStop(0,`hsla(${obj.hue},100%,65%,0.5)`);
-      gl.addColorStop(0.5,`hsla(${obj.hue},100%,55%,0.15)`);
-      gl.addColorStop(1,'transparent');
-      ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(sx,sy,nr,0,Math.PI*2); ctx.fill();
-    }
-  });
+  // ---- DRAW SCENERY OBJECTS (track-relative tile placement) ----
+  if (_tilesetReady && sceneryObjects.length) {
+    // Sort: buildings/ground first (back), then stands, then tyres/lamps (front)
+    const order = { ground:0, building:1, tree:1, hedge:1, stand:2, barrier:3, tyre:4, lamp:4 };
+    const sorted = [...sceneryObjects].sort((a,b)=>(order[a.type]||0)-(order[b.type]||0));
+
+    sorted.forEach(obj => {
+      // Resolve track-relative position to world coords
+      const progress = ((obj.progress % 1) + 1) % 1;
+      const pt = getPointAt(pts, progress);
+      const angle = getAngleAt(pts, progress);
+      const tIdx = Math.floor(progress * pts.length) % pts.length;
+      const hw = tw[tIdx] || 8;
+
+      // Perpendicular direction (outward = side:1, inward = side:-1)
+      const perpX = Math.cos(angle + Math.PI/2) * obj.side;
+      const perpY = Math.sin(angle + Math.PI/2) * obj.side;
+
+      // World position
+      const wx = pt.x + perpX * hw * obj.dist;
+      const wy = pt.y + perpY * hw * obj.dist;
+
+      // Screen position
+      const sx = wx * tr.scale + tr.offsetX;
+      const sy = wy * tr.scale + tr.offsetY;
+      const screenSize = obj.size * tr.scale;
+
+      // Skip if too small or off screen
+      if (screenSize < 2) return;
+      if (sx < -screenSize || sx > W+screenSize || sy < -screenSize || sy > H+screenSize) return;
+
+      // Angle: align to track direction for barriers/stands, random for trees
+      const tileAngle = (obj.type === 'stand' || obj.type === 'barrier')
+        ? angle
+        : (obj.type === 'tyre' ? obj.angle : 0);
+
+      ctx.globalAlpha = obj.type === 'ground' ? 0.6 : 0.92;
+      drawTile(ctx, obj.tileKey, sx, sy, screenSize, tileAngle);
+    });
+    ctx.globalAlpha = 1;
+  }
 
   // Subtle grid texture
   ctx.strokeStyle='rgba(255,255,255,0.016)'; ctx.lineWidth=1;
