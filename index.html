@@ -9998,27 +9998,41 @@ function drawTile(ctx, tileKey, sx, sy, size, angle=0) {
   ctx.restore();
 }
 
-// Pre-rendered background — rebuilds when zoom level changes meaningfully
+// Pre-rendered background — built ONCE per race at base zoom, scaled each frame
 let _bgCanvas = null;
-let _bgCanvasKey = '';
+let _bgRaceKey = '';
+let _bgBaseTr = null; // the transform it was built at
 
 function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
-  // Snap zoom to nearest 10% step to avoid rebuilding every frame during smooth zoom
-  const zoomSnap = Math.round(tr.scale * 5) / 5;  // snap to nearest 0.2 — less jitter
-  // Snap offset to nearest 40px bucket — less frequent rebuilds while panning
-  const oxSnap = Math.round(tr.offsetX / 40) * 40;
-  const oySnap = Math.round(tr.offsetY / 40) * 40;
-  const key = sType + '|' + W + '|' + H + '|' + zoomSnap + '|' + oxSnap + '|' + oySnap;
-  if (_bgCanvas && _bgCanvasKey === key) return;
+  // Only rebuild when race changes or canvas size changes — NOT on zoom/pan
+  const key = sType + '|' + W + '|' + H;
+  if (_bgCanvas && _bgRaceKey === key) return;
+
+  // Build at base zoom (zoom=1, track centered) so it covers the full track
+  const baseTr = {
+    scale: tr.baseScale,
+    offsetX: W/2 - ((pts.reduce((s,p)=>s+p.x,0)/pts.length)) * tr.baseScale,
+    offsetY: H/2 - ((pts.reduce((s,p)=>s+p.y,0)/pts.length)) * tr.baseScale,
+  };
+  _bgBaseTr = baseTr;
+
+  // Make the offscreen canvas larger than the viewport so panning doesn't show edges
+  // 3x size gives plenty of room
+  const OW = W * 3, OH = H * 3;
+  const oTr = {
+    scale: tr.baseScale,
+    offsetX: OW/2 - ((pts.reduce((s,p)=>s+p.x,0)/pts.length)) * tr.baseScale,
+    offsetY: OH/2 - ((pts.reduce((s,p)=>s+p.y,0)/pts.length)) * tr.baseScale,
+  };
 
   const bc = document.createElement('canvas');
-  bc.width = W; bc.height = H;
+  bc.width = OW; bc.height = OH;
   const bctx = bc.getContext('2d');
 
   // Solid fallback
   const bgFallback = { city:'#3a6b2a', forest:'#2d5a1f', desert:'#8a7040', night:'#1e3a18' };
   bctx.fillStyle = bgFallback[sType] || '#3a6b2a';
-  bctx.fillRect(0, 0, W, H);
+  bctx.fillRect(0, 0, OW, OH);
 
   if (_tilesetReady && _tilesetImg) {
     const grassKeys = {
@@ -10029,36 +10043,34 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
     };
     const keys = grassKeys[sType] || grassKeys.city;
 
-    // Tile size scales with zoom — base 20px world units at scale=1
-    const BASE_TILE_WORLD = 20;
-    const ts = Math.max(6, Math.round(BASE_TILE_WORLD * tr.scale));
+    // Tile size in pixels on the offscreen canvas
+    const ts = Math.max(8, Math.round(20 * oTr.scale));
 
-    // World-space tile origin aligned to grid
-    const startX = ((tr.offsetX % ts) + ts) % ts - ts;
-    const startY = ((tr.offsetY % ts) + ts) % ts - ts;
+    // World-aligned grid start
+    const startX = ((oTr.offsetX % ts) + ts) % ts - ts;
+    const startY = ((oTr.offsetY % ts) + ts) % ts - ts;
 
-    // Draw only tiles that fall within [0,W] x [0,H] (automatic culling)
-    for (let y = startY; y < H + ts; y += ts) {
-      for (let x = startX; x < W + ts; x += ts) {
-        if (x + ts < 0 || x > W || y + ts < 0 || y > H) continue; // offscreen cull
-        const tx = Math.floor((x - tr.offsetX) / ts);
-        const ty = Math.floor((y - tr.offsetY) / ts);
+    // Draw ground tiles
+    for (let y = startY; y < OH + ts; y += ts) {
+      for (let x = startX; x < OW + ts; x += ts) {
+        const tx = Math.floor((x - oTr.offsetX) / ts);
+        const ty = Math.floor((y - oTr.offsetY) / ts);
         const ki = (((tx * 3 + ty * 7) % keys.length) + keys.length) % keys.length;
         const t = TILES[keys[ki]];
         if (t) bctx.drawImage(_tilesetImg, t.x, t.y, t.w, t.h, x, y, ts, ts);
       }
     }
 
-    // Infield: clip and re-tile (same world-aligned grid = seamless join)
+    // Infield — clip and re-tile seamlessly
     const n = pts.length;
     const innerPts = [];
     for (let i = 0; i < n; i++) {
       const angle = getAngleAt(pts, i/n);
       const perpX = Math.cos(angle + Math.PI/2) * tw[i];
       const perpY = Math.sin(angle + Math.PI/2) * tw[i];
-      const cx = pts[i].x * tr.scale + tr.offsetX;
-      const cy = pts[i].y * tr.scale + tr.offsetY;
-      innerPts.push({ x: cx - perpX * tr.scale, y: cy - perpY * tr.scale });
+      const cx = pts[i].x * oTr.scale + oTr.offsetX;
+      const cy = pts[i].y * oTr.scale + oTr.offsetY;
+      innerPts.push({ x: cx - perpX * oTr.scale, y: cy - perpY * oTr.scale });
     }
     bctx.save();
     bctx.beginPath();
@@ -10066,11 +10078,10 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
     innerPts.forEach(p => bctx.lineTo(p.x, p.y));
     bctx.closePath();
     bctx.clip();
-    for (let y = startY; y < H + ts; y += ts) {
-      for (let x = startX; x < W + ts; x += ts) {
-        if (x + ts < 0 || x > W || y + ts < 0 || y > H) continue;
-        const tx = Math.floor((x - tr.offsetX) / ts);
-        const ty = Math.floor((y - tr.offsetY) / ts);
+    for (let y = startY; y < OH + ts; y += ts) {
+      for (let x = startX; x < OW + ts; x += ts) {
+        const tx = Math.floor((x - oTr.offsetX) / ts);
+        const ty = Math.floor((y - oTr.offsetY) / ts);
         const ki = (((tx * 3 + ty * 7) % keys.length) + keys.length) % keys.length;
         const t = TILES[keys[ki]];
         if (t) bctx.drawImage(_tilesetImg, t.x, t.y, t.w, t.h, x, y, ts, ts);
@@ -10078,8 +10089,9 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
     }
     bctx.restore();
 
-    // Scenery objects — only draw if on screen (culled)
-    const order = { ground:0, building:1, tree:1, hedge:1, stand:2, barrier:3, tyre:4, lamp:4 };
+    // Buildings — placed on a grid aligned to grass tiles
+    // Each building sits on one tile cell, sized to match
+    const order = { ground:0, building:1, tree:1, hedge:1, lamp:2 };
     const sorted = [...sceneryObjects].sort((a,b) => (order[a.type]||0) - (order[b.type]||0));
     sorted.forEach(obj => {
       const progress = ((obj.progress % 1) + 1) % 1;
@@ -10091,27 +10103,26 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
       const perpY = Math.sin(angle + Math.PI/2) * obj.side;
       const wx = pt.x + perpX * hw * obj.dist;
       const wy = pt.y + perpY * hw * obj.dist;
-      const sx = wx * tr.scale + tr.offsetX;
-      const sy = wy * tr.scale + tr.offsetY;
-      const screenSize = obj.size * tr.scale;
-      // Cull offscreen
-      if (screenSize < 1) return;
-      if (sx + screenSize < 0 || sx - screenSize > W) return;
-      if (sy + screenSize < 0 || sy - screenSize > H) return;
-      // Never rotate tiles — always render exactly as they appear in the tileset
-      bctx.globalAlpha = obj.type === 'ground' ? 0.6 : 0.92;
-      drawTile(bctx, obj.tileKey, sx, sy, screenSize, 0);
+      // Snap to nearest tile grid cell so buildings sit on tiles
+      const gx = Math.round((wx * oTr.scale + oTr.offsetX) / ts) * ts;
+      const gy = Math.round((wy * oTr.scale + oTr.offsetY) / ts) * ts;
+      const screenSize = ts; // exactly one tile wide
+      if (gx + ts < 0 || gx > OW || gy + ts < 0 || gy > OH) return;
+      bctx.globalAlpha = obj.type === 'ground' ? 0.6 : 1.0;
+      // Draw centered on tile cell
+      drawTile(bctx, obj.tileKey, gx + ts/2, gy + ts/2, screenSize, 0);
     });
     bctx.globalAlpha = 1;
   }
 
   if (sType === 'night') {
     bctx.fillStyle = 'rgba(0,0,10,0.45)';
-    bctx.fillRect(0, 0, W, H);
+    bctx.fillRect(0, 0, OW, OH);
   }
 
   _bgCanvas = bc;
-  _bgCanvasKey = key;
+  _bgRaceKey = key;
+  _bgBaseTr = oTr;
 }
 
 function seededRng(seed) {
@@ -10155,73 +10166,41 @@ function initScenery(raceIdx, pts) {
   }
 
   if (sceneryType === 'city') {
-    // Find track extents to identify the bottom straight (near finish line, progress~0)
-    let minY = Infinity, maxY = -Infinity;
-    pts.forEach(p => { if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y; });
-    const bottomThreshold = maxY - (maxY - minY) * 0.18; // bottom 18% of track height
-
-    // --- GRANDSTANDS on the bottom straight (outer side = south of track) ---
-    // Walk track and find points near the bottom — place stands densely there
-    for (let i = 0; i < 40; i++) {
-      const progress = i / 40;
-      const pt = getPointAt(pts, progress);
-      if (pt.y > bottomThreshold) {
-        // This point is on the bottom straight — place a grandstand on outer side
+    // 50 buildings placed at regular grid intervals around the outside of the track
+    // Evenly spaced by progress, alternating distances to form grid rows
+    const buildRows = [
+      { dist: 2.5, count: 17 },
+      { dist: 3.5, count: 17 },
+      { dist: 4.5, count: 16 },
+    ];
+    let bIdx = 0;
+    buildRows.forEach(row => {
+      for (let i = 0; i < row.count; i++) {
+        const progress = (i + 0.5) / row.count;
         sceneryObjects.push({
-          tileKey: standKeys[i % standKeys.length],
-          progress, side: 1, dist: 1.8 + (i % 3) * 0.15,
-          size: 7, angle: 0, type: 'stand'
+          tileKey: buildKeys[bIdx % buildKeys.length],
+          progress, side: 1, dist: row.dist, size: 1, angle: 0, type: 'building'
         });
+        bIdx++;
       }
+    });
+
+    // Trees in infield clusters
+    for (let i = 0; i < 8; i++) {
+      addTreeCluster(rng(), -1, 2.5 + rng()*2, 2 + Math.floor(rng()*2));
     }
 
-    // --- GRANDSTANDS scattered along other outer sections ---
-    for (let i = 0; i < 14; i++) {
-      sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
-        progress: rng(), side: 1, dist: 1.9 + rng()*0.4, size: 6 + rng()*2, angle: 0, type:'stand' });
-    }
-
-    // --- BUILDINGS: dense ring behind grandstands ---
-    // First row — right behind stands
-    for (let i = 0; i < 40; i++) {
-      sceneryObjects.push({ tileKey: buildKeys[Math.floor(rng()*buildKeys.length)],
-        progress: rng(), side: 1, dist: 3.5 + rng()*1.5, size: 7 + rng()*3, angle: 0, type:'building' });
-    }
-    // Second row — further back, taller
-    for (let i = 0; i < 30; i++) {
-      sceneryObjects.push({ tileKey: buildKeys[Math.floor(rng()*buildKeys.length)],
-        progress: rng(), side: 1, dist: 5.5 + rng()*2.5, size: 9 + rng()*4, angle: 0, type:'building' });
-    }
-    // Wide shopfronts in infield and tight outer corners
-    const wideKeys = ['bldg_sm_a','bldg_sm_b','bldg_sm_c','bldg_wide_a','bldg_wide_b'];
-    for (let i = 0; i < 16; i++) {
-      sceneryObjects.push({ tileKey: wideKeys[Math.floor(rng()*wideKeys.length)],
-        progress: rng(), side: -1, dist: 3 + rng()*2, size: 5 + rng()*2, angle: 0, type:'building' });
-    }
-
-    // --- TYRE WALLS close to track edge ---
-    for (let i = 0; i < 30; i++) {
-      const tk = rng() > 0.5 ? 'tyre_red' : 'tyre_black';
-      sceneryObjects.push({ tileKey: tk,
-        progress: rng(), side: 1, dist: 1.35 + rng()*0.15, size: 1.8, angle: 0, type:'tyre' });
-    }
-
-    // --- TREES in infield clusters ---
-    for (let i = 0; i < 10; i++) {
-      addTreeCluster(rng(), -1, 2.5 + rng()*3, 2 + Math.floor(rng()*3));
-    }
-
-    // --- LAMP POSTS along inner edge ---
+    // Lamp posts along inner
     for (let i = 0; i < 20; i++) {
       sceneryObjects.push({ tileKey: 'lamp',
-        progress: i/20 + rng()*0.01, side: -1, dist: 1.5 + rng()*0.2, size: 2.5, angle: 0, type:'lamp' });
+        progress: i/20, side: -1, dist: 1.5 + rng()*0.2, size: 1, angle: 0, type:'lamp' });
     }
 
-    // --- HEDGES / FLOWERS at infield edge ---
-    for (let i = 0; i < 14; i++) {
-      const tk = rng() > 0.5 ? 'hedge' : (rng() > 0.5 ? 'flowers_w' : 'flowers_y');
+    // Hedges at infield edge
+    for (let i = 0; i < 12; i++) {
+      const tk = rng() > 0.5 ? 'hedge' : 'flowers_w';
       sceneryObjects.push({ tileKey: tk, progress: rng(), side: -1,
-        dist: 1.4 + rng()*0.3, size: 2.2, angle: 0, type:'hedge' });
+        dist: 1.4 + rng()*0.2, size: 1, angle: 0, type:'hedge' });
     }
 
   } else if (sceneryType === 'forest') {
@@ -10318,12 +10297,29 @@ function drawScene(ctx,W,H,s,isGrid){
   const trackWidths=tw;
   const pl=s.pitLane;
 
-  // ---- BACKGROUND: blit pre-rendered canvas (built once per race) ----
+  // ---- BACKGROUND: blit pre-rendered canvas scaled to current camera ----
   buildBackgroundCanvas(W, H, sceneryType, tr, pts, tw);
-  if (_bgCanvas) {
-    ctx.drawImage(_bgCanvas, 0, 0);
+  if (_bgCanvas && _bgBaseTr) {
+    // The offscreen canvas was built at _bgBaseTr. Current transform is tr.
+    // Scale = tr.scale / _bgBaseTr.scale
+    // The offscreen canvas is 3x viewport size, centered on track center
+    const scaleRatio = tr.scale / _bgBaseTr.scale;
+    // Where does the offscreen canvas origin (0,0) map to on screen?
+    // _bgBaseTr maps world->offscreen. tr maps world->screen.
+    // offscreen point (ox,oy) = world * _bgBaseTr.scale + _bgBaseTr.offset
+    // screen point = world * tr.scale + tr.offsetX
+    // => screen = (ox - _bgBaseTr.offsetX) / _bgBaseTr.scale * tr.scale + tr.offsetX
+    //           = ox * scaleRatio + (tr.offsetX - _bgBaseTr.offsetX * scaleRatio)
+    const dx = tr.offsetX - _bgBaseTr.offsetX * scaleRatio;
+    const dy = tr.offsetY - _bgBaseTr.offsetY * scaleRatio;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(_bgCanvas,
+      0, 0, _bgCanvas.width, _bgCanvas.height,
+      dx, dy, _bgCanvas.width * scaleRatio, _bgCanvas.height * scaleRatio
+    );
+    ctx.restore();
   } else {
-    // Tileset not loaded yet — solid fallback
     const bgFallback = { city:'#3a6b2a', forest:'#2d5a1f', desert:'#8a7040', night:'#1e3a18' };
     ctx.fillStyle = bgFallback[sceneryType] || '#3a6b2a';
     ctx.fillRect(0, 0, W, H);
