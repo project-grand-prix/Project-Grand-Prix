@@ -9830,7 +9830,7 @@ function loadTileset() {
   if (!src) return;
   _tilesetImg = new Image();
   _tilesetImg.crossOrigin = 'anonymous';
-  _tilesetImg.onload = () => { _tilesetReady = true; _grassCanvas = null; console.log('[PGP] Tileset loaded.'); };
+  _tilesetImg.onload = () => { _tilesetReady = true; console.log('[PGP] Tileset loaded.'); };
   _tilesetImg.onerror = () => { _tilesetReady = false; console.warn('[PGP] Tileset failed to load:', src); };
   _tilesetImg.src = src;
 }
@@ -9998,54 +9998,40 @@ function drawTile(ctx, tileKey, sx, sy, size, angle=0) {
   ctx.restore();
 }
 
-// Tile the grass background across the whole canvas
-let _grassCanvas = null;
-let _grassCanvasW = 0;
-let _grassCanvasH = 0;
-let _grassCanvasType = '';
-
-function drawTiledGrassBackground(ctx, W, H, sType) {
+// Tile the grass background in world space (moves with camera/zoom)
+function drawTiledGrassBackground(ctx, W, H, sType, tr) {
   if (!_tilesetReady || !_tilesetImg) return false;
 
-  const cacheKey = sType + '|' + W + '|' + H;
-  if (!_grassCanvas || _grassCanvasW !== W || _grassCanvasH !== H || _grassCanvasType !== cacheKey) {
-    // Pick grass tiles per scenery type
-    const grassKeys = {
-      city:   ['grass', 'grass2', 'grass', 'grass2'],
-      forest: ['grass', 'grass2', 'grass', 'grass2'],
-      desert: ['gravel', 'stone', 'dirt', 'gravel'],
-      night:  ['grass', 'teal_ground', 'grass2', 'grass'],
-    };
-    const keys = grassKeys[sType] || grassKeys.city;
+  const grassKeys = {
+    city:   ['grass', 'grass2', 'grass', 'grass2', 'grass', 'grass2'],
+    forest: ['grass', 'grass2', 'grass', 'grass2', 'grass', 'grass2'],
+    desert: ['gravel', 'stone', 'dirt', 'gravel', 'stone', 'dirt'],
+    night:  ['grass', 'grass2', 'grass', 'grass2', 'teal_ground', 'grass'],
+  };
+  const keys = grassKeys[sType] || grassKeys.city;
 
-    const gc = document.createElement('canvas');
-    gc.width = W; gc.height = H;
-    const gctx = gc.getContext('2d');
+  // Tile size in screen pixels — fixed at ~12px so it stays fine at any zoom
+  const tileScreenSize = 12;
 
-    // Fill with base colour first (avoids seams)
-    const baseCol = { city:'#3a6b2a', forest:'#2d5a1f', desert:'#8a7040', night:'#2a4a20' };
-    gctx.fillStyle = baseCol[sType] || '#3a6b2a';
-    gctx.fillRect(0, 0, W, H);
+  // World-space tile size
+  const tileWorld = tileScreenSize / tr.scale;
 
-    // Tile grass tiles across the canvas — ~200 tiles across (fine grid)
-    const tileSize = Math.max(W, H) / 200;
-    for (let y = 0; y < H; y += tileSize) {
-      for (let x = 0; x < W; x += tileSize) {
-        const ki = ((Math.floor(x/tileSize) + Math.floor(y/tileSize)*3) % keys.length);
-        const tk = keys[ki];
-        const t = TILES[tk];
-        if (!t) continue;
-        gctx.drawImage(_tilesetImg, t.x, t.y, t.w, t.h, x, y, tileSize, tileSize);
-      }
+  // Find screen-space origin aligned to world grid
+  const startX = ((tr.offsetX % tileScreenSize) + tileScreenSize) % tileScreenSize - tileScreenSize;
+  const startY = ((tr.offsetY % tileScreenSize) + tileScreenSize) % tileScreenSize - tileScreenSize;
+
+  for (let y = startY; y < H + tileScreenSize; y += tileScreenSize) {
+    for (let x = startX; x < W + tileScreenSize; x += tileScreenSize) {
+      // World-space tile index (consistent across zoom/pan)
+      const tx = Math.floor((x - tr.offsetX) / tileScreenSize);
+      const ty = Math.floor((y - tr.offsetY) / tileScreenSize);
+      const ki = (((tx * 3 + ty * 7) % keys.length) + keys.length) % keys.length;
+      const tk = keys[ki];
+      const t = TILES[tk];
+      if (!t) continue;
+      ctx.drawImage(_tilesetImg, t.x, t.y, t.w, t.h, x, y, tileScreenSize, tileScreenSize);
     }
-
-    _grassCanvas = gc;
-    _grassCanvasW = W;
-    _grassCanvasH = H;
-    _grassCanvasType = cacheKey;
   }
-
-  ctx.drawImage(_grassCanvas, 0, 0);
   return true;
 }
 
@@ -10221,14 +10207,11 @@ function drawScene(ctx,W,H,s,isGrid){
     desert: '#8a7040',
     night:  '#1e3a18',
   };
-  // Solid colour first (covers seams if tileset not loaded)
   ctx.fillStyle = bgFallback[sceneryType] || '#3a6b2a';
   ctx.fillRect(0, 0, W, H);
-  // Tile ground texture over whole canvas
-  drawTiledGrassBackground(ctx, W, H, sceneryType);
-  // Night overlay
+  drawTiledGrassBackground(ctx, W, H, sceneryType, tr);
   if (sceneryType === 'night') {
-    ctx.fillStyle = 'rgba(0,0,10,0.55)';
+    ctx.fillStyle = 'rgba(0,0,10,0.45)';
     ctx.fillRect(0, 0, W, H);
   }
 
@@ -10306,16 +10289,13 @@ function drawScene(ctx,W,H,s,isGrid){
   outerPts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
   ctx.fillStyle='rgba(0,0,0,0.22)'; ctx.fill();
 
-  // Infield — fill with grass tones to match background (not black)
-  const infieldColors={
-    city:   'rgba(45,80,30,0.92)',
-    forest: 'rgba(30,68,20,0.92)',
-    desert: 'rgba(110,88,48,0.92)',
-    night:  'rgba(20,45,15,0.92)',
-  };
+  // Infield — clip and tile the same ground texture (no flat colour)
+  ctx.save();
   ctx.beginPath(); ctx.moveTo(innerPts[0].x,innerPts[0].y);
   innerPts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
-  ctx.fillStyle=infieldColors[sceneryType]||'rgba(45,80,30,0.92)'; ctx.fill();
+  ctx.clip();
+  drawTiledGrassBackground(ctx, W, H, sceneryType, tr);
+  ctx.restore();
 
   // Asphalt ring
   ctx.beginPath();
