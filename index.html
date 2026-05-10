@@ -8994,7 +8994,7 @@ function startSimulation() {
   });
 
   // Init scenery for this race
-  initScenery(currentRaceIdx);
+  initScenery(currentRaceIdx, trackPts);
 
   // 6 laps at ~35s each = ~210s = ~12600 frames at 60fps
   const totalFrames=12600;
@@ -10004,10 +10004,10 @@ let _bgCanvasKey = '';
 
 function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
   // Snap zoom to nearest 10% step to avoid rebuilding every frame during smooth zoom
-  const zoomSnap = Math.round(tr.scale * 10) / 10;
-  // Snap offset to nearest 20px bucket so panning doesn't rebuild every frame
-  const oxSnap = Math.round(tr.offsetX / 20) * 20;
-  const oySnap = Math.round(tr.offsetY / 20) * 20;
+  const zoomSnap = Math.round(tr.scale * 5) / 5;  // snap to nearest 0.2 — less jitter
+  // Snap offset to nearest 40px bucket — less frequent rebuilds while panning
+  const oxSnap = Math.round(tr.offsetX / 40) * 40;
+  const oySnap = Math.round(tr.offsetY / 40) * 40;
   const key = sType + '|' + W + '|' + H + '|' + zoomSnap + '|' + oxSnap + '|' + oySnap;
   if (_bgCanvas && _bgCanvasKey === key) return;
 
@@ -10029,10 +10029,9 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
     };
     const keys = grassKeys[sType] || grassKeys.city;
 
-    // Tile size scales with zoom so tiles stay proportional
-    // Base tile = 14px at zoom=1, grows/shrinks with tr.scale
-    const BASE_TILE_WORLD = 14; // world units per tile at scale=1
-    const ts = Math.max(4, Math.round(BASE_TILE_WORLD * tr.scale));
+    // Tile size scales with zoom — base 20px world units at scale=1
+    const BASE_TILE_WORLD = 20;
+    const ts = Math.max(6, Math.round(BASE_TILE_WORLD * tr.scale));
 
     // World-space tile origin aligned to grid
     const startX = ((tr.offsetX % ts) + ts) % ts - ts;
@@ -10099,9 +10098,9 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
       if (screenSize < 1) return;
       if (sx + screenSize < 0 || sx - screenSize > W) return;
       if (sy + screenSize < 0 || sy - screenSize > H) return;
-      const tileAngle = (obj.type === 'stand' || obj.type === 'barrier') ? angle : 0;
+      // Never rotate tiles — always render exactly as they appear in the tileset
       bctx.globalAlpha = obj.type === 'ground' ? 0.6 : 0.92;
-      drawTile(bctx, obj.tileKey, sx, sy, screenSize, tileAngle);
+      drawTile(bctx, obj.tileKey, sx, sy, screenSize, 0);
     });
     bctx.globalAlpha = 1;
   }
@@ -10123,7 +10122,7 @@ function seededRng(seed) {
   };
 }
 
-function initScenery(raceIdx) {
+function initScenery(raceIdx, pts) {
   scenerySeed = ((raceIdx + 1) * 7919) | 0;
   sceneryType = 'city'; // always city for now
   sceneryObjects = [];
@@ -10156,36 +10155,73 @@ function initScenery(raceIdx) {
   }
 
   if (sceneryType === 'city') {
-    // Grandstands along outer straights
-    for (let i = 0; i < 18; i++) {
-      const progress = rng();
+    // Find track extents to identify the bottom straight (near finish line, progress~0)
+    let minY = Infinity, maxY = -Infinity;
+    pts.forEach(p => { if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y; });
+    const bottomThreshold = maxY - (maxY - minY) * 0.18; // bottom 18% of track height
+
+    // --- GRANDSTANDS on the bottom straight (outer side = south of track) ---
+    // Walk track and find points near the bottom — place stands densely there
+    for (let i = 0; i < 40; i++) {
+      const progress = i / 40;
+      const pt = getPointAt(pts, progress);
+      if (pt.y > bottomThreshold) {
+        // This point is on the bottom straight — place a grandstand on outer side
+        sceneryObjects.push({
+          tileKey: standKeys[i % standKeys.length],
+          progress, side: 1, dist: 1.8 + (i % 3) * 0.15,
+          size: 7, angle: 0, type: 'stand'
+        });
+      }
+    }
+
+    // --- GRANDSTANDS scattered along other outer sections ---
+    for (let i = 0; i < 14; i++) {
       sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
-        progress, side: 1, dist: 2.2 + rng()*0.6, size: 5, angle: 0, type:'stand' });
+        progress: rng(), side: 1, dist: 1.9 + rng()*0.4, size: 6 + rng()*2, angle: 0, type:'stand' });
     }
-    // Buildings further back outside
-    for (let i = 0; i < 24; i++) {
+
+    // --- BUILDINGS: dense ring behind grandstands ---
+    // First row — right behind stands
+    for (let i = 0; i < 40; i++) {
       sceneryObjects.push({ tileKey: buildKeys[Math.floor(rng()*buildKeys.length)],
-        progress: rng(), side: 1, dist: 4 + rng()*3, size: 4+rng()*2, angle: 0, type:'building' });
+        progress: rng(), side: 1, dist: 3.5 + rng()*1.5, size: 7 + rng()*3, angle: 0, type:'building' });
     }
-    // Tyre walls tight on outer
+    // Second row — further back, taller
+    for (let i = 0; i < 30; i++) {
+      sceneryObjects.push({ tileKey: buildKeys[Math.floor(rng()*buildKeys.length)],
+        progress: rng(), side: 1, dist: 5.5 + rng()*2.5, size: 9 + rng()*4, angle: 0, type:'building' });
+    }
+    // Wide shopfronts in infield and tight outer corners
+    const wideKeys = ['bldg_sm_a','bldg_sm_b','bldg_sm_c','bldg_wide_a','bldg_wide_b'];
+    for (let i = 0; i < 16; i++) {
+      sceneryObjects.push({ tileKey: wideKeys[Math.floor(rng()*wideKeys.length)],
+        progress: rng(), side: -1, dist: 3 + rng()*2, size: 5 + rng()*2, angle: 0, type:'building' });
+    }
+
+    // --- TYRE WALLS close to track edge ---
     for (let i = 0; i < 30; i++) {
       const tk = rng() > 0.5 ? 'tyre_red' : 'tyre_black';
       sceneryObjects.push({ tileKey: tk,
-        progress: rng(), side: 1, dist: 1.4 + rng()*0.2, size: 1.5, angle: 0, type:'tyre' });
+        progress: rng(), side: 1, dist: 1.35 + rng()*0.15, size: 1.8, angle: 0, type:'tyre' });
     }
-    // Tree clusters in infield
-    for (let i = 0; i < 8; i++) {
+
+    // --- TREES in infield clusters ---
+    for (let i = 0; i < 10; i++) {
       addTreeCluster(rng(), -1, 2.5 + rng()*3, 2 + Math.floor(rng()*3));
     }
-    // Lamp posts along inner
-    for (let i = 0; i < 16; i++) {
+
+    // --- LAMP POSTS along inner edge ---
+    for (let i = 0; i < 20; i++) {
       sceneryObjects.push({ tileKey: 'lamp',
-        progress: i/16 + rng()*0.02, side: -1, dist: 1.6 + rng()*0.3, size: 2, angle: 0, type:'lamp' });
+        progress: i/20 + rng()*0.01, side: -1, dist: 1.5 + rng()*0.2, size: 2.5, angle: 0, type:'lamp' });
     }
-    // Hedges / flowers at infield edge
-    for (let i = 0; i < 10; i++) {
+
+    // --- HEDGES / FLOWERS at infield edge ---
+    for (let i = 0; i < 14; i++) {
       const tk = rng() > 0.5 ? 'hedge' : (rng() > 0.5 ? 'flowers_w' : 'flowers_y');
-      sceneryObjects.push({ tileKey: tk, progress: rng(), side: -1, dist: 1.5 + rng()*0.4, size: 2, angle: 0, type:'hedge' });
+      sceneryObjects.push({ tileKey: tk, progress: rng(), side: -1,
+        dist: 1.4 + rng()*0.3, size: 2.2, angle: 0, type:'hedge' });
     }
 
   } else if (sceneryType === 'forest') {
