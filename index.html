@@ -9838,11 +9838,16 @@ function loadTileset() {
     const imgData = octx.getImageData(0, 0, IW, IH);
     const d = imgData.data;
 
-    // Flood-fill ONLY within building rows (rows 3 and 4 of the tileset)
-    // y=378-514 (tall buildings) and y=542-635 (wide shopfronts)
-    const buildingBands = [
-      { y0: 378, y1: 514 },
-      { y0: 542, y1: 635 },
+    // Flood-fill building rows (rows 3+4) AND greenery rows (rows 0,1,2) separately.
+    // Each band is processed independently — buildings are NOT touched here again.
+    const allBands = [
+      // Greenery rows — remove black surrounds from grass/hedge/tree tiles
+      { y0: 14,  y1: 99  },   // row 0: grass/ground tiles
+      { y0: 125, y1: 219 },   // row 1: hedges, shrubs, small plants
+      { y0: 227, y1: 343 },   // row 2: large trees, park objects
+      // Building rows — already working well, keep exactly as-is
+      { y0: 378, y1: 514 },   // row 3: tall buildings
+      { y0: 542, y1: 635 },   // row 4: wide shopfronts
     ];
 
     const isBlack = (x, y) => {
@@ -9850,7 +9855,7 @@ function loadTileset() {
       return d[i] < 35 && d[i+1] < 35 && d[i+2] < 35;
     };
 
-    buildingBands.forEach(({ y0, y1 }) => {
+    allBands.forEach(({ y0, y1 }) => {
       const visited = new Uint8Array(IW * (y1 - y0 + 1));
       const queue = [];
       const idx = (x, y) => (y - y0) * IW + x;
