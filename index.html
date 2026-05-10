@@ -9828,11 +9828,31 @@ function loadTileset() {
   if (_tilesetImg) return;
   const src = window.TILESET_URL || null;
   if (!src) return;
-  _tilesetImg = new Image();
-  _tilesetImg.crossOrigin = 'anonymous';
-  _tilesetImg.onload = () => { _tilesetReady = true; _bgCanvas = null; _bgCanvasKey = ''; console.log('[PGP] Tileset loaded.'); };
-  _tilesetImg.onerror = () => { _tilesetReady = false; console.warn('[PGP] Tileset failed to load:', src); };
-  _tilesetImg.src = src;
+  const raw = new Image();
+  raw.onload = () => {
+    // Strip black background — make near-black pixels fully transparent
+    const offscreen = document.createElement('canvas');
+    offscreen.width = raw.naturalWidth;
+    offscreen.height = raw.naturalHeight;
+    const octx = offscreen.getContext('2d');
+    octx.drawImage(raw, 0, 0);
+    const imgData = octx.getImageData(0, 0, offscreen.width, offscreen.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] < 30 && d[i+1] < 30 && d[i+2] < 30) d[i+3] = 0;
+    }
+    octx.putImageData(imgData, 0, 0);
+    const processed = new Image();
+    processed.onload = () => {
+      _tilesetImg = processed;
+      _tilesetReady = true;
+      _bgCanvas = null; _bgRaceKey = '';
+      console.log('[PGP] Tileset loaded (black stripped).');
+    };
+    processed.src = offscreen.toDataURL();
+  };
+  raw.onerror = () => { _tilesetReady = false; console.warn('[PGP] Tileset failed to load:', src); };
+  raw.src = src;
 }
 
 // Tile definitions: exact pixel rects [x, y, w, h] in the 1254x1254 tileset
@@ -10138,7 +10158,7 @@ function initScenery(raceIdx, pts) {
   sceneryType = 'city'; // always city for now
   sceneryObjects = [];
   _bgCanvas = null; // force rebuild for new race
-  _bgCanvasKey = '';
+  _bgRaceKey = '';
   loadTileset();
   const rng = seededRng(scenerySeed);
 
@@ -10166,38 +10186,41 @@ function initScenery(raceIdx, pts) {
   }
 
   if (sceneryType === 'city') {
-    // 50 buildings placed at regular grid intervals around the outside of the track
-    // Evenly spaced by progress, alternating distances to form grid rows
-    const buildRows = [
-      { dist: 2.5, count: 17 },
-      { dist: 3.5, count: 17 },
-      { dist: 4.5, count: 16 },
+    // Full diverse roster of all building types from tileset rows 3 and 4
+    const allBuildKeys = [
+      'bldg_shop','bldg_dark','bldg_tan','bldg_white','bldg_blue','bldg_tower',
+      'bldg_glass','bldg_grey','bldg_brown','bldg_office','bldg_modern','bldg_flat',
+      'bldg_sm_a','bldg_sm_b','bldg_sm_c','bldg_wide_a','bldg_wide_b',
+      'bldg_wide_c','bldg_wide_d','bldg_blue2','bldg_red','bldg_grey2',
+    ];
+
+    // 3 rows of ~17 buildings each = 51 total, evenly spaced, cycling all types
+    const rows = [
+      { dist: 2.4, count: 17 },
+      { dist: 3.6, count: 17 },
+      { dist: 4.8, count: 17 },
     ];
     let bIdx = 0;
-    buildRows.forEach(row => {
+    rows.forEach(row => {
       for (let i = 0; i < row.count; i++) {
-        const progress = (i + 0.5) / row.count;
+        const progress = (i + (row.dist % 1)) / row.count; // slight offset per row so they stagger
         sceneryObjects.push({
-          tileKey: buildKeys[bIdx % buildKeys.length],
-          progress, side: 1, dist: row.dist, size: 1, angle: 0, type: 'building'
+          tileKey: allBuildKeys[bIdx % allBuildKeys.length],
+          progress, side: 1, dist: row.dist,
+          size: 1, angle: 0, type: 'building'
         });
         bIdx++;
       }
     });
 
-    // Trees in infield clusters
-    for (let i = 0; i < 8; i++) {
-      addTreeCluster(rng(), -1, 2.5 + rng()*2, 2 + Math.floor(rng()*2));
-    }
-
-    // Lamp posts along inner
+    // Lamp posts along inner edge
     for (let i = 0; i < 20; i++) {
       sceneryObjects.push({ tileKey: 'lamp',
         progress: i/20, side: -1, dist: 1.5 + rng()*0.2, size: 1, angle: 0, type:'lamp' });
     }
 
-    // Hedges at infield edge
-    for (let i = 0; i < 12; i++) {
+    // A few hedges/flowers at infield edge
+    for (let i = 0; i < 10; i++) {
       const tk = rng() > 0.5 ? 'hedge' : 'flowers_w';
       sceneryObjects.push({ tileKey: tk, progress: rng(), side: -1,
         dist: 1.4 + rng()*0.2, size: 1, angle: 0, type:'hedge' });
