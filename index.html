@@ -9821,91 +9821,232 @@ const SCENERY_TYPES = ['city','forest','desert','night'];
 // ---- TILESET ----
 // Tileset is 1080x1080, 10 cols x 11 rows = 108px per tile
 // Set window.TILESET_URL before the game loads to use a custom path
-const TS = 108; // tile size in pixels
 let _tilesetImg = null;
 let _tilesetReady = false;
 
 function loadTileset() {
   if (_tilesetImg) return;
-  // Try to use a tileset URL — can be set via window.TILESET_URL
-  // or falls back to graceful primitive rendering
   const src = window.TILESET_URL || null;
-  if (!src) return; // no tileset configured, use primitive fallback
+  if (!src) return;
   _tilesetImg = new Image();
   _tilesetImg.crossOrigin = 'anonymous';
-  _tilesetImg.onload = () => { _tilesetReady = true; console.log('[PGP] Tileset loaded.'); };
+  _tilesetImg.onload = () => { _tilesetReady = true; _grassCanvas = null; console.log('[PGP] Tileset loaded.'); };
   _tilesetImg.onerror = () => { _tilesetReady = false; console.warn('[PGP] Tileset failed to load:', src); };
   _tilesetImg.src = src;
 }
 
-// Tile definitions [col, row] in the tileset
+// Tile definitions: exact pixel rects [x, y, w, h] in the 1254x1254 tileset
+// Row 0 (y=14-99): ground tiles
+// Row 1 (y=125-219): hedges, shrubs, small plants, small trees
+// Row 2 (y=227-343): large trees, park objects (gazebo, bench, fountain, lamps, flowers)
+// Row 3 (y=378-514): city buildings (tall)
+// Row 4 (y=542-635): city buildings (wide/shopfronts)
+// Row 5 (y=672-795): grandstands (large)
+// Row 6 (y=829-916): barriers, tyre walls, gravel, kerbs
+// Row 7 (y=950-1022): kerb details, chevrons, track elements
+// Row 8 (y=1060-1091): thin barrier/signage strips
+// Row 9 (y=1121-1233): road/asphalt tiles
 const TILES = {
-  // Ground / grass
-  grass:          [0, 0],
-  grass2:         [1, 0],
-  dirt:           [2, 0],
-  gravel:         [3, 0],
-  // Trees
-  tree_oak:       [4, 2],
-  tree_round:     [5, 2],
-  tree_med:       [6, 2],
-  tree_pine:      [7, 2],
-  tree_small:     [8, 2],
-  tree_tiny:      [9, 2],
-  // Hedges
-  hedge:          [0, 1],
-  hedge_sq:       [1, 1],
-  flowers_w:      [2, 1],
-  flowers_y:      [3, 1],
-  // Grandstands
-  stand_grey:     [0, 6],
-  stand_blue:     [1, 6],
-  stand_white:    [2, 6],
-  stand_flags:    [3, 6],
-  stand_blue2:    [5, 6],
-  stand_dark:     [6, 6],
-  stand_grey2:    [7, 6],
-  // Tyre walls / barriers
-  tyre_black:     [0, 7],
-  tyre_red:       [1, 7],
-  tyre_blue:      [2, 7],
-  tyre_white:     [3, 7],
-  barrier_metal:  [0, 8],
-  barrier_conc:   [2, 8],
-  // Kerbs / track elements
-  kerb_rw:        [0, 9],
-  kerb_curve:     [1, 9],
-  chevron:        [2, 9],
-  kerb_rw2:       [4, 9],
-  kerb_sausage:   [5, 9],
-  chequered:      [9, 9],
-  // Buildings
-  bldg_small:     [0, 3],
-  bldg_med:       [1, 3],
-  bldg_tall:      [2, 3],
-  bldg_glass:     [3, 3],
-  bldg_blue:      [4, 3],
-  bldg_tower:     [5, 3],
-  bldg_grey:      [6, 3],
-  bldg_brown:     [7, 3],
-  // Lamp / gazebo
-  lamp:           [7, 2],
-  gazebo:         [4, 2],
+  // --- Ground / grass (row 0) ---
+  grass:         {x:14,  y:14,  w:85, h:86},
+  grass2:        {x:115, y:14,  w:87, h:86},
+  dirt:          {x:218, y:14,  w:87, h:86},
+  gravel:        {x:321, y:14,  w:86, h:86},
+  stone:         {x:423, y:14,  w:87, h:86},
+  teal_ground:   {x:525, y:14,  w:86, h:86},
+  pond:          {x:627, y:14,  w:85, h:86},
+
+  // --- Hedges / small plants (row 1) ---
+  hedge:         {x:14,  y:125, w:85, h:95},
+  hedge_sq:      {x:120, y:125, w:87, h:95},
+  flowers_w:     {x:228, y:125, w:71, h:95},
+  flowers_y:     {x:321, y:125, w:76, h:95},
+  // small individual trees / decorative plants (row 1, cols 4-14)
+  tree_small_a:  {x:424, y:125, w:35, h:95},
+  tree_small_b:  {x:491, y:125, w:39, h:95},
+  tree_small_c:  {x:555, y:125, w:39, h:95},
+  tree_round_sm: {x:620, y:125, w:75, h:95},
+  tree_pine_sm:  {x:720, y:125, w:68, h:95},
+  plant_a:       {x:811, y:125, w:39, h:95},
+  bush_a:        {x:869, y:125, w:60, h:95},
+  bush_b:        {x:962, y:125, w:59, h:95},
+  flowers_r:     {x:1050,y:125, w:46, h:95},
+  flowers_mix:   {x:1122,y:125, w:47, h:95},
+  plant_tiny:    {x:1195,y:125, w:39, h:95},
+
+  // --- Large trees & park objects (row 2) ---
+  tree_oak:      {x:16,  y:227, w:72, h:117},
+  tree_round:    {x:116, y:227, w:76, h:117},
+  gazebo:        {x:220, y:227, w:177,h:117},
+  bench:         {x:424, y:227, w:35, h:117},
+  fountain:      {x:496, y:227, w:65, h:117},
+  lamp:          {x:590, y:227, w:119,h:117},
+  lamp_b:        {x:717, y:227, w:227,h:117},
+  flowers_pot:   {x:993, y:227, w:45, h:117},
+  bush_round:    {x:1060,y:227, w:32, h:117},
+  rose_bush:     {x:1126,y:227, w:38, h:117},
+  flowers_sm:    {x:1209,y:227, w:24, h:117},
+
+  // --- Tall city buildings (row 3) ---
+  bldg_shop:     {x:17,  y:378, w:79, h:137},
+  bldg_dark:     {x:120, y:378, w:80, h:137},
+  bldg_tan:      {x:231, y:378, w:65, h:137},
+  bldg_white:    {x:315, y:378, w:57, h:137},
+  bldg_blue:     {x:381, y:378, w:60, h:137},
+  bldg_tower:    {x:488, y:378, w:54, h:137},
+  bldg_glass:    {x:575, y:378, w:100,h:137},
+  bldg_grey:     {x:707, y:378, w:59, h:137},
+  bldg_brown:    {x:797, y:378, w:70, h:137},
+  bldg_office:   {x:896, y:378, w:82, h:137},
+  bldg_modern:   {x:1007,y:378, w:66, h:137},
+  bldg_flat:     {x:1101,y:378, w:75, h:137},
+
+  // --- Wide shopfront buildings (row 4) ---
+  bldg_sm_a:     {x:15,  y:542, w:55, h:94},
+  bldg_sm_b:     {x:95,  y:542, w:79, h:94},
+  bldg_sm_c:     {x:207, y:542, w:72, h:94},
+  bldg_wide_a:   {x:313, y:542, w:126,h:94},
+  bldg_wide_b:   {x:457, y:542, w:103,h:94},
+  bldg_wide_c:   {x:583, y:542, w:117,h:94},
+  bldg_wide_d:   {x:727, y:542, w:106,h:94},
+  bldg_blue2:    {x:854, y:542, w:87, h:94},
+  bldg_red:      {x:963, y:542, w:59, h:94},
+  bldg_grey2:    {x:1046,y:542, w:84, h:94},
+  bldg_sq_a:     {x:1151,y:542, w:42, h:94},
+  bldg_sq_b:     {x:1204,y:542, w:30, h:94},
+
+  // --- Grandstands (row 5) ---
+  stand_grey:    {x:17,  y:672, w:164,h:124},
+  stand_blue:    {x:218, y:672, w:125,h:124},
+  stand_white:   {x:379, y:672, w:141,h:124},
+  stand_flags:   {x:556, y:672, w:181,h:124},
+  stand_blue2:   {x:771, y:672, w:124,h:124},
+  stand_dark:    {x:931, y:672, w:131,h:124},
+  stand_grey2:   {x:1096,y:672, w:131,h:124},
+
+  // --- Barriers / tyre walls / gravel / kerbs (row 6) ---
+  barrier_metal: {x:17,  y:829, w:152,h:88},
+  barrier_conc:  {x:172, y:829, w:119,h:88},
+  kerb_rw:       {x:317, y:829, w:99, h:88},
+  barrier_blue:  {x:435, y:829, w:63, h:88},
+  kerb_curve:    {x:512, y:829, w:129,h:88},
+  tyre_black:    {x:670, y:829, w:66, h:88},
+  tyre_red:      {x:756, y:829, w:68, h:88},
+  tyre_blue:     {x:845, y:829, w:66, h:88},
+  tyre_white:    {x:929, y:829, w:59, h:88},
+  gravel_trap:   {x:1023,y:829, w:74, h:88},
+  kerb_italy:    {x:1131,y:829, w:91, h:88},
+
+  // --- Kerb details / chevrons / track elements (row 7) ---
+  kerb_rw2:      {x:18,  y:950, w:102,h:73},
+  chevron:       {x:139, y:950, w:71, h:73},
+  kerb_sausage:  {x:225, y:950, w:64, h:73},
+  kerb_yb:       {x:307, y:950, w:62, h:73},
+  kerb_corner_a: {x:390, y:950, w:58, h:73},
+  kerb_corner_b: {x:468, y:950, w:53, h:73},
+  kerb_wide:     {x:540, y:950, w:80, h:73},
+  kerb_rw_side:  {x:641, y:950, w:77, h:73},
+  kerb_rw_end:   {x:736, y:950, w:80, h:73},
+  kerb_grey:     {x:833, y:950, w:58, h:73},
+  kerb_corner_c: {x:912, y:950, w:62, h:73},
+  chequered:     {x:1002,y:950, w:64, h:73},
+  kerb_tri:      {x:1095,y:950, w:70, h:73},
+  kerb_arrow:    {x:1192,y:950, w:40, h:73},
+
+  // --- Thin barriers / signage (row 8) ---
+  barrier_rw:    {x:20,  y:1060,w:104,h:32},
+  barrier_rd:    {x:148, y:1060,w:69, h:32},
+  barrier_grn:   {x:243, y:1060,w:77, h:32},
+  sign_speed:    {x:344, y:1060,w:105,h:32},
+  sign_pit:      {x:471, y:1060,w:110,h:32},
+  barrier_green: {x:604, y:1060,w:90, h:32},
+  barrier_teal:  {x:717, y:1060,w:116,h:32},
+  barrier_metal2:{x:857, y:1060,w:93, h:32},
+  barrier_grey:  {x:976, y:1060,w:51, h:32},
+  barrier_dk:    {x:1062,y:1060,w:55, h:32},
+  chevron_r:     {x:1141,y:1060,w:93, h:32},
+
+  // --- Road / asphalt tiles (row 9) ---
+  road_plain:    {x:17,  y:1121,w:117,h:113},
+  road_lines:    {x:151, y:1121,w:104,h:113},
+  road_centre:   {x:275, y:1121,w:104,h:113},
+  road_white:    {x:399, y:1121,w:97, h:113},
+  road_yellow:   {x:515, y:1121,w:100,h:113},
+  road_cross:    {x:635, y:1121,w:101,h:113},
+  road_side_l:   {x:754, y:1121,w:100,h:113},
+  road_side_r:   {x:874, y:1121,w:103,h:113},
+  road_zebra:    {x:996, y:1121,w:98, h:113},
+  road_pitlane:  {x:1113,y:1121,w:104,h:113},
 };
 
+// Draw a tile from the tileset, centered on (sx, sy), scaled to `size` px
 function drawTile(ctx, tileKey, sx, sy, size, angle=0) {
   if (!_tilesetReady || !_tilesetImg) return;
   const t = TILES[tileKey];
   if (!t) return;
-  const [col, row] = t;
   ctx.save();
   ctx.translate(sx, sy);
   if (angle) ctx.rotate(angle);
+  // Maintain aspect ratio
+  const aspect = t.w / t.h;
+  const dw = size * (aspect >= 1 ? 1 : aspect);
+  const dh = size * (aspect <= 1 ? 1 : 1/aspect);
   ctx.drawImage(_tilesetImg,
-    col * TS, row * TS, TS, TS,   // source rect in tileset
-    -size/2, -size/2, size, size   // dest centered on sx,sy
+    t.x, t.y, t.w, t.h,
+    -dw/2, -dh/2, dw, dh
   );
   ctx.restore();
+}
+
+// Tile the grass background across the whole canvas
+let _grassCanvas = null;
+let _grassCanvasW = 0;
+let _grassCanvasH = 0;
+let _grassCanvasType = '';
+
+function drawTiledGrassBackground(ctx, W, H, sType) {
+  if (!_tilesetReady || !_tilesetImg) return false;
+
+  const cacheKey = sType + '|' + W + '|' + H;
+  if (!_grassCanvas || _grassCanvasW !== W || _grassCanvasH !== H || _grassCanvasType !== cacheKey) {
+    // Pick grass tiles per scenery type
+    const grassKeys = {
+      city:   ['grass', 'grass2', 'grass', 'grass2'],
+      forest: ['grass', 'grass2', 'grass', 'grass2'],
+      desert: ['gravel', 'stone', 'dirt', 'gravel'],
+      night:  ['grass', 'teal_ground', 'grass2', 'grass'],
+    };
+    const keys = grassKeys[sType] || grassKeys.city;
+
+    const gc = document.createElement('canvas');
+    gc.width = W; gc.height = H;
+    const gctx = gc.getContext('2d');
+
+    // Fill with base colour first (avoids seams)
+    const baseCol = { city:'#3a6b2a', forest:'#2d5a1f', desert:'#8a7040', night:'#2a4a20' };
+    gctx.fillStyle = baseCol[sType] || '#3a6b2a';
+    gctx.fillRect(0, 0, W, H);
+
+    // Tile grass tiles across the canvas
+    const tileSize = Math.max(W, H) / 8; // ~8 tiles across
+    for (let y = 0; y < H; y += tileSize) {
+      for (let x = 0; x < W; x += tileSize) {
+        const ki = ((Math.floor(x/tileSize) + Math.floor(y/tileSize)*3) % keys.length);
+        const tk = keys[ki];
+        const t = TILES[tk];
+        if (!t) continue;
+        gctx.drawImage(_tilesetImg, t.x, t.y, t.w, t.h, x, y, tileSize, tileSize);
+      }
+    }
+
+    _grassCanvas = gc;
+    _grassCanvasW = W;
+    _grassCanvasH = H;
+    _grassCanvasType = cacheKey;
+  }
+
+  ctx.drawImage(_grassCanvas, 0, 0);
+  return true;
 }
 
 function seededRng(seed) {
@@ -9927,108 +10068,140 @@ function initScenery(raceIdx) {
   // Objects store: { type, progress(0-1), side(1=outer,-1=inner), dist, size, angle, tileKey }
   // They get resolved to screen coords each frame in drawScene
 
-  const treeKeys = ['tree_oak','tree_round','tree_med','tree_pine','tree_small'];
-  const standKeys = ['stand_grey','stand_blue','stand_white','stand_flags','stand_blue2','stand_dark'];
-  const buildKeys = ['bldg_small','bldg_med','bldg_tall','bldg_glass','bldg_blue','bldg_tower'];
+  const treeKeys = ['tree_oak','tree_round','tree_small_a','tree_small_b','tree_small_c','tree_pine_sm','tree_round_sm'];
+  const standKeys = ['stand_grey','stand_blue','stand_white','stand_flags','stand_blue2','stand_dark','stand_grey2'];
+  const buildKeys = ['bldg_shop','bldg_dark','bldg_tan','bldg_glass','bldg_blue','bldg_tower','bldg_grey','bldg_brown','bldg_office','bldg_modern'];
+
+  // Helper: place a cluster of trees at roughly the same track position
+  function addTreeCluster(progress, side, baseDist, count) {
+    const clusterRng = seededRng(scenerySeed + Math.floor(progress * 9999));
+    for (let c = 0; c < count; c++) {
+      const jitter = (clusterRng() - 0.5) * 0.04;
+      const distJitter = clusterRng() * 1.5;
+      sceneryObjects.push({
+        tileKey: treeKeys[Math.floor(clusterRng() * treeKeys.length)],
+        progress: ((progress + jitter) % 1 + 1) % 1,
+        side, dist: baseDist + distJitter,
+        size: 8 + clusterRng() * 6, angle: 0, type: 'tree'
+      });
+    }
+  }
 
   if (sceneryType === 'city') {
     // Grandstands along outer straights
     for (let i = 0; i < 18; i++) {
       const progress = rng();
       sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
-        progress, side: 1, dist: 1.8 + rng()*0.8, size: 12, angle: 0, type:'stand' });
+        progress, side: 1, dist: 1.8 + rng()*0.8, size: 14, angle: 0, type:'stand' });
     }
     // Buildings further back outside
     for (let i = 0; i < 24; i++) {
       sceneryObjects.push({ tileKey: buildKeys[Math.floor(rng()*buildKeys.length)],
-        progress: rng(), side: 1, dist: 3.5 + rng()*3, size: 9+rng()*6, angle: 0, type:'building' });
+        progress: rng(), side: 1, dist: 3.5 + rng()*3, size: 11+rng()*6, angle: 0, type:'building' });
     }
     // Tyre walls tight on outer
     for (let i = 0; i < 30; i++) {
       const tk = rng() > 0.5 ? 'tyre_red' : 'tyre_black';
       sceneryObjects.push({ tileKey: tk,
-        progress: rng(), side: 1, dist: 1.1 + rng()*0.3, size: 4, angle: rng()*Math.PI*2, type:'tyre' });
+        progress: rng(), side: 1, dist: 1.1 + rng()*0.3, size: 5, angle: 0, type:'tyre' });
     }
-    // Trees in infield
-    for (let i = 0; i < 20; i++) {
-      sceneryObjects.push({ tileKey: treeKeys[Math.floor(rng()*treeKeys.length)],
-        progress: rng(), side: -1, dist: 2 + rng()*4, size: 7+rng()*5, angle: 0, type:'tree' });
+    // Tree clusters in infield
+    for (let i = 0; i < 8; i++) {
+      addTreeCluster(rng(), -1, 2 + rng()*3, 2 + Math.floor(rng()*3));
     }
     // Lamp posts along inner
     for (let i = 0; i < 16; i++) {
       sceneryObjects.push({ tileKey: 'lamp',
-        progress: i/16 + rng()*0.02, side: -1, dist: 1.3 + rng()*0.3, size: 5, angle: 0, type:'lamp' });
+        progress: i/16 + rng()*0.02, side: -1, dist: 1.3 + rng()*0.3, size: 6, angle: 0, type:'lamp' });
+    }
+    // Hedges / flowers at infield edge
+    for (let i = 0; i < 10; i++) {
+      const tk = rng() > 0.5 ? 'hedge' : (rng() > 0.5 ? 'flowers_w' : 'flowers_y');
+      sceneryObjects.push({ tileKey: tk, progress: rng(), side: -1, dist: 1.2 + rng()*0.4, size: 6, angle: 0, type:'hedge' });
     }
 
   } else if (sceneryType === 'forest') {
-    // Dense trees everywhere outside
-    for (let i = 0; i < 50; i++) {
-      sceneryObjects.push({ tileKey: treeKeys[Math.floor(rng()*treeKeys.length)],
-        progress: rng(), side: 1, dist: 1.5 + rng()*5, size: 8+rng()*8, angle: 0, type:'tree' });
+    // Dense tree clusters everywhere outside
+    for (let i = 0; i < 20; i++) {
+      addTreeCluster(rng(), 1, 1.5 + rng()*4, 2 + Math.floor(rng()*4));
     }
-    for (let i = 0; i < 30; i++) {
-      sceneryObjects.push({ tileKey: treeKeys[Math.floor(rng()*treeKeys.length)],
-        progress: rng(), side: -1, dist: 1.5 + rng()*4, size: 7+rng()*7, angle: 0, type:'tree' });
+    for (let i = 0; i < 14; i++) {
+      addTreeCluster(rng(), -1, 1.5 + rng()*3, 2 + Math.floor(rng()*3));
     }
-    // Some grandstands peeking through
+    // Some grandstands peeking through trees
     for (let i = 0; i < 6; i++) {
       sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
-        progress: rng(), side: 1, dist: 1.8 + rng()*1, size: 11, angle: 0, type:'stand' });
+        progress: rng(), side: 1, dist: 1.8 + rng()*1, size: 13, angle: 0, type:'stand' });
     }
     // Tyre walls at corners
     for (let i = 0; i < 20; i++) {
       sceneryObjects.push({ tileKey: 'tyre_red',
-        progress: rng(), side: 1, dist: 1.1 + rng()*0.2, size: 4, angle: rng()*Math.PI*2, type:'tyre' });
+        progress: rng(), side: 1, dist: 1.1 + rng()*0.2, size: 5, angle: 0, type:'tyre' });
     }
     // Hedges inner
-    for (let i = 0; i < 15; i++) {
-      sceneryObjects.push({ tileKey: rng()>0.5?'hedge':'hedge_sq',
-        progress: rng(), side: -1, dist: 1.4 + rng()*2, size: 6+rng()*4, angle: 0, type:'hedge' });
+    for (let i = 0; i < 18; i++) {
+      const tk = rng()>0.5?'hedge':'hedge_sq';
+      sceneryObjects.push({ tileKey: tk,
+        progress: rng(), side: -1, dist: 1.4 + rng()*2, size: 7+rng()*4, angle: 0, type:'hedge' });
+    }
+    // Metal barriers outer
+    for (let i = 0; i < 12; i++) {
+      sceneryObjects.push({ tileKey: 'barrier_metal',
+        progress: rng(), side: 1, dist: 1.15 + rng()*0.2, size: 8, angle: 0, type:'barrier' });
     }
 
   } else if (sceneryType === 'desert') {
-    // Barriers
+    // Barriers close to track
     for (let i = 0; i < 25; i++) {
       sceneryObjects.push({ tileKey: rng()>0.5?'barrier_metal':'barrier_conc',
-        progress: rng(), side: 1, dist: 1.2 + rng()*0.4, size: 5, angle: 0, type:'barrier' });
+        progress: rng(), side: 1, dist: 1.2 + rng()*0.4, size: 6, angle: 0, type:'barrier' });
     }
     // Gravel traps outer
     for (let i = 0; i < 15; i++) {
-      sceneryObjects.push({ tileKey: 'gravel',
-        progress: rng(), side: 1, dist: 1.5 + rng()*1.5, size: 10+rng()*8, angle: 0, type:'ground' });
+      sceneryObjects.push({ tileKey: 'gravel_trap',
+        progress: rng(), side: 1, dist: 1.5 + rng()*1.5, size: 11+rng()*8, angle: 0, type:'ground' });
     }
     // Sparse stands
     for (let i = 0; i < 10; i++) {
       sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
-        progress: rng(), side: 1, dist: 2.5 + rng()*2, size: 12, angle: 0, type:'stand' });
+        progress: rng(), side: 1, dist: 2.5 + rng()*2, size: 13, angle: 0, type:'stand' });
     }
     // Tyre walls
     for (let i = 0; i < 20; i++) {
       sceneryObjects.push({ tileKey: rng()>0.5?'tyre_black':'tyre_blue',
-        progress: rng(), side: rng()>0.5?1:-1, dist: 1.1+rng()*0.3, size: 4, angle: rng()*Math.PI*2, type:'tyre' });
+        progress: rng(), side: rng()>0.5?1:-1, dist: 1.1+rng()*0.3, size: 5, angle: 0, type:'tyre' });
+    }
+    // Some chevrons/kerb elements
+    for (let i = 0; i < 8; i++) {
+      sceneryObjects.push({ tileKey: 'chevron',
+        progress: rng(), side: 1, dist: 1.05 + rng()*0.1, size: 5, angle: 0, type:'barrier' });
     }
 
   } else { // night
     // Dense stands all around
     for (let i = 0; i < 24; i++) {
       sceneryObjects.push({ tileKey: standKeys[Math.floor(rng()*standKeys.length)],
-        progress: rng(), side: 1, dist: 1.7 + rng()*1, size: 13, angle: 0, type:'stand' });
+        progress: rng(), side: 1, dist: 1.7 + rng()*1, size: 15, angle: 0, type:'stand' });
     }
-    // Tall buildings
+    // Tall buildings behind stands
     for (let i = 0; i < 20; i++) {
       sceneryObjects.push({ tileKey: buildKeys[Math.floor(rng()*buildKeys.length)],
-        progress: rng(), side: 1, dist: 3 + rng()*4, size: 10+rng()*8, angle: 0, type:'building' });
+        progress: rng(), side: 1, dist: 3 + rng()*4, size: 12+rng()*8, angle: 0, type:'building' });
     }
     // Tyre walls
     for (let i = 0; i < 25; i++) {
       const tk = rng()>0.5?'tyre_red':'tyre_blue';
       sceneryObjects.push({ tileKey: tk,
-        progress: rng(), side: rng()>0.5?1:-1, dist: 1.1+rng()*0.2, size: 4, angle: rng()*Math.PI*2, type:'tyre' });
+        progress: rng(), side: rng()>0.5?1:-1, dist: 1.1+rng()*0.2, size: 5, angle: 0, type:'tyre' });
     }
     // Lamps inner and outer
     for (let i = 0; i < 20; i++) {
       sceneryObjects.push({ tileKey: 'lamp',
-        progress: i/20, side: rng()>0.5?1:-1, dist: 1.4+rng()*0.3, size: 5, angle: 0, type:'lamp' });
+        progress: i/20, side: rng()>0.5?1:-1, dist: 1.4+rng()*0.3, size: 6, angle: 0, type:'lamp' });
+    }
+    // Some trees infield
+    for (let i = 0; i < 6; i++) {
+      addTreeCluster(rng(), -1, 2 + rng()*3, 2 + Math.floor(rng()*2));
     }
   }
 }
@@ -10041,44 +10214,22 @@ function drawScene(ctx,W,H,s,isGrid){
   const trackWidths=tw;
   const pl=s.pitLane;
 
-  // ---- BACKGROUND based on scenery type ----
-  const bgColors = {
-    city:   ['#0a0e1a','#0f1525','#070d18'],
-    forest: ['#060e06','#091408','#050b04'],
-    desert: ['#141008','#1a1408','#0f0c06'],
-    night:  ['#030308','#05050f','#02020a'],
+  // ---- BACKGROUND: tiled grass/ground across the whole canvas ----
+  const bgFallback = {
+    city:   '#3a6b2a',
+    forest: '#2d5a1f',
+    desert: '#8a7040',
+    night:  '#1e3a18',
   };
-  const bc = bgColors[sceneryType]||bgColors.city;
-  const bgKey=sceneryType+'|'+W+'|'+H;
-  if(!s._bgGrad||s._bgGradKey!==bgKey){
-    const g=ctx.createLinearGradient(0,0,W,H);
-    g.addColorStop(0,bc[0]); g.addColorStop(0.5,bc[1]); g.addColorStop(1,bc[2]);
-    s._bgGrad=g; s._bgGradKey=bgKey;
-  }
-  ctx.fillStyle=s._bgGrad; ctx.fillRect(0,0,W,H);
-
-  // Stars for night/city scenes
-  if(sceneryType==='night'||sceneryType==='city'){
-    // Draw stars to offscreen cache on first call, then blit
-    if(!s._starCanvas||s._starW!==W||s._starH!==H){
-      const sc2=document.createElement('canvas'); sc2.width=W; sc2.height=H;
-      const sc2ctx=sc2.getContext('2d');
-      const rng2=seededRng(scenerySeed+3);
-      for(let i=0;i<120;i++){
-        const sx=rng2()*W, sy=rng2()*H, sr=0.5+rng2()*1.2;
-        sc2ctx.globalAlpha=0.2+rng2()*0.5;
-        sc2ctx.fillStyle='#ffffff';
-        sc2ctx.beginPath(); sc2ctx.arc(sx,sy,sr,0,Math.PI*2); sc2ctx.fill();
-      }
-      s._starCanvas=sc2; s._starW=W; s._starH=H;
-    }
-    ctx.drawImage(s._starCanvas,0,0);
-  }
-  if(sceneryType==='desert'){
-    // Horizon glow
-    const dg=ctx.createLinearGradient(0,H*0.4,0,H*0.7);
-    dg.addColorStop(0,'rgba(120,60,10,0.12)'); dg.addColorStop(1,'transparent');
-    ctx.fillStyle=dg; ctx.fillRect(0,H*0.4,W,H*0.3);
+  // Solid colour first (covers seams if tileset not loaded)
+  ctx.fillStyle = bgFallback[sceneryType] || '#3a6b2a';
+  ctx.fillRect(0, 0, W, H);
+  // Tile ground texture over whole canvas
+  drawTiledGrassBackground(ctx, W, H, sceneryType);
+  // Night overlay
+  if (sceneryType === 'night') {
+    ctx.fillStyle = 'rgba(0,0,10,0.55)';
+    ctx.fillRect(0, 0, W, H);
   }
 
   // ---- DRAW SCENERY OBJECTS (track-relative tile placement) ----
@@ -10150,16 +10301,21 @@ function drawScene(ctx,W,H,s,isGrid){
   }
   const outerPts=s._outerPts, innerPts=s._innerPts;
 
-  // Track shadow/base
+  // Track shadow/base (subtle dark ring under asphalt)
   ctx.beginPath(); ctx.moveTo(outerPts[0].x,outerPts[0].y);
   outerPts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
-  ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.22)'; ctx.fill();
 
-  // Infield
-  const infieldColors={city:'#080c18',forest:'#060c06',desert:'#0e0a04',night:'#030308'};
+  // Infield — fill with grass tones to match background (not black)
+  const infieldColors={
+    city:   'rgba(45,80,30,0.92)',
+    forest: 'rgba(30,68,20,0.92)',
+    desert: 'rgba(110,88,48,0.92)',
+    night:  'rgba(20,45,15,0.92)',
+  };
   ctx.beginPath(); ctx.moveTo(innerPts[0].x,innerPts[0].y);
   innerPts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
-  ctx.fillStyle=infieldColors[sceneryType]||'#06060f'; ctx.fill();
+  ctx.fillStyle=infieldColors[sceneryType]||'rgba(45,80,30,0.92)'; ctx.fill();
 
   // Asphalt ring
   ctx.beginPath();
@@ -10169,7 +10325,7 @@ function drawScene(ctx,W,H,s,isGrid){
   ctx.moveTo(innerPts[0].x,innerPts[0].y);
   for(let i=1;i<n;i++) ctx.lineTo(innerPts[i].x,innerPts[i].y);
   ctx.closePath();
-  ctx.fillStyle='#1e2038'; ctx.fill('evenodd');
+  ctx.fillStyle='#2a2c38'; ctx.fill('evenodd');
 
   // Kerb dots
   for(let i=0;i<n;i+=4){
