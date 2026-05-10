@@ -9830,7 +9830,7 @@ function loadTileset() {
   if (!src) return;
   _tilesetImg = new Image();
   _tilesetImg.crossOrigin = 'anonymous';
-  _tilesetImg.onload = () => { _tilesetReady = true; console.log('[PGP] Tileset loaded.'); };
+  _tilesetImg.onload = () => { _tilesetReady = true; _bgCanvas = null; _bgCanvasKey = ''; console.log('[PGP] Tileset loaded.'); };
   _tilesetImg.onerror = () => { _tilesetReady = false; console.warn('[PGP] Tileset failed to load:', src); };
   _tilesetImg.src = src;
 }
@@ -9998,41 +9998,106 @@ function drawTile(ctx, tileKey, sx, sy, size, angle=0) {
   ctx.restore();
 }
 
-// Tile the grass background in world space (moves with camera/zoom)
-function drawTiledGrassBackground(ctx, W, H, sType, tr) {
-  if (!_tilesetReady || !_tilesetImg) return false;
+// Pre-rendered background canvas — built once per race, blitted every frame
+let _bgCanvas = null;
+let _bgCanvasKey = '';
 
-  const grassKeys = {
-    city:   ['grass', 'grass2', 'grass', 'grass2', 'grass', 'grass2'],
-    forest: ['grass', 'grass2', 'grass', 'grass2', 'grass', 'grass2'],
-    desert: ['gravel', 'stone', 'dirt', 'gravel', 'stone', 'dirt'],
-    night:  ['grass', 'grass2', 'grass', 'grass2', 'teal_ground', 'grass'],
-  };
-  const keys = grassKeys[sType] || grassKeys.city;
+function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
+  const key = sType + '|' + W + '|' + H + '|' + tr.scale.toFixed(4) + '|' + tr.offsetX.toFixed(1) + '|' + tr.offsetY.toFixed(1);
+  if (_bgCanvas && _bgCanvasKey === key) return; // already built
 
-  // Tile size in screen pixels — fixed at ~12px so it stays fine at any zoom
-  const tileScreenSize = 12;
+  const bc = document.createElement('canvas');
+  bc.width = W; bc.height = H;
+  const bctx = bc.getContext('2d');
 
-  // World-space tile size
-  const tileWorld = tileScreenSize / tr.scale;
+  // 1. Fill solid fallback colour
+  const bgFallback = { city:'#3a6b2a', forest:'#2d5a1f', desert:'#8a7040', night:'#1e3a18' };
+  bctx.fillStyle = bgFallback[sType] || '#3a6b2a';
+  bctx.fillRect(0, 0, W, H);
 
-  // Find screen-space origin aligned to world grid
-  const startX = ((tr.offsetX % tileScreenSize) + tileScreenSize) % tileScreenSize - tileScreenSize;
-  const startY = ((tr.offsetY % tileScreenSize) + tileScreenSize) % tileScreenSize - tileScreenSize;
+  if (_tilesetReady && _tilesetImg) {
+    const grassKeys = {
+      city:   ['grass', 'grass2', 'grass', 'grass2', 'grass', 'grass2'],
+      forest: ['grass', 'grass2', 'grass', 'grass2', 'grass', 'grass2'],
+      desert: ['gravel', 'stone', 'dirt', 'gravel', 'stone', 'dirt'],
+      night:  ['grass', 'grass2', 'grass', 'grass2', 'teal_ground', 'grass'],
+    };
+    const keys = grassKeys[sType] || grassKeys.city;
+    const ts = 14; // tile screen size in pixels
 
-  for (let y = startY; y < H + tileScreenSize; y += tileScreenSize) {
-    for (let x = startX; x < W + tileScreenSize; x += tileScreenSize) {
-      // World-space tile index (consistent across zoom/pan)
-      const tx = Math.floor((x - tr.offsetX) / tileScreenSize);
-      const ty = Math.floor((y - tr.offsetY) / tileScreenSize);
-      const ki = (((tx * 3 + ty * 7) % keys.length) + keys.length) % keys.length;
-      const tk = keys[ki];
-      const t = TILES[tk];
-      if (!t) continue;
-      ctx.drawImage(_tilesetImg, t.x, t.y, t.w, t.h, x, y, tileScreenSize, tileScreenSize);
+    // 2. Tile ground across whole canvas
+    for (let y = 0; y < H; y += ts) {
+      for (let x = 0; x < W; x += ts) {
+        const tx = Math.floor((x - tr.offsetX) / ts);
+        const ty = Math.floor((y - tr.offsetY) / ts);
+        const ki = (((tx * 3 + ty * 7) % keys.length) + keys.length) % keys.length;
+        const t = TILES[keys[ki]];
+        if (t) bctx.drawImage(_tilesetImg, t.x, t.y, t.w, t.h, x, y, ts, ts);
+      }
     }
+
+    // 3. Build infield path and flood-fill it with the same tiles
+    const n = pts.length;
+    const innerPts = [];
+    for (let i = 0; i < n; i++) {
+      const angle = getAngleAt(pts, i/n);
+      const perpX = Math.cos(angle + Math.PI/2) * tw[i];
+      const perpY = Math.sin(angle + Math.PI/2) * tw[i];
+      const cx = pts[i].x * tr.scale + tr.offsetX;
+      const cy = pts[i].y * tr.scale + tr.offsetY;
+      innerPts.push({ x: cx - perpX * tr.scale, y: cy - perpY * tr.scale });
+    }
+    // Clip to infield and tile again (same texture, seamless)
+    bctx.save();
+    bctx.beginPath();
+    bctx.moveTo(innerPts[0].x, innerPts[0].y);
+    innerPts.forEach(p => bctx.lineTo(p.x, p.y));
+    bctx.closePath();
+    bctx.clip();
+    for (let y = 0; y < H; y += ts) {
+      for (let x = 0; x < W; x += ts) {
+        const tx = Math.floor((x - tr.offsetX) / ts);
+        const ty = Math.floor((y - tr.offsetY) / ts);
+        const ki = (((tx * 3 + ty * 7) % keys.length) + keys.length) % keys.length;
+        const t = TILES[keys[ki]];
+        if (t) bctx.drawImage(_tilesetImg, t.x, t.y, t.w, t.h, x, y, ts, ts);
+      }
+    }
+    bctx.restore();
+
+    // 4. Draw scenery objects onto the background
+    const order = { ground:0, building:1, tree:1, hedge:1, stand:2, barrier:3, tyre:4, lamp:4 };
+    const sorted = [...sceneryObjects].sort((a,b) => (order[a.type]||0) - (order[b.type]||0));
+    sorted.forEach(obj => {
+      const progress = ((obj.progress % 1) + 1) % 1;
+      const pt = getPointAt(pts, progress);
+      const angle = getAngleAt(pts, progress);
+      const tIdx = Math.floor(progress * pts.length) % pts.length;
+      const hw = tw[tIdx] || 8;
+      const perpX = Math.cos(angle + Math.PI/2) * obj.side;
+      const perpY = Math.sin(angle + Math.PI/2) * obj.side;
+      const wx = pt.x + perpX * hw * obj.dist;
+      const wy = pt.y + perpY * hw * obj.dist;
+      const sx = wx * tr.scale + tr.offsetX;
+      const sy = wy * tr.scale + tr.offsetY;
+      const screenSize = obj.size * tr.scale;
+      if (screenSize < 2) return;
+      if (sx < -screenSize || sx > W+screenSize || sy < -screenSize || sy > H+screenSize) return;
+      const tileAngle = (obj.type === 'stand' || obj.type === 'barrier') ? angle : 0;
+      bctx.globalAlpha = obj.type === 'ground' ? 0.6 : 0.92;
+      drawTile(bctx, obj.tileKey, sx, sy, screenSize, tileAngle);
+    });
+    bctx.globalAlpha = 1;
   }
-  return true;
+
+  // Night overlay
+  if (sType === 'night') {
+    bctx.fillStyle = 'rgba(0,0,10,0.45)';
+    bctx.fillRect(0, 0, W, H);
+  }
+
+  _bgCanvas = bc;
+  _bgCanvasKey = key;
 }
 
 function seededRng(seed) {
@@ -10045,8 +10110,10 @@ function seededRng(seed) {
 
 function initScenery(raceIdx) {
   scenerySeed = ((raceIdx + 1) * 7919) | 0;
-  sceneryType = SCENERY_TYPES[raceIdx % SCENERY_TYPES.length];
+  sceneryType = 'city'; // always city for now
   sceneryObjects = [];
+  _bgCanvas = null; // force rebuild for new race
+  _bgCanvasKey = '';
   loadTileset();
   const rng = seededRng(scenerySeed);
 
@@ -10200,70 +10267,16 @@ function drawScene(ctx,W,H,s,isGrid){
   const trackWidths=tw;
   const pl=s.pitLane;
 
-  // ---- BACKGROUND: tiled grass/ground across the whole canvas ----
-  const bgFallback = {
-    city:   '#3a6b2a',
-    forest: '#2d5a1f',
-    desert: '#8a7040',
-    night:  '#1e3a18',
-  };
-  ctx.fillStyle = bgFallback[sceneryType] || '#3a6b2a';
-  ctx.fillRect(0, 0, W, H);
-  drawTiledGrassBackground(ctx, W, H, sceneryType, tr);
-  if (sceneryType === 'night') {
-    ctx.fillStyle = 'rgba(0,0,10,0.45)';
+  // ---- BACKGROUND: blit pre-rendered canvas (built once per race) ----
+  buildBackgroundCanvas(W, H, sceneryType, tr, pts, tw);
+  if (_bgCanvas) {
+    ctx.drawImage(_bgCanvas, 0, 0);
+  } else {
+    // Tileset not loaded yet — solid fallback
+    const bgFallback = { city:'#3a6b2a', forest:'#2d5a1f', desert:'#8a7040', night:'#1e3a18' };
+    ctx.fillStyle = bgFallback[sceneryType] || '#3a6b2a';
     ctx.fillRect(0, 0, W, H);
   }
-
-  // ---- DRAW SCENERY OBJECTS (track-relative tile placement) ----
-  if (_tilesetReady && sceneryObjects.length) {
-    // Sort: buildings/ground first (back), then stands, then tyres/lamps (front)
-    const order = { ground:0, building:1, tree:1, hedge:1, stand:2, barrier:3, tyre:4, lamp:4 };
-    const sorted = [...sceneryObjects].sort((a,b)=>(order[a.type]||0)-(order[b.type]||0));
-
-    sorted.forEach(obj => {
-      // Resolve track-relative position to world coords
-      const progress = ((obj.progress % 1) + 1) % 1;
-      const pt = getPointAt(pts, progress);
-      const angle = getAngleAt(pts, progress);
-      const tIdx = Math.floor(progress * pts.length) % pts.length;
-      const hw = tw[tIdx] || 8;
-
-      // Perpendicular direction (outward = side:1, inward = side:-1)
-      const perpX = Math.cos(angle + Math.PI/2) * obj.side;
-      const perpY = Math.sin(angle + Math.PI/2) * obj.side;
-
-      // World position
-      const wx = pt.x + perpX * hw * obj.dist;
-      const wy = pt.y + perpY * hw * obj.dist;
-
-      // Screen position
-      const sx = wx * tr.scale + tr.offsetX;
-      const sy = wy * tr.scale + tr.offsetY;
-      const screenSize = obj.size * tr.scale;
-
-      // Skip if too small or off screen
-      if (screenSize < 2) return;
-      if (sx < -screenSize || sx > W+screenSize || sy < -screenSize || sy > H+screenSize) return;
-
-      // Angle: align to track direction for barriers/stands, random for trees
-      const tileAngle = (obj.type === 'stand' || obj.type === 'barrier')
-        ? angle
-        : (obj.type === 'tyre' ? obj.angle : 0);
-
-      ctx.globalAlpha = obj.type === 'ground' ? 0.6 : 0.92;
-      drawTile(ctx, obj.tileKey, sx, sy, screenSize, tileAngle);
-    });
-    ctx.globalAlpha = 1;
-  }
-
-  // Subtle grid texture
-  ctx.strokeStyle='rgba(255,255,255,0.016)'; ctx.lineWidth=1;
-  const gs=50*tr.scale;
-  ctx.beginPath();
-  for(let x=(tr.offsetX%gs+gs)%gs;x<W;x+=gs){ctx.moveTo(x,0);ctx.lineTo(x,H);}
-  for(let y=(tr.offsetY%gs+gs)%gs;y<H;y+=gs){ctx.moveTo(0,y);ctx.lineTo(W,y);}
-  ctx.stroke();
 
   // ---- TRACK ----
   const n=pts.length;
@@ -10284,18 +10297,7 @@ function drawScene(ctx,W,H,s,isGrid){
   }
   const outerPts=s._outerPts, innerPts=s._innerPts;
 
-  // Track shadow/base (subtle dark ring under asphalt)
-  ctx.beginPath(); ctx.moveTo(outerPts[0].x,outerPts[0].y);
-  outerPts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
-  ctx.fillStyle='rgba(0,0,0,0.22)'; ctx.fill();
-
-  // Infield — clip and tile the same ground texture (no flat colour)
-  ctx.save();
-  ctx.beginPath(); ctx.moveTo(innerPts[0].x,innerPts[0].y);
-  innerPts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
-  ctx.clip();
-  drawTiledGrassBackground(ctx, W, H, sceneryType, tr);
-  ctx.restore();
+  // Infield is already baked into the background canvas — nothing to do here
 
   // Asphalt ring
   ctx.beginPath();
