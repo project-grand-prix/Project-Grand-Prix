@@ -9070,8 +9070,8 @@ function startSimulation() {
   actionCamState={target:null,eventLabel:'',labelTimer:0,scanTimer:0,lingerTimer:0,excludedIds:new Set(),recentDnfShown:false,eventType:'',pitGroup:null};
   const sameLapBtn=document.getElementById('cam-samelap');
   if(sameLapBtn){sameLapBtn.textContent='LAP FILTER: ON';sameLapBtn.classList.add('on');}
-  cameraTarget={x:trackCX, y:trackCY, zoom:2};
-  cameraActual={x:trackCX, y:trackCY, zoom:2};
+  cameraTarget={x:trackCX, y:trackCY, zoom:1};
+  cameraActual={x:trackCX, y:trackCY, zoom:1};
   document.querySelectorAll('#sim-cam-btns .cam-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('cam-full').classList.add('active');
 
@@ -9121,8 +9121,8 @@ function simLoop(){
 
   if(s.phase==='countdown'){
     // During countdown, ensure camera is at track center (snap instantly for full view)
-    cameraActual.x=s.trackCX; cameraActual.y=s.trackCY; cameraActual.zoom=2;
-    cameraTarget.x=s.trackCX; cameraTarget.y=s.trackCY; cameraTarget.zoom=2;
+    cameraActual.x=s.trackCX; cameraActual.y=s.trackCY; cameraActual.zoom=1;
+    cameraTarget.x=s.trackCX; cameraTarget.y=s.trackCY; cameraTarget.zoom=1;
     // Only draw if canvas is ready
     if(canvas.width>10&&canvas.height>10){
       drawScene(ctx,W,H,s,true);
@@ -9601,7 +9601,7 @@ function updateCamera(s){
     const rc = sorted[driverCamIdx] || sorted[0];
     if(rc){
       const pt = getFocus(rc);
-      cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=5.0;
+      cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=3.2;
       document.getElementById('cam-driver-rank').textContent = driverCamIdx+1;
       document.getElementById('sim-cam-driver-name').textContent = rc.shortName+' #'+rc.number;
       document.getElementById('sim-cam-driver-pos').textContent = `P${driverCamIdx+1} · LAP ${Math.min(rc.lap+1,s.totalLaps)}${rc.retired?' · DNF':rc.finished?' · ✓':''}`;
@@ -9745,7 +9745,7 @@ function updateCamera(s){
     if(actionCamState.target){
       const isPitEvent = actionCamState.eventType === 'pit';
       // Pit event: zoom out to show entire pit lane area
-      const zoomLevel = isPitEvent ? 2.5 : 5.5;
+      const zoomLevel = isPitEvent ? 1.4 : 3.8;
 
       const pt = isPitEvent
         ? { x: trackCX, y: trackCY }  // center of track shows pit lane
@@ -9764,14 +9764,14 @@ function updateCamera(s){
 
   // ---- STANDARD CAMERAS ----
   else if(cameraMode==='full'){
-    cameraTarget.x=trackCX; cameraTarget.y=trackCY; cameraTarget.zoom=2;
+    cameraTarget.x=trackCX; cameraTarget.y=trackCY; cameraTarget.zoom=1;
   } else if(cameraMode==='leader'){
     const active=s.racers.filter(r=>!r.finished&&!r.retired);
     const focus=active.length>0
       ? active.reduce((b,r)=>(r.lap+r.t)>(b.lap+b.t)?r:b,active[0])
       : (s.racers.filter(r=>r.finished&&!r.retired).sort((a,b)=>a.finishOrder-b.finishOrder)[0]||s.racers[0]);
     const pt=getFocus(focus);
-    cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=5.0;
+    cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=3.2;
     document.getElementById('sim-cam-driver-name').textContent=focus.name;
     document.getElementById('sim-cam-driver-pos').textContent=`P${focus.rank+1} · LAP ${Math.min(focus.lap+1,s.totalLaps)}`;
     document.getElementById('sim-driver-portrait-cam').style.display='block';
@@ -9780,7 +9780,7 @@ function updateCamera(s){
     const pool=active.length>0?active:s.racers.filter(r=>r.isPlayer);
     const best=pool.reduce((b,r)=>r.rank<b.rank?r:b,pool[0]);
     const pt=getFocus(best);
-    cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=5.0;
+    cameraTarget.x=pt.x; cameraTarget.y=pt.y; cameraTarget.zoom=3.2;
     document.getElementById('sim-cam-driver-name').textContent=best.name;
     document.getElementById('sim-cam-driver-pos').textContent=`P${best.rank+1} · LAP ${Math.min(best.lap+1,s.totalLaps)}`;
     document.getElementById('sim-driver-portrait-cam').style.display='block';
