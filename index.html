@@ -9830,24 +9830,63 @@ function loadTileset() {
   if (!src) return;
   const raw = new Image();
   raw.onload = () => {
-    // Strip black background — make near-black pixels fully transparent
+    const W = raw.naturalWidth, H = raw.naturalHeight;
     const offscreen = document.createElement('canvas');
-    offscreen.width = raw.naturalWidth;
-    offscreen.height = raw.naturalHeight;
+    offscreen.width = W; offscreen.height = H;
     const octx = offscreen.getContext('2d');
     octx.drawImage(raw, 0, 0);
-    const imgData = octx.getImageData(0, 0, offscreen.width, offscreen.height);
+    const imgData = octx.getImageData(0, 0, W, H);
     const d = imgData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      if (d[i] < 30 && d[i+1] < 30 && d[i+2] < 30) d[i+3] = 0;
+
+    // Flood-fill from every edge pixel outward.
+    // Only pixels reachable from the border without crossing a non-black pixel
+    // get made transparent — so interior dark pixels (window frames etc) are safe.
+    const isBlack = i => d[i] < 35 && d[i+1] < 35 && d[i+2] < 35;
+    const visited = new Uint8Array(W * H);
+    const queue = [];
+
+    // Seed queue with all black pixels on the image border
+    for (let x = 0; x < W; x++) {
+      for (const y of [0, H-1]) {
+        const pi = (y * W + x);
+        if (!visited[pi] && isBlack(pi * 4)) { visited[pi] = 1; queue.push(pi); }
+      }
     }
+    for (let y = 0; y < H; y++) {
+      for (const x of [0, W-1]) {
+        const pi = (y * W + x);
+        if (!visited[pi] && isBlack(pi * 4)) { visited[pi] = 1; queue.push(pi); }
+      }
+    }
+
+    // BFS flood fill
+    let head = 0;
+    while (head < queue.length) {
+      const pi = queue[head++];
+      const x = pi % W, y = Math.floor(pi / W);
+      // Make this pixel transparent
+      d[pi * 4 + 3] = 0;
+      // Check 4 neighbours
+      const neighbours = [];
+      if (x > 0)   neighbours.push(pi - 1);
+      if (x < W-1) neighbours.push(pi + 1);
+      if (y > 0)   neighbours.push(pi - W);
+      if (y < H-1) neighbours.push(pi + W);
+      for (const ni of neighbours) {
+        if (!visited[ni] && isBlack(ni * 4)) {
+          visited[ni] = 1;
+          queue.push(ni);
+        }
+      }
+    }
+
     octx.putImageData(imgData, 0, 0);
     const processed = new Image();
     processed.onload = () => {
       _tilesetImg = processed;
       _tilesetReady = true;
       _bgCanvas = null; _bgRaceKey = '';
-      console.log('[PGP] Tileset loaded (black stripped).');
+      console.log('[PGP] Tileset loaded (background flood-filled transparent).');
     };
     processed.src = offscreen.toDataURL();
   };
