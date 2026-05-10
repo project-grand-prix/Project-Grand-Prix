@@ -6816,7 +6816,7 @@ function _getOrigImageData(callback) {
     _origImageData = { data: ctx.getImageData(0, 0, canvas.width, canvas.height), w: canvas.width, h: canvas.height, _srcUsed: src };
     callback(_origImageData);
   };
-  img.crossOrigin = 'anonymous';
+  //img.crossOrigin = 'anonymous';
   img.src = src;
 }
 
@@ -9829,7 +9829,7 @@ function loadTileset() {
   const src = window.TILESET_URL || null;
   if (!src) return;
   _tilesetImg = new Image();
-  _tilesetImg.crossOrigin = 'anonymous';
+  //_tilesetImg.crossOrigin = 'anonymous';
   _tilesetImg.onload = () => { _tilesetReady = true; _grassCanvas = null; console.log('[PGP] Tileset loaded.'); };
   _tilesetImg.onerror = () => { _tilesetReady = false; console.warn('[PGP] Tileset failed to load:', src); };
   _tilesetImg.src = src;
