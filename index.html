@@ -9998,19 +9998,24 @@ function drawTile(ctx, tileKey, sx, sy, size, angle=0) {
   ctx.restore();
 }
 
-// Pre-rendered background canvas — built once per race, blitted every frame
+// Pre-rendered background — rebuilds when zoom level changes meaningfully
 let _bgCanvas = null;
 let _bgCanvasKey = '';
 
 function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
-  const key = sType + '|' + W + '|' + H + '|' + tr.scale.toFixed(4) + '|' + tr.offsetX.toFixed(1) + '|' + tr.offsetY.toFixed(1);
-  if (_bgCanvas && _bgCanvasKey === key) return; // already built
+  // Snap zoom to nearest 10% step to avoid rebuilding every frame during smooth zoom
+  const zoomSnap = Math.round(tr.scale * 10) / 10;
+  // Snap offset to nearest 20px bucket so panning doesn't rebuild every frame
+  const oxSnap = Math.round(tr.offsetX / 20) * 20;
+  const oySnap = Math.round(tr.offsetY / 20) * 20;
+  const key = sType + '|' + W + '|' + H + '|' + zoomSnap + '|' + oxSnap + '|' + oySnap;
+  if (_bgCanvas && _bgCanvasKey === key) return;
 
   const bc = document.createElement('canvas');
   bc.width = W; bc.height = H;
   const bctx = bc.getContext('2d');
 
-  // 1. Fill solid fallback colour
+  // Solid fallback
   const bgFallback = { city:'#3a6b2a', forest:'#2d5a1f', desert:'#8a7040', night:'#1e3a18' };
   bctx.fillStyle = bgFallback[sType] || '#3a6b2a';
   bctx.fillRect(0, 0, W, H);
@@ -10023,11 +10028,20 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
       night:  ['grass', 'grass2', 'grass', 'grass2', 'teal_ground', 'grass'],
     };
     const keys = grassKeys[sType] || grassKeys.city;
-    const ts = 14; // tile screen size in pixels
 
-    // 2. Tile ground across whole canvas
-    for (let y = 0; y < H; y += ts) {
-      for (let x = 0; x < W; x += ts) {
+    // Tile size scales with zoom so tiles stay proportional
+    // Base tile = 14px at zoom=1, grows/shrinks with tr.scale
+    const BASE_TILE_WORLD = 14; // world units per tile at scale=1
+    const ts = Math.max(4, Math.round(BASE_TILE_WORLD * tr.scale));
+
+    // World-space tile origin aligned to grid
+    const startX = ((tr.offsetX % ts) + ts) % ts - ts;
+    const startY = ((tr.offsetY % ts) + ts) % ts - ts;
+
+    // Draw only tiles that fall within [0,W] x [0,H] (automatic culling)
+    for (let y = startY; y < H + ts; y += ts) {
+      for (let x = startX; x < W + ts; x += ts) {
+        if (x + ts < 0 || x > W || y + ts < 0 || y > H) continue; // offscreen cull
         const tx = Math.floor((x - tr.offsetX) / ts);
         const ty = Math.floor((y - tr.offsetY) / ts);
         const ki = (((tx * 3 + ty * 7) % keys.length) + keys.length) % keys.length;
@@ -10036,7 +10050,7 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
       }
     }
 
-    // 3. Build infield path and flood-fill it with the same tiles
+    // Infield: clip and re-tile (same world-aligned grid = seamless join)
     const n = pts.length;
     const innerPts = [];
     for (let i = 0; i < n; i++) {
@@ -10047,15 +10061,15 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
       const cy = pts[i].y * tr.scale + tr.offsetY;
       innerPts.push({ x: cx - perpX * tr.scale, y: cy - perpY * tr.scale });
     }
-    // Clip to infield and tile again (same texture, seamless)
     bctx.save();
     bctx.beginPath();
     bctx.moveTo(innerPts[0].x, innerPts[0].y);
     innerPts.forEach(p => bctx.lineTo(p.x, p.y));
     bctx.closePath();
     bctx.clip();
-    for (let y = 0; y < H; y += ts) {
-      for (let x = 0; x < W; x += ts) {
+    for (let y = startY; y < H + ts; y += ts) {
+      for (let x = startX; x < W + ts; x += ts) {
+        if (x + ts < 0 || x > W || y + ts < 0 || y > H) continue;
         const tx = Math.floor((x - tr.offsetX) / ts);
         const ty = Math.floor((y - tr.offsetY) / ts);
         const ki = (((tx * 3 + ty * 7) % keys.length) + keys.length) % keys.length;
@@ -10065,7 +10079,7 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
     }
     bctx.restore();
 
-    // 4. Draw scenery objects onto the background
+    // Scenery objects — only draw if on screen (culled)
     const order = { ground:0, building:1, tree:1, hedge:1, stand:2, barrier:3, tyre:4, lamp:4 };
     const sorted = [...sceneryObjects].sort((a,b) => (order[a.type]||0) - (order[b.type]||0));
     sorted.forEach(obj => {
@@ -10081,8 +10095,10 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
       const sx = wx * tr.scale + tr.offsetX;
       const sy = wy * tr.scale + tr.offsetY;
       const screenSize = obj.size * tr.scale;
-      if (screenSize < 2) return;
-      if (sx < -screenSize || sx > W+screenSize || sy < -screenSize || sy > H+screenSize) return;
+      // Cull offscreen
+      if (screenSize < 1) return;
+      if (sx + screenSize < 0 || sx - screenSize > W) return;
+      if (sy + screenSize < 0 || sy - screenSize > H) return;
       const tileAngle = (obj.type === 'stand' || obj.type === 'barrier') ? angle : 0;
       bctx.globalAlpha = obj.type === 'ground' ? 0.6 : 0.92;
       drawTile(bctx, obj.tileKey, sx, sy, screenSize, tileAngle);
@@ -10090,7 +10106,6 @@ function buildBackgroundCanvas(W, H, sType, tr, pts, tw) {
     bctx.globalAlpha = 1;
   }
 
-  // Night overlay
   if (sType === 'night') {
     bctx.fillStyle = 'rgba(0,0,10,0.45)';
     bctx.fillRect(0, 0, W, H);
