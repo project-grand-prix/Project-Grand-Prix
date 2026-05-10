@@ -9830,55 +9830,67 @@ function loadTileset() {
   if (!src) return;
   const raw = new Image();
   raw.onload = () => {
-    const W = raw.naturalWidth, H = raw.naturalHeight;
+    const IW = raw.naturalWidth, IH = raw.naturalHeight;
     const offscreen = document.createElement('canvas');
-    offscreen.width = W; offscreen.height = H;
+    offscreen.width = IW; offscreen.height = IH;
     const octx = offscreen.getContext('2d');
     octx.drawImage(raw, 0, 0);
-    const imgData = octx.getImageData(0, 0, W, H);
+    const imgData = octx.getImageData(0, 0, IW, IH);
     const d = imgData.data;
 
-    // Flood-fill from every edge pixel outward.
-    // Only pixels reachable from the border without crossing a non-black pixel
-    // get made transparent — so interior dark pixels (window frames etc) are safe.
-    const isBlack = i => d[i] < 35 && d[i+1] < 35 && d[i+2] < 35;
-    const visited = new Uint8Array(W * H);
-    const queue = [];
+    // Flood-fill ONLY within building rows (rows 3 and 4 of the tileset)
+    // y=378-514 (tall buildings) and y=542-635 (wide shopfronts)
+    const buildingBands = [
+      { y0: 378, y1: 514 },
+      { y0: 542, y1: 635 },
+    ];
 
-    // Seed queue with all black pixels on the image border
-    for (let x = 0; x < W; x++) {
-      for (const y of [0, H-1]) {
-        const pi = (y * W + x);
-        if (!visited[pi] && isBlack(pi * 4)) { visited[pi] = 1; queue.push(pi); }
-      }
-    }
-    for (let y = 0; y < H; y++) {
-      for (const x of [0, W-1]) {
-        const pi = (y * W + x);
-        if (!visited[pi] && isBlack(pi * 4)) { visited[pi] = 1; queue.push(pi); }
-      }
-    }
+    const isBlack = (x, y) => {
+      const i = (y * IW + x) * 4;
+      return d[i] < 35 && d[i+1] < 35 && d[i+2] < 35;
+    };
 
-    // BFS flood fill
-    let head = 0;
-    while (head < queue.length) {
-      const pi = queue[head++];
-      const x = pi % W, y = Math.floor(pi / W);
-      // Make this pixel transparent
-      d[pi * 4 + 3] = 0;
-      // Check 4 neighbours
-      const neighbours = [];
-      if (x > 0)   neighbours.push(pi - 1);
-      if (x < W-1) neighbours.push(pi + 1);
-      if (y > 0)   neighbours.push(pi - W);
-      if (y < H-1) neighbours.push(pi + W);
-      for (const ni of neighbours) {
-        if (!visited[ni] && isBlack(ni * 4)) {
-          visited[ni] = 1;
-          queue.push(ni);
+    buildingBands.forEach(({ y0, y1 }) => {
+      const visited = new Uint8Array(IW * (y1 - y0 + 1));
+      const queue = [];
+      const idx = (x, y) => (y - y0) * IW + x;
+
+      // Seed from top and bottom edges of this band
+      for (let x = 0; x < IW; x++) {
+        for (const y of [y0, y1]) {
+          const pi = idx(x, y);
+          if (!visited[pi] && isBlack(x, y)) { visited[pi] = 1; queue.push([x, y]); }
         }
       }
-    }
+      // Seed from left and right edges within the band
+      for (let y = y0; y <= y1; y++) {
+        for (const x of [0, IW - 1]) {
+          const pi = idx(x, y);
+          if (!visited[pi] && isBlack(x, y)) { visited[pi] = 1; queue.push([x, y]); }
+        }
+      }
+
+      let head = 0;
+      while (head < queue.length) {
+        const [x, y] = queue[head++];
+        // Make transparent
+        const i = (y * IW + x) * 4;
+        d[i + 3] = 0;
+        // 4-connected neighbours, clamped to this band
+        const neighbours = [];
+        if (x > 0)    neighbours.push([x-1, y]);
+        if (x < IW-1) neighbours.push([x+1, y]);
+        if (y > y0)   neighbours.push([x, y-1]);
+        if (y < y1)   neighbours.push([x, y+1]);
+        for (const [nx, ny] of neighbours) {
+          const ni = idx(nx, ny);
+          if (!visited[ni] && isBlack(nx, ny)) {
+            visited[ni] = 1;
+            queue.push([nx, ny]);
+          }
+        }
+      }
+    });
 
     octx.putImageData(imgData, 0, 0);
     const processed = new Image();
@@ -9886,7 +9898,7 @@ function loadTileset() {
       _tilesetImg = processed;
       _tilesetReady = true;
       _bgCanvas = null; _bgRaceKey = '';
-      console.log('[PGP] Tileset loaded (background flood-filled transparent).');
+      console.log('[PGP] Tileset loaded (building backgrounds removed).');
     };
     processed.src = offscreen.toDataURL();
   };
@@ -10233,19 +10245,24 @@ function initScenery(raceIdx, pts) {
       'bldg_wide_c','bldg_wide_d','bldg_blue2','bldg_red','bldg_grey2',
     ];
 
-    // 3 rows of ~17 buildings each = 51 total, evenly spaced, cycling all types
+    // 6 rows of ~17 = ~100 buildings, both outer and inner sides
     const rows = [
-      { dist: 2.4, count: 17 },
-      { dist: 3.6, count: 17 },
-      { dist: 4.8, count: 17 },
+      { dist: 2.0, count: 17, side: 1  },
+      { dist: 3.0, count: 17, side: 1  },
+      { dist: 4.0, count: 17, side: 1  },
+      { dist: 5.2, count: 17, side: 1  },
+      { dist: 2.5, count: 16, side: -1 }, // infield rows
+      { dist: 3.5, count: 16, side: -1 },
     ];
     let bIdx = 0;
-    rows.forEach(row => {
+    rows.forEach((row, ri) => {
       for (let i = 0; i < row.count; i++) {
-        const progress = (i + (row.dist % 1)) / row.count; // slight offset per row so they stagger
+        // Stagger each row by a half-slot so they form a brick-like grid
+        const offset = (ri % 2 === 0) ? 0 : 0.5 / row.count;
+        const progress = ((i + offset) / row.count) % 1;
         sceneryObjects.push({
           tileKey: allBuildKeys[bIdx % allBuildKeys.length],
-          progress, side: 1, dist: row.dist,
+          progress, side: row.side, dist: row.dist,
           size: 1, angle: 0, type: 'building'
         });
         bIdx++;
@@ -10258,7 +10275,7 @@ function initScenery(raceIdx, pts) {
         progress: i/20, side: -1, dist: 1.5 + rng()*0.2, size: 1, angle: 0, type:'lamp' });
     }
 
-    // A few hedges/flowers at infield edge
+    // Hedges at infield edge
     for (let i = 0; i < 10; i++) {
       const tk = rng() > 0.5 ? 'hedge' : 'flowers_w';
       sceneryObjects.push({ tileKey: tk, progress: rng(), side: -1,
