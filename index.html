@@ -469,9 +469,12 @@ body::after {
 .fin-val.neg { color: var(--accent); font-weight: 700; }
 .fin-val.neu { color: var(--yellow); font-weight: 700; }
 
-.morale-hearts { padding: 10px 12px; display: flex; align-items: center; gap: 6px; }
-.heart { font-size: 14px; }
-.heart.empty { filter: grayscale(1) brightness(0.3); }
+.morale-driver-row { display:flex; align-items:center; gap:8px; }
+.morale-driver-name { font-family:var(--pixel); font-size:5px; color:var(--dim); min-width:52px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.morale-battery-wrap { flex:1; height:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; position:relative; }
+.morale-battery-fill { height:100%; border-radius:1px; transition:width 0.6s ease, background 0.6s ease; }
+.morale-battery-nub { width:3px; height:6px; background:rgba(255,255,255,0.18); border-radius:0 1px 1px 0; margin-left:1px; flex-shrink:0; }
+.morale-event-label { font-family:var(--ui); font-size:9px; color:var(--dim); padding:0 12px 6px; }
 
 /* ========================
    TEAM HQ MENU
@@ -1682,7 +1685,7 @@ body::after {
       <div class="top-stat"><span class="val" id="dash-budget">$50.0M</span><span class="lbl" data-i18n="stats.budget">Budget</span></div>
       <div class="top-stat"><span class="val" style="color:var(--yellow)">2ND</span><span class="lbl" data-i18n="stats.constructors">Constructors</span></div>
       <div class="top-stat"><span class="val">374 PTS</span><span class="lbl" data-i18n="stats.points">Points</span></div>
-      <div class="top-stat"><span class="val" style="color:var(--purple)">72%</span><span class="lbl" data-i18n="stats.morale">Morale</span></div>
+      <div class="top-stat"><span class="val" style="color:var(--purple)" id="dash-morale-avg">—</span><span class="lbl" data-i18n="stats.morale">Morale</span></div>
     </div>
     <div class="season-badge">◼ S3 — RD.7</div>
   </div>
@@ -1758,13 +1761,8 @@ body::after {
         <div class="fin-row"><span class="fin-label" data-i18n="stats.status">Status</span><span class="fin-val neu" id="fin-status">SEASON 1 — RD.1</span></div>
       </div>
       <div class="px-box">
-        <div class="sec-title">◼ MORALE</div>
-        <div class="morale-hearts">
-          <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
-          <span class="heart">❤️</span><span class="heart empty">❤️</span>
-          <span style="font-family:var(--pixel);font-size:7px;color:var(--dim);margin-left:4px">72%</span>
-        </div>
-        <div style="font-family:var(--ui);font-size:11px;color:var(--dim);padding:0 12px 10px;letter-spacing:1px">WIN BONUS PENDING...</div>
+        <div class="sec-title" data-i18n="stats.driver_morale">◼ DRIVER MORALE</div>
+        <div id="morale-panel" style="padding:8px 12px 10px;display:flex;flex-direction:column;gap:10px;"></div>
       </div>
     </div>
   </div>
@@ -1824,6 +1822,7 @@ body::after {
 
 <!-- ===================== MANAGE TEAM ===================== -->
 <div class="screen" id="screen-manage">
+  <button class="help-btn" onclick="startHelp('manage')" title="Help">❓</button>
   <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="manage-season-badge">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('teamhq')" data-i18n="nav.back_teamhq">◀ BACK TO TEAM HQ</button>
   <div class="page-title" data-i18n="manage.title">MANAGE TEAM</div>
@@ -1834,7 +1833,7 @@ body::after {
   <div class="manage-tabs">
     <button class="manage-tab active" id="mtab-facility"  onclick="switchManageTab('facility')" data-i18n="manage.tab_facility">🏢 FACILITY</button>
     <button class="manage-tab"        id="mtab-staff"     onclick="switchManageTab('staff')"    data-i18n="manage.tab_staff">👥 STAFF</button>
-    <button class="manage-tab"        id="mtab-coaching"  onclick="switchManageTab('coaching')">🎓 COACHING</button>
+    <button class="manage-tab"        id="mtab-coaching"  onclick="switchManageTab('coaching')" data-i18n="manage.tab_coaching">🎓 COACHING</button>
     <button class="manage-tab"        id="mtab-expenses"  onclick="switchManageTab('expenses')" data-i18n="manage.tab_expenses">💸 EXPENSES</button>
   </div>
 
@@ -1945,6 +1944,7 @@ body::after {
 
 <!-- ===================== MARKETING / SPONSORS ===================== -->
 <div class="screen" id="screen-marketing">
+  <button class="help-btn" onclick="startHelp('marketing')" title="Help">❓</button>
   <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="mkt-season-badge">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">MARKETING &amp; SPONSORS</div>
@@ -2006,6 +2006,7 @@ body::after {
 
 <!-- ===================== DRIVERS ===================== -->
 <div class="screen" id="screen-drivers">
+  <button class="help-btn" onclick="startHelp('drivers')" title="Help">❓</button>
   <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="drivers-season-badge">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <!-- MARKET MODE -->
@@ -2157,6 +2158,7 @@ window.TILESET_URL = 'Tileset.png';
 
 <!-- ===================== FINANCES ===================== -->
 <div class="screen" id="screen-finances">
+  <button class="help-btn" onclick="startHelp('finances')" title="Help">❓</button>
   <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">FINANCES</div>
@@ -2291,6 +2293,7 @@ window.TILESET_URL = 'Tileset.png';
 
 <!-- ===================== GARAGE ===================== -->
 <div class="screen" id="screen-garage">
+  <button class="help-btn" onclick="startHelp('garage')" title="Help">❓</button>
   <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">GARAGE</div>
@@ -2448,6 +2451,7 @@ window.TILESET_URL = 'Tileset.png';
 
 <!-- ===================== SCOUTING ===================== -->
 <div class="screen" id="screen-scouting">
+  <button class="help-btn" onclick="startHelp('scouting')" title="Help">❓</button>
   <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">SCOUTING</div>
@@ -2604,12 +2608,23 @@ window.TILESET_URL = 'Tileset.png';
     <!-- SIMULATE button -->
     <div class="px-box" style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px;">
       <div style="font-family:var(--pixel);font-size:7px;color:var(--dim);letter-spacing:2px;">RACE STATUS: READY TO SIMULATE</div>
+      <!-- Rest break toggles -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;" id="rest-btns-row">
+        <button id="rest-btn-0" onclick="toggleDriverRest(0)"
+          style="font-family:var(--pixel);font-size:5px;padding:5px 10px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer;transition:all 0.15s;letter-spacing:1px;">
+          😴 Rest Driver 1
+        </button>
+        <button id="rest-btn-1" onclick="toggleDriverRest(1)"
+          style="font-family:var(--pixel);font-size:5px;padding:5px 10px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer;transition:all 0.15s;letter-spacing:1px;">
+          😴 Rest Driver 2
+        </button>
+      </div>
+      <div style="font-family:var(--ui);font-size:10px;color:var(--dim);text-align:center;">Resting a driver skips this race but gives +8 morale</div>
       <!-- Qualifying button — shown only if QUALIFYING_ENABLED -->
       <div id="raceday-quali-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;">
-        <button id="raceday-quali-btn" onclick="go('qualifying')"
-          style="background:transparent;border:2px solid var(--cyan);color:var(--cyan);font-family:var(--pixel);font-size:7px;padding:12px 22px;cursor:pointer;letter-spacing:1px;transition:all 0.15s;"
-          onmouseover="this.style.background='rgba(0,229,255,0.1)'" onmouseout="this.style.background='transparent'">
-          🏎 RUN QUALIFYING
+        <button id="raceday-quali-btn" class="simulate-btn" onclick="go('qualifying')"
+          style="background:linear-gradient(135deg,#006080,#004060);box-shadow:4px 4px 0 #000,0 0 30px rgba(0,229,255,0.2);">
+          <span style="font-size:1.4rem">🏎</span> RUN QUALIFYING
         </button>
         <span id="raceday-quali-status" style="font-family:var(--pixel);font-size:6px;color:var(--dim);"></span>
       </div>
@@ -2623,11 +2638,12 @@ window.TILESET_URL = 'Tileset.png';
 <!-- QUALIFYING SYSTEM: self-contained block. Remove this section + the JS block
      tagged "QUALIFYING SYSTEM" to revert to random grid. No other code depends on it. -->
 <div class="screen" id="screen-qualifying">
+  <button class="help-btn" onclick="startHelp('qualifying')" title="Help">❓</button>
   <div class="topbar">
     <div class="logo">▶ PROJECT GRAND PRIX</div>
     <div class="season-badge" id="quali-season-badge">◼ S1 — RD.1</div>
   </div>
-  <button class="back-btn" onclick="go('raceday')">◀ BACK TO RACE DAY</button>
+  <button class="back-btn" onclick="go('raceday')" data-i18n="nav.back_raceday">◀ BACK TO RACE DAY</button>
 
   <div style="padding:16px 20px 6px;">
     <div class="page-title" id="quali-title">QUALIFYING</div>
@@ -2707,6 +2723,7 @@ window.TILESET_URL = 'Tileset.png';
 
 <!-- ===================== RACE SIMULATION SCREEN ===================== -->
 <div class="screen" id="screen-simulation">
+  <button class="help-btn" onclick="startHelp('simulation')" title="Help">❓</button>
   <!-- Top HUD -->
   <div id="sim-hud" style="background:rgba(10,10,28,0.97);border-bottom:2px solid var(--border);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:200;backdrop-filter:blur(4px);flex-shrink:0;">
     <div style="display:flex;align-items:center;gap:12px;">
@@ -3661,11 +3678,14 @@ function loadSave(slotIdx) {
       playerBudget = d.budget||50;
       signedDriverIds = d.signedDriverIds||[null,null];
       if(d.facilityLevel !== undefined) facilityLevel = d.facilityLevel;
-      if(d.staffCounts)  staffCounts  = Object.assign({pitcrew:0,engineers:0,mechanics:0,media:0,analysts:0,coach:0}, d.staffCounts);
+      if(d.staffCounts)  staffCounts  = Object.assign({pitcrew:0,engineers:0,mechanics:0,media:0,analysts:0}, d.staffCounts);
       if(d.rdCompleted)  rdCompleted  = d.rdCompleted;
       if(d.rdPoints !== undefined) rdPoints = d.rdPoints;
       if(d.rdBonuses)    rdBonuses    = Object.assign({topSpeed:0,downforce:0,cornering:0,pace:0,reliability:0,braking:0,pitSpeed:0,tyres:0,climbing:0}, d.rdBonuses);
-      if(d.coachingSessions) Object.assign(coachingSessions, d.coachingSessions);
+      if(d.coachingState) Object.assign(coachingState, d.coachingState);
+      if(d.driverMorale)  driverMorale  = d.driverMorale;
+      if(d.moraleEvents)  moraleEvents  = d.moraleEvents;
+      if(d.driverOnRest)  driverOnRest  = d.driverOnRest;
       if(d.activeSponsorDeals) activeSponsorDeals = d.activeSponsorDeals;
       if(d.seasonIncome) seasonIncome = Object.assign({prize:0,tv:0,sponsors:0,merch:0,wages:0,rent:0,travel:0,salaries:0}, d.seasonIncome);
       if(d.budgetHistory) budgetHistory = d.budgetHistory;
@@ -3734,7 +3754,8 @@ function saveGame() {
     points: races.filter(r=>r.past).reduce((sum,r)=>sum+(r.points||0),0),
     trophies, completedRaces: completedRaces.slice(-5),
     facilityLevel, staffCounts, rdCompleted, rdPoints, rdBonuses,
-    coachingSessions,
+    coachingState,
+    driverMorale, moraleEvents, driverOnRest,
     activeSponsorDeals, seasonIncome, budgetHistory,
     carModel: myTeam.carModel || 'f1',
     shopOwned: myTeam.shopOwned || ['f1'],
@@ -3763,7 +3784,7 @@ function launchGame() {
   document.getElementById('screen-dashboard').classList.add('active');
   _syncMyTeamData();
   applyTranslations();
-  setTimeout(()=>{ updateAllTeamNameRefs(); updateDashboard(); updateRaceDay(); }, 100);
+  setTimeout(()=>{ updateAllTeamNameRefs(); updateDashboard(); updateRaceDay(); initDriverMorale(); }, 100);
   // Apply saved car model & livery after DOM is ready
   setTimeout(_applyEquippedCarOnLoad, 300);
   // Show first-run modal if team has no name yet
@@ -4447,7 +4468,6 @@ const STAFF_CATEGORIES = [
   { id:'mechanics', label:'MECHANICS',      icon:'🔧', cap:15, wage:0.07, desc:'Reduce DNF chance and tyre wear. Each mechanic meaningfully improves reliability.' },
   { id:'media',     label:'MEDIA MANAGERS', icon:'📢', cap:1,  wage:0.15, desc:'Unlock the Marketing tab. Boosts fan growth and TV deal value.'    },
   { id:'analysts',  label:'DATA ANALYSTS',  icon:'📊', cap:10, wage:0.10, desc:'Improve driver pace in-race through data-driven setup. Each analyst = +0.15% pace.' },
-  { id:'coach',     label:'DRIVER COACH',   icon:'🎓', cap:1,  wage:0.20, desc:'Unlocks Training Sessions. Run sessions between races to develop your drivers — +1 stat per session. More sessions available in the off-season.' },
 ];
 // Fixed roles counted in total but not individually managed (1 Team Manager + 1 Chief Scout always present)
 const FIXED_STAFF = 2; // team manager + scout
@@ -4790,7 +4810,7 @@ function switchManageTab(tab) {
   if(tab==='facility')  renderFacilityTab();
   if(tab==='staff')     renderStaffTab();
   if(tab==='expenses')  renderExpensesTab();
-  if(tab==='coaching')  renderCoachingPanel();
+  if(tab==='coaching')  renderCoachMarket();
 }
 
 function renderFacilityTab() {
@@ -4992,55 +5012,227 @@ function fireStaff(catId, qty) {
 // DRIVER COACHING SYSTEM
 // ============================================================
 
-// Sessions per race week / offseason
-const COACHING_SESSIONS_PER_RACE    = 2;
-const COACHING_SESSIONS_OFFSEASON   = 6;
-// Stats that can be trained (capped at 99)
-const COACHABLE_STATS = ['skill','control','overtake','tires','craft'];
-// Cap: no stat can exceed this via coaching
-const COACHING_STAT_CAP = 95;
+// Pool of available coaches to hire
+const COACH_POOL = [
+  { id:'c0', name:'M. ROSETTI',    nationality:'Italian 🇮🇹',  overall:82, specialty:'Race Craft',   salary:0.45, bio:'Ex-F2 race engineer turned coach. Specialises in racecraft and positioning.' },
+  { id:'c1', name:'P. NGUYEN',     nationality:'Vietnamese 🇻🇳',overall:68, specialty:'Tyre Mgmt',    salary:0.28, bio:'Tyre whisperer. Gets the most out of every compound in any condition.' },
+  { id:'c2', name:'A. FISCHER',    nationality:'German 🇩🇪',    overall:91, specialty:'All-round',    salary:0.70, bio:'Veteran of three championship-winning teams. The gold standard in driver development.' },
+  { id:'c3', name:'S. OKAFOR',     nationality:'Nigerian 🇳🇬',  overall:55, specialty:'Overtaking',   salary:0.18, bio:'Former touring car racer. Aggressive, unconventional. Excellent at wheel-to-wheel.' },
+  { id:'c4', name:'D. MARCHETTI',  nationality:'Brazilian 🇧🇷', overall:74, specialty:'Car Control',  salary:0.35, bio:'Data-driven approach. Breaks down telemetry with the driver lap by lap.' },
+  { id:'c5', name:'Y. TANAKA',     nationality:'Japanese 🇯🇵',  overall:60, specialty:'Consistency',  salary:0.22, bio:'Focused on mental resilience and eliminating costly mistakes under pressure.' },
+  { id:'c6', name:'L. BEAUMONT',   nationality:'French 🇫🇷',    overall:79, specialty:'Qualifying',   salary:0.40, bio:'Qualifying specialist. Known for extracting one-lap pace through setup mastery.' },
+  { id:'c7', name:'R. DIMITRIOU',  nationality:'Greek 🇬🇷',     overall:48, specialty:'Fitness',      salary:0.14, bio:'Sports science background. Improves physical endurance and reaction time.' },
+];
 
-let coachingSessions = {
-  sessionsLeft: COACHING_SESSIONS_PER_RACE,
-  isOffseason: false,
-  log: [], // { race, driverId, stat, before, after }
+// coaching state: which coaches are hired and which driver they're assigned to
+let coachingState = {
+  hired: [],       // array of { coachId, assignedDriverSlot } — max 2
+  log: [],         // { race, driverSlot, stat, before, after, coachId }
+  sessionsLeft: {}, // { coachId: number } — sessions remaining this period
 };
 
-function resetCoachingSessionsForRace(isOffseason) {
-  coachingSessions.sessionsLeft = isOffseason
-    ? COACHING_SESSIONS_OFFSEASON
-    : COACHING_SESSIONS_PER_RACE;
-  coachingSessions.isOffseason = isOffseason;
+// sessions per race = floor(overall/25)+1 → 1(≤24), 2(25-49), 3(50-74), 4(75-99), +1 if driver aggression <40
+function coachSessionsPerPeriod(coachId, driverSlot, isOffseason) {
+  const coach = COACH_POOL.find(c => c.id === coachId);
+  if(!coach) return 0;
+  const base = Math.floor(coach.overall / 25) + 1; // 1–4
+  const fa = signedDriverIds[driverSlot] !== null ? FREE_AGENTS[signedDriverIds[driverSlot]] : null;
+  const aggrBonus = (fa && fa.aggression < 40) ? 1 : 0; // calm drivers get extra session
+  const offBonus  = isOffseason ? 3 : 0;
+  return base + aggrBonus + offBonus;
 }
 
-function runTrainingSession(driverId, stat) {
-  if(!(staffCounts.coach >= 1)) { alert('You need a Driver Coach to run training sessions.'); return; }
-  if(coachingSessions.sessionsLeft <= 0) { alert('No training sessions left this period. More become available before the next race.'); return; }
-  const driverSlot = signedDriverIds.indexOf(driverId);
-  if(driverSlot < 0) { alert('Driver not signed to your team.'); return; }
-  const fa = FREE_AGENTS[driverId];
+const COACHING_STAT_CAP = 95;
+const COACHABLE_STATS = ['skill','control','overtake','tires','craft'];
+const STAT_LABELS = { skill:'Skill', control:'Control', overtake:'Overtaking', tires:'Tyre Mgmt', craft:'Race Craft' };
+
+function resetCoachingSessionsForRace(isOffseason) {
+  coachingState.hired.forEach(h => {
+    coachingState.sessionsLeft[h.coachId] = coachSessionsPerPeriod(h.coachId, h.assignedDriverSlot, isOffseason);
+  });
+}
+
+function runTrainingSession(driverSlot, stat) {
+  // Find the coach assigned to this driver
+  const assignment = coachingState.hired.find(h => h.assignedDriverSlot === driverSlot);
+  if(!assignment) { alert('No coach assigned to this driver.'); return; }
+  const left = coachingState.sessionsLeft[assignment.coachId] || 0;
+  if(left <= 0) { alert('No training sessions left for this coach this period.'); return; }
+  const faIdx = signedDriverIds[driverSlot];
+  if(faIdx === null) { alert('No driver in this seat.'); return; }
+  const fa = FREE_AGENTS[faIdx];
   if(!fa) return;
   const current = fa[stat] || 0;
-  if(current >= COACHING_STAT_CAP) { alert(fa.name.split('.').pop().trim() + '\'s ' + stat + ' is already at the coaching cap (' + COACHING_STAT_CAP + ').'); return; }
-  // Apply +1
+  if(current >= COACHING_STAT_CAP) { alert(fa.name.split('.').pop().trim() + '\'s ' + STAT_LABELS[stat] + ' is already at the coaching cap (' + COACHING_STAT_CAP + ').'); return; }
   fa[stat] = Math.min(COACHING_STAT_CAP, current + 1);
-  // Also update drivers[] array (the active race drivers)
   const d = drivers[driverSlot];
   if(d) d[stat] = fa[stat];
-  coachingSessions.sessionsLeft--;
-  coachingSessions.log.push({
-    race: currentRaceIdx + 1,
-    driverId,
-    stat,
-    before: current,
-    after: fa[stat],
-  });
+  coachingState.sessionsLeft[assignment.coachId]--;
+  coachingState.log.push({ race: currentRaceIdx+1, driverSlot, stat, before: current, after: fa[stat], coachId: assignment.coachId });
   saveGame();
-  renderCoachingPanel();
-  // Show a brief toast
+  selectDriverProfile(driverSlot); // re-render profile with updated stats
   const name = fa.name.split('.').pop().trim();
-  const label = stat.charAt(0).toUpperCase() + stat.slice(1);
-  showToast('🎓 ' + name + ': ' + label + ' ' + current + ' → ' + fa[stat]);
+  showToast('🎓 ' + name + ': ' + STAT_LABELS[stat] + ' ' + current + ' → ' + fa[stat]);
+}
+
+function hireCoach(coachId) {
+  if(coachingState.hired.length >= 2) { alert('You can only have 2 coaches. Release one first.'); return; }
+  if(coachingState.hired.find(h => h.coachId === coachId)) { alert('Already hired.'); return; }
+  coachingState.hired.push({ coachId, assignedDriverSlot: null });
+  coachingState.sessionsLeft[coachId] = 0;
+  saveGame();
+  renderCoachMarket();
+}
+
+function releaseCoach(coachId) {
+  if(!confirm('Release this coach? Sessions will be lost.')) return;
+  coachingState.hired = coachingState.hired.filter(h => h.coachId !== coachId);
+  delete coachingState.sessionsLeft[coachId];
+  saveGame();
+  renderCoachMarket();
+  // Re-render driver profiles so training panels update
+  selectDriverProfile(activeDriverProfileIdx || 0);
+}
+
+function assignCoach(coachId, driverSlot) {
+  // Unassign from previous driver if any
+  coachingState.hired.forEach(h => {
+    if(h.coachId === coachId) h.assignedDriverSlot = driverSlot;
+    if(h.coachId !== coachId && h.assignedDriverSlot === driverSlot) h.assignedDriverSlot = null;
+  });
+  // Recalculate sessions for this coach
+  coachingState.sessionsLeft[coachId] = coachSessionsPerPeriod(coachId, driverSlot, false);
+  saveGame();
+  renderCoachMarket();
+  selectDriverProfile(driverSlot);
+}
+
+// Renders the coach market (shown in the manage > coaching tab)
+function renderCoachMarket() {
+  const panel = document.getElementById('coaching-panel');
+  if(!panel) return;
+  const hired = coachingState.hired;
+
+  const coachCard = (coach, isHired, assignment) => {
+    const overall = coach.overall;
+    const sessBase = Math.floor(overall/25)+1;
+    const ovCol = overall>=80?'var(--green)':overall>=60?'var(--yellow)':'var(--dim)';
+    const tier = overall>=80?'ELITE':overall>=60?'EXPERIENCED':'DEVELOPING';
+    if(isHired) {
+      const left = coachingState.sessionsLeft[coach.id] || 0;
+      const assigned = assignment.assignedDriverSlot;
+      const d0Name = signedDriverIds[0]!==null ? FREE_AGENTS[signedDriverIds[0]]?.name?.split('.').pop().trim() : 'Seat 1 (empty)';
+      const d1Name = signedDriverIds[1]!==null ? FREE_AGENTS[signedDriverIds[1]]?.name?.split('.').pop().trim() : 'Seat 2 (empty)';
+      return `<div style="background:var(--panel);border:2px solid var(--green);padding:14px 16px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div>
+            <div style="font-family:var(--pixel);font-size:8px;color:var(--green)">✓ ${coach.name}</div>
+            <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-top:2px">${coach.nationality} · ${coach.specialty} · $${coach.salary.toFixed(2)}M/yr</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--pixel);font-size:10px;color:${ovCol}">${overall}</div>
+            <div style="font-family:var(--ui);font-size:9px;color:var(--dim)">${tier}</div>
+          </div>
+        </div>
+        <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-bottom:10px;">${coach.bio}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <span style="font-family:var(--pixel);font-size:6px;color:var(--dim)">ASSIGN TO:</span>
+          <button onclick="assignCoach('${coach.id}',0)" style="font-family:var(--pixel);font-size:5px;padding:4px 8px;background:${assigned===0?'var(--green)':'transparent'};border:1px solid ${assigned===0?'var(--green)':'var(--border)'};color:${assigned===0?'#000':'var(--text)'};cursor:pointer;">${d0Name}</button>
+          <button onclick="assignCoach('${coach.id}',1)" style="font-family:var(--pixel);font-size:5px;padding:4px 8px;background:${assigned===1?'var(--green)':'transparent'};border:1px solid ${assigned===1?'var(--green)':'var(--border)'};color:${assigned===1?'#000':'var(--text)'};cursor:pointer;">${d1Name}</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);">Sessions left: <span style="color:${left>0?'var(--green)':'var(--accent)'}">${left}</span> / ${assigned!==null?coachSessionsPerPeriod(coach.id,assigned,false):sessBase} this race</div>
+          <button onclick="releaseCoach('${coach.id}')" style="background:none;border:1px solid var(--accent);color:var(--accent);font-family:var(--pixel);font-size:5px;padding:4px 8px;cursor:pointer;">RELEASE</button>
+        </div>
+      </div>`;
+    } else {
+      const canHire = hired.length < 2;
+      return `<div style="background:var(--panel);border:1px solid var(--border);padding:14px 16px;margin-bottom:10px;opacity:${canHire?1:0.5};">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div>
+            <div style="font-family:var(--pixel);font-size:8px;color:var(--text)">${coach.name}</div>
+            <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-top:2px">${coach.nationality} · ${coach.specialty} · $${coach.salary.toFixed(2)}M/yr</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--pixel);font-size:10px;color:${ovCol}">${overall}</div>
+            <div style="font-family:var(--ui);font-size:9px;color:var(--dim)">${tier}</div>
+            <div style="font-family:var(--ui);font-size:9px;color:var(--cyan)">${sessBase}–${sessBase+1} sessions/race</div>
+          </div>
+        </div>
+        <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-bottom:10px;">${coach.bio}</div>
+        <button onclick="hireCoach('${coach.id}')" ${canHire?'':'disabled'} style="font-family:var(--pixel);font-size:6px;padding:7px 16px;background:${canHire?'var(--green)':'rgba(255,255,255,0.05)'};border:none;color:${canHire?'#000':'var(--dim)'};cursor:${canHire?'pointer':'not-allowed'};">
+          ${canHire?'+ HIRE COACH':'MAX 2 COACHES'}
+        </button>
+      </div>`;
+    }
+  };
+
+  const hiredHtml = COACH_POOL
+    .filter(c => coachingState.hired.find(h=>h.coachId===c.id))
+    .map(c => coachCard(c, true, coachingState.hired.find(h=>h.coachId===c.id)))
+    .join('');
+  const availableHtml = COACH_POOL
+    .filter(c => !coachingState.hired.find(h=>h.coachId===c.id))
+    .sort((a,b)=>b.overall-a.overall)
+    .map(c => coachCard(c, false, null))
+    .join('');
+
+  panel.innerHTML = `
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+      <div style="font-family:var(--pixel);font-size:8px;color:var(--yellow);margin-bottom:4px;">🎓 COACHING STAFF</div>
+      <div style="font-family:var(--ui);font-size:11px;color:var(--dim);">Hire up to 2 coaches and assign each to a driver. Training sessions appear in the driver's profile. Sessions reset after each race — more in the off-season.</div>
+    </div>
+    ${hired.length > 0 ? `<div style="padding:14px 16px 0;"><div style="font-family:var(--pixel);font-size:6px;color:var(--dim);margin-bottom:8px;">HIRED COACHES</div>${hiredHtml}</div>` : ''}
+    <div style="padding:14px 16px;">
+      <div style="font-family:var(--pixel);font-size:6px;color:var(--dim);margin-bottom:8px;">${hired.length>=2?'FULL — RELEASE A COACH TO HIRE ANOTHER':'AVAILABLE COACHES'}</div>
+      ${availableHtml}
+    </div>`;
+}
+
+// Renders the training panel inside a driver's profile
+function renderDriverTrainingPanel(driverSlot, fa) {
+  const assignment = coachingState.hired.find(h => h.assignedDriverSlot === driverSlot);
+  if(!assignment) {
+    return `<div class="px-box"><div class="sec-title">🎓 TRAINING</div>
+      <div style="padding:12px;font-family:var(--ui);font-size:11px;color:var(--dim);">
+        No coach assigned to this driver. Hire and assign a coach from <strong style="color:var(--text)">Manage → Coaching</strong>.
+      </div></div>`;
+  }
+  const coach = COACH_POOL.find(c => c.id === assignment.coachId);
+  const left   = coachingState.sessionsLeft[assignment.coachId] || 0;
+  const total  = coachSessionsPerPeriod(assignment.coachId, driverSlot, false);
+  const leftCol = left > 0 ? 'var(--green)' : 'var(--accent)';
+  const recentLog = coachingState.log.filter(l=>l.driverSlot===driverSlot).slice(-4).reverse();
+
+  const statBtns = COACHABLE_STATS.map(s => {
+    const val = fa[s] || 0;
+    const atCap = val >= COACHING_STAT_CAP;
+    const canTrain = left > 0 && !atCap;
+    return `<button onclick="runTrainingSession(${driverSlot},'${s}')"
+      style="font-family:var(--pixel);font-size:5px;padding:6px 8px;min-width:64px;
+      background:${canTrain?'rgba(0,230,118,0.08)':'rgba(255,255,255,0.03)'};
+      border:1px solid ${canTrain?'var(--green)':'rgba(255,255,255,0.08)'};
+      color:${atCap?'var(--dim)':canTrain?'var(--green)':'var(--dim)'};
+      cursor:${canTrain?'pointer':'not-allowed'};border-radius:2px;text-align:center;"
+      ${canTrain?'':'disabled'}>
+      ${STAT_LABELS[s]}<br><span style="font-size:8px;color:var(--text)">${val}${atCap?' ✓':''}</span>
+    </button>`;
+  }).join('');
+
+  const logHtml = recentLog.length ? recentLog.map(l => {
+    const sl = STAT_LABELS[l.stat] || l.stat;
+    return `<div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-bottom:2px;">R${l.race} · ${sl}: <span style="color:var(--green)">${l.before}→${l.after}</span></div>`;
+  }).join('') : '';
+
+  return `<div class="px-box"><div class="sec-title">🎓 TRAINING — ${coach.name}</div>
+    <div style="padding:10px 12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:var(--ui);font-size:11px;color:var(--dim);">${coach.specialty} specialist · Overall <span style="color:var(--yellow);font-family:var(--pixel);font-size:7px">${coach.overall}</span></div>
+        <div style="font-family:var(--pixel);font-size:7px;color:${leftCol}">${left} / ${total} sessions left</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">${statBtns}</div>
+      ${logHtml ? `<div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;"><div style="font-family:var(--pixel);font-size:5px;color:var(--dim);margin-bottom:4px;">RECENT SESSIONS</div>${logHtml}</div>` : ''}
+    </div></div>`;
 }
 
 function showToast(msg) {
@@ -5048,87 +5240,7 @@ function showToast(msg) {
   t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--panel);border:2px solid var(--green);color:var(--green);font-family:var(--pixel);font-size:7px;padding:10px 20px;z-index:9999;box-shadow:4px 4px 0 #000;pointer-events:none;letter-spacing:1px;';
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => { t.style.transition = 'opacity 0.5s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 600); }, 2200);
-}
-
-function renderCoachingPanel() {
-  const panel = document.getElementById('coaching-panel');
-  if(!panel) return;
-  const hasCoach = staffCounts.coach >= 1;
-  const d1Id = signedDriverIds[0];
-  const d2Id = signedDriverIds[1];
-  const d1 = d1Id !== null ? FREE_AGENTS[d1Id] : null;
-  const d2 = d2Id !== null ? FREE_AGENTS[d2Id] : null;
-
-  const statLabel = { skill:'Skill', control:'Control', overtake:'Overtaking', tires:'Tyre Mgmt', craft:'Race Craft' };
-
-  const driverCard = (fa, dId, slot) => {
-    if(!fa) return `<div style="font-family:var(--ui);font-size:11px;color:var(--dim);padding:10px 0;">No driver in Seat ${slot+1}</div>`;
-    return `
-      <div style="margin-bottom:12px;">
-        <div style="font-family:var(--pixel);font-size:7px;color:var(--text);margin-bottom:8px;">${fa.name.split('.').pop().trim()} #${fa.number}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${COACHABLE_STATS.map(s => {
-            const val = fa[s] || 0;
-            const atCap = val >= COACHING_STAT_CAP;
-            const canTrain = hasCoach && coachingSessions.sessionsLeft > 0 && !atCap;
-            return `<button onclick="runTrainingSession(${dId},'${s}')"
-              style="font-family:var(--pixel);font-size:5px;padding:6px 10px;
-              background:${canTrain ? 'rgba(0,230,118,0.08)' : 'rgba(255,255,255,0.03)'};
-              border:1px solid ${canTrain ? 'var(--green)' : 'rgba(255,255,255,0.1)'};
-              color:${atCap ? 'var(--dim)' : canTrain ? 'var(--green)' : 'var(--dim)'};
-              cursor:${canTrain ? 'pointer' : 'not-allowed'};border-radius:2px;"
-              ${canTrain ? '' : 'disabled'}>
-              ${statLabel[s]}<br><span style="font-size:7px;color:var(--text)">${val}${atCap?' ✓':''}</span>
-            </button>`;
-          }).join('')}
-        </div>
-      </div>`;
-  };
-
-  const sessionColor = coachingSessions.sessionsLeft > 0 ? 'var(--green)' : 'var(--accent)';
-  const recentLog = coachingSessions.log.slice(-6).reverse();
-
-  panel.innerHTML = `
-    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
-      <div style="font-family:var(--pixel);font-size:8px;color:var(--yellow);margin-bottom:4px;">🎓 DRIVER COACHING</div>
-      <div style="font-family:var(--ui);font-size:11px;color:var(--dim);">
-        ${hasCoach
-          ? `Sessions remaining: <span style="font-family:var(--pixel);font-size:8px;color:${sessionColor}">${coachingSessions.sessionsLeft}</span>
-             ${coachingSessions.isOffseason ? ' <span style="color:var(--yellow)">(OFF-SEASON)</span>' : ''}
-             <span style="color:var(--dim)"> / ${coachingSessions.isOffseason ? COACHING_SESSIONS_OFFSEASON : COACHING_SESSIONS_PER_RACE} this period</span>`
-          : '<span style="color:var(--accent)">⚠ Hire a Driver Coach to unlock training sessions</span>'}
-      </div>
-    </div>
-    <div style="padding:14px 16px;">
-      ${hasCoach ? `
-        <div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-bottom:12px;">
-          Click a stat to spend one training session on that driver. +1 per session, capped at ${COACHING_STAT_CAP}.
-          ${COACHING_SESSIONS_PER_RACE} sessions per race, ${COACHING_SESSIONS_OFFSEASON} in the off-season.
-        </div>
-        ${driverCard(d1, d1Id, 0)}
-        ${driverCard(d2, d2Id, 1)}
-        ${recentLog.length ? `
-          <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
-            <div style="font-family:var(--pixel);font-size:5px;color:var(--dim);margin-bottom:6px;">RECENT SESSIONS</div>
-            ${recentLog.map(l => {
-              const fa = FREE_AGENTS[l.driverId];
-              const name = fa ? fa.name.split('.').pop().trim() : '—';
-              const sLabel = statLabel[l.stat] || l.stat;
-              return `<div style="font-family:var(--ui);font-size:10px;color:var(--dim);margin-bottom:2px;">
-                R${l.race} · ${name} · ${sLabel}: <span style="color:var(--green)">${l.before} → ${l.after}</span>
-              </div>`;
-            }).join('')}
-          </div>` : ''}
-      ` : `
-        <div style="font-family:var(--ui);font-size:11px;color:var(--dim);">
-          Hire a Driver Coach from the Staff tab to unlock training sessions between races.<br><br>
-          Coaches run <strong style="color:var(--text)">${COACHING_SESSIONS_PER_RACE} sessions</strong> per race weekend and
-          <strong style="color:var(--yellow)">${COACHING_SESSIONS_OFFSEASON} sessions</strong> during the off-season.
-          Each session adds +1 to one stat for one driver (cap: ${COACHING_STAT_CAP}).
-        </div>
-      `}
-    </div>`;
+  setTimeout(() => { t.style.transition='opacity 0.5s'; t.style.opacity='0'; setTimeout(()=>t.remove(),600); }, 2200);
 }
 
 // END DRIVER COACHING SYSTEM
@@ -6175,6 +6287,9 @@ function renderFreeAgents() {
   if(!grid) return;
   renderDriverSlots();
   grid.innerHTML = FREE_AGENTS.map((fa, i) => {
+    // Skip retired drivers entirely
+    if(fa.retired) return '';
+
     const signed0 = signedDriverIds[0]===i, signed1 = signedDriverIds[1]===i;
     const isSigned = signed0 || signed1;
     const seatsFull = signedDriverIds[0]!==null && signedDriverIds[1]!==null;
@@ -6186,8 +6301,10 @@ function renderFreeAgents() {
     // Aggression badge
     const aggColor = fa.aggression>=80?'#ff4444':fa.aggression>=60?'#ffaa00':'#44cc88';
     const aggLabel = fa.aggression>=80?'AGGRESSIVE':fa.aggression>=60?'ASSERTIVE':'CALM';
-    // Age badge
-    const ageCol = fa.age<=22?'var(--cyan)':fa.age>=32?'var(--dim)':'var(--text)';
+    // Age badge — warn on older drivers
+    const ageCol = fa.age<=22?'var(--cyan)':fa.age>=37?'var(--accent)':fa.age>=33?'var(--yellow)':'var(--text)';
+    const ageWarn = fa.age>=37?' ⚠':fa.age>=33?' ↓':'';
+    const ageTitle = fa.age>=37?'High retirement risk — may retire next off-season':fa.age>=33?'Entering decline years — stats may decrease':'';
 
     const statBar = (val, col) =>
       `<div style="flex:1;background:#0d0d18;height:5px;border-radius:2px;overflow:hidden;">
@@ -6204,7 +6321,7 @@ function renderFreeAgents() {
           <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;">
             <span style="font-family:var(--pixel);font-size:5px;background:#0a0f1a;padding:2px 5px;color:var(--cyan);">${fa.tag}</span>
             <span style="font-family:var(--pixel);font-size:5px;background:${aggColor}22;padding:2px 5px;color:${aggColor};border:1px solid ${aggColor}44;">${aggLabel}</span>
-            <span style="font-family:var(--pixel);font-size:5px;background:#0a0f1a;padding:2px 5px;color:${ageCol};">AGE ${fa.age}</span>
+            <span style="font-family:var(--pixel);font-size:5px;background:#0a0f1a;padding:2px 5px;color:${ageCol};" title="${ageTitle}">AGE ${fa.age}${ageWarn}</span>
           </div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
@@ -6273,7 +6390,10 @@ function signDriver(faIdx) {
     injury:fa.injury, svgCol:fa.svgCol, helmetCol:fa.helmetCol,
   };
   saveGame();
-  // If both seats now filled, switch to roster view; otherwise re-render market
+  // Sync morale for newly signed driver
+  driverMorale[seat] = fa.morale || 72;
+  moraleEvents[seat] = [];
+  updateMoraleDisplay();
   if(signedDriverIds[0]!==null && signedDriverIds[1]!==null){
     setTimeout(()=>renderDriversPage(), 300); // slight delay so flash is visible
   } else {
@@ -6538,6 +6658,8 @@ function selectDriverProfile(idx) {
     '<div class="fin-row"><span class="fin-label">Fan Base</span><span class="fin-val" style="color:var(--purple)">'+fa['fans']+'</span></div>'+
     '<div class="fin-row"><span class="fin-label">Attitude</span><span>'+fa['attitude']+'</span></div>'+
     '<div class="fin-row"><span class="fin-label">Style</span><span style="font-family:var(--pixel);font-size:6px;color:'+aggColor+';">'+fa['tag']+' · '+aggLabel+'</span></div>'+
+    (fa.age>=37?'<div class="fin-row" style="border-top:1px solid rgba(255,51,102,0.3);"><span class="fin-label" style="color:var(--accent)">⚠ Retirement Risk</span><span style="font-family:var(--pixel);font-size:5px;color:var(--accent)">HIGH — may retire</span></div>':
+     fa.age>=33?'<div class="fin-row"><span class="fin-label" style="color:var(--yellow)">↓ In Decline</span><span style="font-family:var(--pixel);font-size:5px;color:var(--yellow)">Stats may decrease</span></div>':'')+
     '</div>'+
     '<div style="padding:10px 12px;"><button onclick="releaseDriver('+idx+')" style="width:100%;background:none;border:1px solid var(--accent);color:var(--accent);font-family:var(--pixel);font-size:5px;padding:7px;cursor:pointer;">&#8592; RELEASE DRIVER</button></div>'+
     '</div>'+
@@ -6566,6 +6688,7 @@ function selectDriverProfile(idx) {
     '<div style="font-family:var(--pixel);font-size:7px;color:var(--cyan)">'+(fa['familiarity']||0)+'% — '+((fa['familiarity']||0)>=70?'GOOD UNDERSTANDING':(fa['familiarity']||0)>=40?'LEARNING':'GETTING STARTED')+'</div>'+
     '</div></div>'+
     '<div class="px-box"><div class="sec-title">INJURY STATUS</div><div style="padding:12px;font-family:var(--ui);font-size:13px;">'+(fa['injury']||'<span style="color:var(--green)">✓ FULLY FIT</span>')+'</div></div>'+
+    renderDriverTrainingPanel(idx, fa)+
     '</div></div>';
 }
 
@@ -7989,12 +8112,196 @@ let trophies = []; // {season, position, type:'constructors'/'drivers'}
 let playerBudget = 50; // $M — starts at $50M for new save
 let signedDriverIds = [null, null]; // indices into FREE_AGENTS array; null = unsigned
 
+// ── DRIVER MORALE ────────────────────────────────────────────────────────────
+let driverMorale = [72, 72]; // 0–100 for seat 0 and seat 1
+let moraleEvents  = [[], []]; // recent event strings per driver, shown as tooltip
+let driverOnRest  = [false, false]; // true = driver sitting out this race
+
+function getMoraleColor(m) {
+  if(m >= 70) return 'var(--green)';
+  if(m >= 45) return 'var(--yellow)';
+  return 'var(--accent)';
+}
+
+function getMoraleLabel(m) {
+  if(m >= 85) return 'BUZZING';
+  if(m >= 70) return 'CONTENT';
+  if(m >= 55) return 'SETTLED';
+  if(m >= 40) return 'FRUSTRATED';
+  if(m >= 25) return 'UNHAPPY';
+  return 'CRISIS';
+}
+
+function clampMorale(v) { return Math.max(0, Math.min(100, Math.round(v))); }
+
+function applyMoraleEvent(slot, delta, label) {
+  driverMorale[slot] = clampMorale(driverMorale[slot] + delta);
+  if(label) {
+    const sign = delta >= 0 ? '+' : '';
+    moraleEvents[slot].unshift(sign + delta + ' ' + label);
+    if(moraleEvents[slot].length > 6) moraleEvents[slot].pop();
+  }
+}
+
+function updateMoraleDisplay() {
+  const panel = document.getElementById('morale-panel');
+  if(!panel) return;
+
+  const avgM = signedDriverIds.filter(id=>id!==null).length
+    ? Math.round(driverMorale.filter((_,i)=>signedDriverIds[i]!==null).reduce((a,b)=>a+b,0) /
+        driverMorale.filter((_,i)=>signedDriverIds[i]!==null).length)
+    : 0;
+
+  const avgEl = document.getElementById('dash-morale-avg');
+  if(avgEl) { avgEl.textContent = getMoraleLabel(avgM); avgEl.style.color = getMoraleColor(avgM); }
+
+  panel.innerHTML = [0, 1].map(slot => {
+    const faIdx = signedDriverIds[slot];
+    if(faIdx === null) return '';
+    const fa = FREE_AGENTS[faIdx];
+    if(!fa) return '';
+    const m = driverMorale[slot];
+    const col = getMoraleColor(m);
+    const pct = m + '%';
+    const name = fa.name.split('.').pop().trim();
+    const label = getMoraleLabel(m);
+    const onRest = driverOnRest[slot];
+    const events = moraleEvents[slot];
+    const tooltip = events.length ? events.join(' · ') : 'No recent changes';
+    return `
+      <div class="morale-driver-row" title="${tooltip}">
+        <div class="morale-driver-name">${name}</div>
+        <div class="morale-battery-wrap">
+          <div class="morale-battery-fill" style="width:${pct};background:${col};"></div>
+        </div>
+        <div class="morale-battery-nub"></div>
+        <div style="font-family:var(--pixel);font-size:5px;color:${col};min-width:52px;">${label}${onRest?' 😴':''}</div>
+      </div>`;
+  }).join('');
+
+  // Rest break buttons on raceday
+  updateRestButtons();
+}
+
+function updateRestButtons() {
+  [0, 1].forEach(slot => {
+    const btn = document.getElementById('rest-btn-' + slot);
+    if(!btn) return;
+    const onRest = driverOnRest[slot];
+    const faIdx = signedDriverIds[slot];
+    const fa = faIdx !== null ? FREE_AGENTS[faIdx] : null;
+    const name = fa ? fa.name.split('.').pop().trim() : 'Driver';
+    btn.textContent = onRest ? `😴 ${name}: RESTING THIS RACE` : `😴 Rest ${name}`;
+    btn.style.borderColor = onRest ? 'var(--yellow)' : 'var(--border)';
+    btn.style.color = onRest ? 'var(--yellow)' : 'var(--dim)';
+    btn.style.background = onRest ? 'rgba(255,204,0,0.08)' : 'transparent';
+  });
+}
+
+function toggleDriverRest(slot) {
+  const faIdx = signedDriverIds[slot];
+  if(faIdx === null) return;
+  driverOnRest[slot] = !driverOnRest[slot];
+  updateMoraleDisplay();
+  saveGame();
+}
+
+// Called from endRace with the sorted results
+function updateMoralePostRace(sorted, myR1, myR2) {
+  [0, 1].forEach(slot => {
+    const faIdx = signedDriverIds[slot];
+    if(faIdx === null) return;
+    const fa = FREE_AGENTS[faIdx];
+    if(!fa) return;
+
+    // Find this driver in the race results
+    const rcId = slot; // player cars always id 0 and 1
+    const rc = sorted.find(r => r.id === rcId);
+    if(!rc) return;
+
+    const pos = rc ? sorted.indexOf(rc) + 1 : 20;
+    const otherSlot = slot === 0 ? 1 : 0;
+    const otherPos = sorted.indexOf(sorted.find(r => r.id === otherSlot)) + 1;
+
+    // ── RACE RESULT ──
+    if(rc.retired)                     applyMoraleEvent(slot, -6,  'DNF');
+    else if(pos === 1)                 applyMoraleEvent(slot, +12, 'WIN');
+    else if(pos <= 3)                  applyMoraleEvent(slot, +7,  'PODIUM');
+    else if(pos <= 6)                  applyMoraleEvent(slot, +3,  'TOP 6');
+    else if(pos <= 10)                 applyMoraleEvent(slot, +1,  'POINTS');
+    else                               applyMoraleEvent(slot, -2,  'NO POINTS');
+
+    // ── TEAMMATE COMPARISON ──
+    if(signedDriverIds[otherSlot] !== null) {
+      if(pos < otherPos)               applyMoraleEvent(slot, +3,  'BEAT TEAMMATE');
+      else if(pos > otherPos + 3)      applyMoraleEvent(slot, -3,  'BEHIND TEAMMATE');
+    }
+
+    // ── PERSONAL SPONSOR ──
+    const hasPersonalSponsor = activeSponsorDeals.some(
+      d => d.tier === 'secondary' && d.driverSlot === slot
+    );
+    if(hasPersonalSponsor)             applyMoraleEvent(slot, +2,  'SPONSOR');
+
+    // ── COACH ASSIGNED ──
+    const hasCoach = coachingState.hired.some(h => h.assignedDriverSlot === slot);
+    if(hasCoach)                       applyMoraleEvent(slot, +1,  'COACHING');
+
+    // ── CONTRACT INSECURITY ──
+    const contractYears = parseInt(fa.contract) || 0;
+    if(contractYears <= 1)             applyMoraleEvent(slot, -2,  'CONTRACT EXPIRY');
+
+    // ── REST BONUS ── (if they sat out this race)
+    if(driverOnRest[slot]) {
+      applyMoraleEvent(slot, +8, 'REST');
+      driverOnRest[slot] = false; // reset after rest taken
+    } else {
+      // Passive drift: very gradual pull toward 60 (baseline)
+      if(driverMorale[slot] > 60)      applyMoraleEvent(slot, -1,  '');
+    }
+
+    // Sync fa.morale so retirement calcs use fresh value
+    fa.morale = driverMorale[slot];
+  });
+
+  updateMoraleDisplay();
+}
+
+// Called from startNewSeason — age-related morale effects
+function updateMoraleOffseason() {
+  [0, 1].forEach(slot => {
+    const faIdx = signedDriverIds[slot];
+    if(faIdx === null) return;
+    const fa = FREE_AGENTS[faIdx];
+    if(!fa) return;
+    if(fa.age >= 37)      applyMoraleEvent(slot, -6, 'CAREER ANXIETY');
+    else if(fa.age >= 33) applyMoraleEvent(slot, -3, 'DECLINE FEARS');
+    // Offseason rest bonus — everyone recovers slightly
+    applyMoraleEvent(slot, +4, 'OFF-SEASON');
+    fa.morale = driverMorale[slot];
+  });
+}
+
+// Initialise morale from fa.morale when drivers are signed/loaded
+function initDriverMorale() {
+  [0, 1].forEach(slot => {
+    const faIdx = signedDriverIds[slot];
+    if(faIdx !== null && FREE_AGENTS[faIdx]) {
+      driverMorale[slot] = FREE_AGENTS[faIdx].morale || 72;
+    }
+  });
+  moraleEvents = [[], []];
+  updateMoraleDisplay();
+}
+// ── END DRIVER MORALE ────────────────────────────────────────────────────────
+
 function getNextRace() {
   return races.find(r => !r.past) || races[races.length-1];
 }
 
 function updateDashboard() {
   updateBudgetDisplay();
+  updateMoraleDisplay();
   const next = getNextRace();
   if (!next) return;
   // Title
@@ -8127,6 +8434,7 @@ function updateRaceDay() {
   if (qualiBtn) qualiBtn.textContent = done ? '🏎 RE-RUN QUALIFYING' : '🏎 RUN QUALIFYING';
   const qualiStatus = el('raceday-quali-status');
   if (qualiStatus) qualiStatus.textContent = done ? '✓ GRID SET' : '';
+  updateRestButtons();
 }
 
 function checkSeasonEnd() {
@@ -8145,6 +8453,74 @@ function startNewSeason() {
   currentSeason++;
   // Off-season coaching bonus
   resetCoachingSessionsForRace(true);
+  // Off-season morale effects (age anxiety, recovery)
+  updateMoraleOffseason();
+
+  // ── DRIVER AGEING & RETIREMENT ─────────────────────────────────────────────
+  const agingNotices = []; // collect events to show in the season-start popup
+
+  FREE_AGENTS.forEach(fa => {
+    if(fa.retired) return;
+
+    // 1. Age up
+    fa.age = (fa.age || 25) + 1;
+
+    // 2. Stat decay — probability scales with age
+    const decayChance =
+      fa.age <= 28 ? 0.00 :
+      fa.age <= 32 ? 0.15 :
+      fa.age <= 36 ? 0.35 : 0.60;
+
+    if(decayChance > 0) {
+      const decayStats = ['skill','control','overtake','tires','craft','consistency'];
+      decayStats.forEach(s => {
+        if(Math.random() < decayChance) {
+          fa[s] = Math.max(30, (fa[s] || 50) - 1);
+          // Also sync to drivers[] if this fa is currently signed
+          const slot = signedDriverIds.indexOf(FREE_AGENTS.indexOf(fa));
+          if(slot >= 0 && drivers[slot]) drivers[slot][s] = fa[s];
+        }
+      });
+    }
+
+    // 3. Retirement check
+    const retireChance =
+      fa.age < 32  ? 0.03 :
+      fa.age <= 34 ? 0.10 :
+      fa.age <= 37 ? 0.22 :
+      fa.age <= 40 ? 0.40 : 0.65;
+
+    // Low morale makes retirement more likely; high morale reduces it
+    const moraleAdj = ((fa.morale || 70) - 70) / 100 * -0.08; // ±0.08 at extremes
+    const finalRetireChance = Math.max(0, Math.min(0.95, retireChance + moraleAdj));
+
+    if(Math.random() < finalRetireChance) {
+      fa.retired = true;
+      fa.retiredSeason = currentSeason - 1;
+
+      const slot = signedDriverIds.indexOf(FREE_AGENTS.indexOf(fa));
+      if(slot >= 0) {
+        // Signed driver is retiring — auto-release and notify player
+        agingNotices.push({
+          type: 'retirement',
+          name: fa.name.split('.').pop().trim(),
+          age: fa.age,
+          slot,
+        });
+        signedDriverIds[slot] = null;
+        drivers[slot] = null;
+        // Remove coach assignment for this slot
+        coachingState.hired.forEach(h => {
+          if(h.assignedDriverSlot === slot) h.assignedDriverSlot = null;
+        });
+      } else {
+        // Free agent retires — just mark them (still visible in market with 'RETIRED' tag)
+        agingNotices.push({ type: 'fa_retirement', name: fa.name.split('.').pop().trim(), age: fa.age });
+      }
+    }
+  });
+  // ──────────────────────────────────────────────────────────────────────────
+
   // Mark all races as not-past for new season
   races.forEach((r,i) => {
     r.past = false; r.current = (i===0);
@@ -8157,16 +8533,47 @@ function startNewSeason() {
   });
   currentRaceIdx = 0;
   racerGridOrder = null;
-  // Reset team points
   teams.forEach(t => t.pts = Math.floor(Math.random()*50));
   updateDashboard();
   updateRaceDay();
-  // Show season start notification
+  saveGame();
+
+  // Build the season-end popup — include retirement/decay notices
+  const retirements = agingNotices.filter(n => n.type === 'retirement');
+  const faRetirements = agingNotices.filter(n => n.type === 'fa_retirement');
+
+  let noticeHtml = '';
+  if(retirements.length) {
+    noticeHtml += `<div style="margin-top:16px;padding:12px;background:rgba(255,51,102,0.12);border:1px solid var(--accent);">`;
+    noticeHtml += `<div style="font-family:var(--pixel);font-size:7px;color:var(--accent);margin-bottom:6px;">⚠ DRIVER RETIREMENT${retirements.length>1?'S':''}</div>`;
+    retirements.forEach(n => {
+      noticeHtml += `<div style="font-family:var(--ui);font-size:11px;color:var(--text);margin-bottom:3px;">
+        ${n.name} (Age ${n.age}) has <span style="color:var(--accent)">retired from racing</span>. Find a replacement.
+      </div>`;
+    });
+    noticeHtml += `</div>`;
+  }
+  if(faRetirements.length) {
+    noticeHtml += `<div style="margin-top:8px;font-family:var(--ui);font-size:10px;color:var(--dim);">
+      Also retired: ${faRetirements.map(n=>`${n.name} (${n.age})`).join(', ')}
+    </div>`;
+  }
+
   const note = document.createElement('div');
-  note.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:3px solid var(--yellow);padding:40px;z-index:999;text-align:center;font-family:var(--pixel);font-size:10px;color:var(--yellow);box-shadow:0 0 60px rgba(255,204,0,0.5),8px 8px 0 #000;`;
-  note.innerHTML = `🏆 SEASON ${currentSeason-1} COMPLETE!<br><br><span style="font-size:7px;color:var(--text)">CONSTRUCTORS: ${['1ST','2ND','3RD','4TH','5TH'][Math.min(trophies[trophies.length-1]?.position-1,4)]||'?'}</span><br><br><span style="font-size:6px;color:var(--dim)">SEASON ${currentSeason} BEGINS NOW</span>`;
+  note.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:3px solid var(--yellow);padding:30px 40px;z-index:999;text-align:center;font-family:var(--pixel);font-size:10px;color:var(--yellow);box-shadow:0 0 60px rgba(255,204,0,0.5),8px 8px 0 #000;max-width:460px;max-height:80vh;overflow-y:auto;`;
+  note.innerHTML = `🏆 SEASON ${currentSeason-1} COMPLETE!
+    <br><br>
+    <span style="font-size:7px;color:var(--text)">CONSTRUCTORS: ${['1ST','2ND','3RD','4TH','5TH'][Math.min(trophies[trophies.length-1]?.position-1,4)]||'?'}</span>
+    <br><br>
+    <span style="font-size:6px;color:var(--dim)">SEASON ${currentSeason} BEGINS NOW</span>
+    ${noticeHtml}
+    ${retirements.length ? `<br><button onclick="this.closest('div').remove();go('drivers');" style="margin-top:12px;background:var(--accent);border:none;color:#fff;font-family:var(--pixel);font-size:6px;padding:9px 18px;cursor:pointer;letter-spacing:1px;">FIND NEW DRIVER</button>` : ''}
+  `;
   document.body.appendChild(note);
-  setTimeout(() => { note.style.transition='opacity 0.5s'; note.style.opacity='0'; setTimeout(()=>note.remove(),600); go('dashboard'); }, 3000);
+  const delay = retirements.length ? 0 : 3200; // if retirement, don't auto-dismiss
+  if(!retirements.length) {
+    setTimeout(() => { note.style.transition='opacity 0.5s'; note.style.opacity='0'; setTimeout(()=>{ note.remove(); go('dashboard'); },600); }, delay);
+  }
 }
 
 function renderTrophies() {
@@ -11543,6 +11950,10 @@ function endRace(skipFlag){
   completedRaces.push({rd:r.rd,results:sorted.map((rc,i)=>({pos:i+1,...rc}))});
   racerGridOrder=sorted.map(rc=>rc.id);
   if(currentRaceIdx+1<races.length) races[currentRaceIdx+1].current=true;
+
+  // Update driver morale based on race results
+  updateMoralePostRace(sorted, myR1, myR2);
+
   checkSeasonEnd();
 
   if(skipFlag){
@@ -12006,6 +12417,178 @@ const TUTORIAL_STEPS = [
     body: 'Each team\'s total points from both drivers are combined here. The gap column shows how far you are from the team ahead or behind — focus on closing the gaps.',
     tip: 'Constructors points come from BOTH your drivers. A strong second driver scoring consistently is often worth more than a star driver who retires.',
     tag: 'STANDINGS'
+  },
+
+  // ── MANAGE TEAM ──────────────────────────────────────────────
+  {
+    screen: 'manage',
+    sel: '.manage-tabs',
+    title: 'MANAGE TEAM',
+    body: 'Four tabs control your operation: Facility sets your staff cap, Staff lets you hire headcount in each role, Expenses shows your cost breakdown, and Coaching manages your driver coaches.',
+    tip: 'Expand your facility before hiring staff — you can\'t hire beyond your current cap.',
+    tag: 'MANAGE'
+  },
+  {
+    screen: 'manage',
+    sel: '#mtab-staff',
+    title: 'STAFF ROLES',
+    body: 'Each staff role now has a real effect on racing. Mechanics reduce DNF chance and tyre wear. Analysts improve your driver pace. Pit Crew shorten pit stop time. Engineers generate R&D points every race.',
+    tip: 'Pit Crew and Mechanics give the most immediate on-track benefit. Hire a few of each before spending on Analysts.',
+    tag: 'MANAGE'
+  },
+  {
+    screen: 'manage',
+    sel: '#mtab-coaching',
+    title: 'COACHING TAB',
+    body: 'Hire up to two Driver Coaches from the pool and assign one to each driver. Each coach has an Overall rating (48–91) that determines how many training sessions they provide per race weekend.',
+    tip: 'A higher-rated coach gives 3–4 sessions per race vs 1–2 for a budget option. Sessions reset every race and you get bonus sessions in the off-season.',
+    tag: 'MANAGE'
+  },
+
+  // ── DRIVERS ──────────────────────────────────────────────────
+  {
+    screen: 'drivers',
+    sel: '#drivers-market-view',
+    title: 'DRIVER MARKET',
+    body: 'Sign two drivers from the free agent pool. Each driver has stats for Skill, Control, Overtaking, Tyre Management, Qualifying Pace, and Race Craft — all of which affect their performance differently.',
+    tip: 'Check the age badge carefully. Drivers aged 33+ show a ↓ warning (declining stats) and 37+ show a ⚠ (high retirement risk). Don\'t invest coaching sessions in someone about to retire.',
+    tag: 'DRIVERS'
+  },
+  {
+    screen: 'drivers',
+    sel: '#drivers-roster-view',
+    title: 'DRIVER PROFILE',
+    body: 'Your signed drivers show full stats, contract details, car familiarity, and their morale history. Scroll down on each profile to see the Training panel where you can spend coaching sessions to improve individual stats.',
+    tip: 'Tyre Management and Race Craft are the most valuable stats to train — they compound over a long season.',
+    tag: 'DRIVERS'
+  },
+
+  // ── QUALIFYING ───────────────────────────────────────────────
+  {
+    screen: 'qualifying',
+    sel: '#quali-title',
+    title: 'QUALIFYING',
+    body: 'Qualifying runs in three knockout rounds — Q1, Q2, Q3. The slowest drivers are eliminated after Q1 and Q2. Your final position sets your starting grid for the race.',
+    tip: 'Starting from pole is worth roughly 2 positions over a race. If your car is fast enough, prioritise qualifying pace.',
+    tag: 'QUALIFYING'
+  },
+  {
+    screen: 'qualifying',
+    sel: '#quali-setup-bar',
+    title: 'TYRE CHOICE',
+    body: 'Choose which compound to run in each qualifying session. Softs are fastest but will be used up — if you start the race on Softs, you\'ll have less tyre life. Hards give you a free tyre choice for the race.',
+    tip: 'The top 10 drivers must start the race on the tyre they set their Q2 time on. In Q3 you can use any compound freely.',
+    tag: 'QUALIFYING'
+  },
+  {
+    screen: 'qualifying',
+    sel: '#quali-timing-sheet',
+    title: 'TIMING SHEET',
+    body: 'Live standings update after each segment. Your position is highlighted in red. Eliminated drivers are shown in grey. The gap column shows how far each driver is from pole.',
+    tip: 'Watch the elimination cutoff carefully in Q1 and Q2 — being 0.001s inside the cut is all that matters.',
+    tag: 'QUALIFYING'
+  },
+
+  // ── SIMULATION ───────────────────────────────────────────────
+  {
+    screen: 'simulation',
+    sel: '#sim-hud',
+    title: 'RACE HUD',
+    body: 'The top bar shows the current lap, race name, camera controls, and speed buttons. You can watch the race unfold in real time or speed it up with 2×, 4×, or 8× simulation speed.',
+    tip: 'Switch to Broadcast camera for the most dramatic view — it automatically cuts to the best on-track action including overtakes and battles.',
+    tag: 'SIMULATION'
+  },
+  {
+    screen: 'simulation',
+    sel: '#sim-timing-bar',
+    title: 'LIVE TIMING',
+    body: 'The timing bar shows the focused driver\'s current lap time and last lap, plus the overall fastest lap holder in purple. Use the interval/to-leader toggle to switch between gap modes in the standings.',
+    tip: 'Watch the fastest lap indicator — if a rival sets one on the last lap and you\'re P10+, they steal the bonus point.',
+    tag: 'SIMULATION'
+  },
+  {
+    screen: 'simulation',
+    sel: '#sim-cam-btns',
+    title: 'CAMERA MODES',
+    body: 'Five camera modes let you watch from different perspectives. Full shows the whole track. Leader follows P1. Apex follows your team. Driver follows a specific car. Broadcast auto-cuts to the best action — position battles, defences, crashes.',
+    tip: 'Broadcast camera is the best mode for spotting position defence events — when a driver holds off an overtake attempt near the end of the race.',
+    tag: 'SIMULATION'
+  },
+  {
+    screen: 'simulation',
+    sel: '#sim-stand-left',
+    title: 'LIVE STANDINGS',
+    body: 'The left panel shows P1–P10, the right shows P11–P20. Each row updates live with position, gap, tyre compound, and pit status. A flashing row means a driver is in the pits.',
+    tip: null,
+    tag: 'SIMULATION'
+  },
+
+  // ── MARKETING ────────────────────────────────────────────────
+  {
+    screen: 'marketing',
+    sel: '.manage-tabs',
+    title: 'MARKETING',
+    body: 'Three sponsor tiers: Primary (one deal, largest income, team-wide), Secondary (one per driver, tied to that driver\'s following), and Alternate (smaller top-up deals). Each sponsor has performance bonuses.',
+    tip: 'Secondary sponsors give your drivers a small morale boost each race — a driver with their own personal deal feels more valued.',
+    tag: 'MARKETING'
+  },
+
+  // ── FINANCES ─────────────────────────────────────────────────
+  {
+    screen: 'finances',
+    sel: '.finances-layout',
+    title: 'FINANCES',
+    body: 'Full breakdown of all income and costs. Prize money scales with finishing position. TV deal is your main passive income. Costs include facility rent, driver salaries, staff wages, and travel expenses.',
+    tip: 'Travel costs $0.01M per employee per race — every person on your payroll travels with the team. Keep an eye on headcount.',
+    tag: 'FINANCES'
+  },
+
+  // ── GARAGE ───────────────────────────────────────────────────
+  {
+    screen: 'garage',
+    sel: '.garage-layout',
+    title: 'GARAGE',
+    body: 'Your trophy cabinet shows every season\'s constructors finish. Previous car models record the evolution of your car\'s performance over time.',
+    tip: null,
+    tag: 'GARAGE'
+  },
+
+  // ── SCOUTING ─────────────────────────────────────────────────
+  {
+    screen: 'scouting',
+    sel: '.page-title',
+    title: 'SCOUTING',
+    body: 'Browse drivers not yet signed to any team. Use scouting to find hidden talent before rivals do. Pay close attention to age — a young driver with mid-range stats can be developed into a champion through coaching.',
+    tip: 'A driver with high consistency and low aggression is usually easier to manage — they\'ll defend positions well and rarely cause incidents.',
+    tag: 'SCOUTING'
+  },
+
+  // ── RACE DAY (new features) ───────────────────────────────────
+  {
+    screen: 'raceday',
+    sel: '#raceday-quali-btn',
+    title: 'RUN QUALIFYING',
+    body: 'Before the race, you can run a full Q1/Q2/Q3 qualifying session to set your grid position. Skip it and you\'ll start from a default grid position based on your car\'s performance.',
+    tip: 'Always run qualifying if your car has strong pace — a front row start is one of the biggest single advantages in the game.',
+    tag: 'RACE DAY'
+  },
+  {
+    screen: 'raceday',
+    sel: '#rest-btns-row',
+    title: 'DRIVER REST',
+    body: 'Toggle rest for either driver before a race. A resting driver sits out this race entirely, replaced by a substitute — but gains +8 morale. Useful when a driver is close to a morale crisis.',
+    tip: 'Don\'t rest both drivers at once — you\'ll score zero points. Use rest strategically on circuits where your car is weak anyway.',
+    tag: 'RACE DAY'
+  },
+
+  // ── DASHBOARD (morale update) ─────────────────────────────────
+  {
+    screen: 'dashboard',
+    sel: '#morale-panel',
+    title: 'DRIVER MORALE',
+    body: 'Each driver has their own morale bar shown as a battery. Green is good, yellow is a warning, red means crisis. Morale affects retirement probability at season end — a miserable driver quits sooner.',
+    tip: 'Hover the morale panel to see the last 6 morale events for each driver. Morale recovers in the off-season and through rest breaks and coaching.',
+    tag: 'DASHBOARD'
   },
 ];
 
