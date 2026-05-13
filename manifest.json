@@ -1,0 +1,12 @@
+{
+  "name": "Project Grand Prix",
+  "short_name": "PGP",
+  "description": "A Racing Management Experience",
+  "icons": [
+    { "src": "PGP_Logo.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a0505",
+  "theme_color": "#1a0505"
+}
