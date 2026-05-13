@@ -2,10 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/png" href="PGP_Logo.png">
-<link rel="apple-touch-icon" href="PGP_Logo.png">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a0505">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PROJECT GRAND PRIX</title>
 <style>
@@ -52,7 +48,7 @@ body::after {
 }
 
 /* ---- SCREENS ---- */
-.screen { display: none; min-height: 100vh; flex-direction: column; }
+.screen { display: none; min-height: 100vh; flex-direction: column; overflow-y: auto; }
 .screen.active { display: flex; }
 
 /* ---- STARTUP SCREEN ---- */
@@ -337,8 +333,23 @@ body::after {
   gap: 14px;
   padding: 14px 20px;
   flex: 1;
+  align-items: start;
 }
-@media(max-width:800px){ .dash-layout{ grid-template-columns: 1fr; } }
+@media(max-width:800px){
+  .dash-layout {
+    grid-template-columns: 1fr;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  /* On mobile: hide nav panel (use topbar buttons instead), reorder sections */
+  .nav-panel { display: none; }
+  .right-col { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .right-col .px-box { flex: 1; min-width: 140px; }
+  .race-stats { grid-template-columns: repeat(2, 1fr); }
+  .race-stat:nth-child(2) { border-right: none; }
+  .car-stage { padding: 14px 10px 10px; }
+  .car-svg { max-width: 180px; }
+}
 
 /* Nav */
 .nav-panel { display: flex; flex-direction: column; gap: 6px; padding: 10px; }
@@ -419,7 +430,7 @@ body::after {
 .race-stat .rs-lbl { font-family: var(--ui); font-size: 10px; color: var(--dim); letter-spacing:1px; text-transform:uppercase; text-align:center; }
 
 /* Next race */
-.next-race-panel { padding: 12px; }
+.next-race-panel { padding: 12px; min-height: 120px; }
 .track-mini {
   width: 100%; height: 75px;
   background: var(--bg);
@@ -438,8 +449,39 @@ body::after {
 .cd-val { font-family: var(--pixel); font-size: 13px; color: var(--accent); }
 .cd-lbl { font-family: var(--ui); font-size: 9px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
 
-/* Right column */
-.right-col { display: flex; flex-direction: column; gap: 12px; }
+/* Mobile bottom nav */
+#mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(6,6,18,0.98);
+  border-top: 2px solid var(--border);
+  z-index: 500;
+  padding: 4px 0 env(safe-area-inset-bottom, 4px);
+}
+#mobile-nav .mob-nav-inner {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+#mobile-nav button {
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  font-family: var(--pixel);
+  font-size: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 10px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+#mobile-nav button .mob-icon { font-size: 18px; line-height: 1; }
+#mobile-nav button.active, #mobile-nav button:hover { color: var(--accent); }
+@media(max-width:800px){ #mobile-nav { display: block; } body { padding-bottom: 60px; } }
 
 .driver-card {
   display: flex; align-items: center; gap: 10px;
@@ -1687,14 +1729,11 @@ body::after {
     <div class="logo">▶ PROJECT GRAND PRIX</div>
     <div class="top-stats">
       <div class="top-stat"><span class="val" id="dash-budget">$50.0M</span><span class="lbl" data-i18n="stats.budget">Budget</span></div>
-      <div class="top-stat"><span class="val" style="color:var(--yellow)">2ND</span><span class="lbl" data-i18n="stats.constructors">Constructors</span></div>
-      <div class="top-stat"><span class="val">374 PTS</span><span class="lbl" data-i18n="stats.points">Points</span></div>
+      <div class="top-stat"><span class="val" id="dash-constructor-pos" style="color:var(--yellow)">—</span><span class="lbl" data-i18n="stats.constructors">Constructors</span></div>
+      <div class="top-stat"><span class="val" id="dash-points">— PTS</span><span class="lbl" data-i18n="stats.points">Points</span></div>
       <div class="top-stat"><span class="val" style="color:var(--purple)" id="dash-morale-avg">—</span><span class="lbl" data-i18n="stats.morale">Morale</span></div>
     </div>
-    <div class="season-badge">◼ S3 — RD.7</div>
-  </div>
-
-  <div class="dash-layout">
+    <div class="season-badge" id="dash-season-badge">◼ S1 — RD.1</div>
     <!-- NAV -->
     <div class="px-box nav-panel" id="dash-nav-panel">
       <div class="sec-title" data-i18n="nav.navigate">◀ NAVIGATE</div>
@@ -1716,22 +1755,15 @@ body::after {
         <div class="road"><div class="road-line"></div></div>
       </div>
       <div class="race-stats">
-        <div class="race-stat"><span class="rs-val" style="color:var(--yellow)">1ST</span><span class="rs-lbl">Last Race</span></div>
-        <div class="race-stat"><span class="rs-val" style="color:var(--green)">3RD</span><span class="rs-lbl">Grid</span></div>
-        <div class="race-stat"><span class="rs-val" style="color:var(--accent)">+2 PEN</span><span class="rs-lbl">Penalties</span></div>
-        <div class="race-stat"><span class="rs-val" style="color:var(--blue);font-size:9px">1:28.441</span><span class="rs-lbl">Best Lap</span></div>
+        <div class="race-stat"><span class="rs-val" id="dash-last-race" style="color:var(--yellow)">N/A</span><span class="rs-lbl">Last Race</span></div>
+        <div class="race-stat"><span class="rs-val" id="dash-grid" style="color:var(--green)">N/A</span><span class="rs-lbl">Grid</span></div>
+        <div class="race-stat"><span class="rs-val" id="dash-penalties" style="color:var(--accent)">N/A</span><span class="rs-lbl">Penalties</span></div>
+        <div class="race-stat"><span class="rs-val" id="dash-best-lap" style="color:var(--blue);font-size:9px">N/A</span><span class="rs-lbl">Best Lap</span></div>
       </div>
       <div class="next-race-panel" id="dash-next-race-panel">
         <div class="sec-title" id="dash-next-race-title">▶ NEXT RACE — LOADING...</div>
         <div class="track-mini" id="dash-track-mini">
           <svg width="200" height="68" viewBox="0 0 200 68"><rect width="200" height="68" fill="#0d0d1a"/></svg>
-        </div>
-        <div style="font-family:var(--ui);font-size:11px;color:var(--dim);text-align:center;margin-bottom:8px;letter-spacing:1px;">RACE STARTS IN</div>
-        <div class="countdown">
-          <div class="cd-block"><span class="cd-val" id="cd-d">06</span><span class="cd-lbl">Days</span></div>
-          <div class="cd-block"><span class="cd-val" id="cd-h">14</span><span class="cd-lbl">Hrs</span></div>
-          <div class="cd-block"><span class="cd-val" id="cd-m">22</span><span class="cd-lbl">Min</span></div>
-          <div class="cd-block"><span class="cd-val" id="cd-s">09</span><span class="cd-lbl">Sec</span></div>
         </div>
       </div>
     </div>
@@ -1761,11 +1793,11 @@ body::after {
       </div>
       <div class="px-box finances" id="dash-finances">
         <div class="fin-row"><span class="fin-label" data-i18n="stats.driver_salary">Driver Salary</span><span class="fin-val neg" id="fin-salary">-$0.0M/yr</span></div>
-        <div class="fin-row"><span class="fin-label" data-i18n="stats.tv_deal">TV Deal</span><span class="fin-val pos">+$1.8M</span></div>
+        <div class="fin-row"><span class="fin-label" data-i18n="stats.tv_deal">TV Deal</span><span class="fin-val pos" id="fin-tv-deal">—</span></div>
         <div class="fin-row"><span class="fin-label" data-i18n="stats.status">Status</span><span class="fin-val neu" id="fin-status">SEASON 1 — RD.1</span></div>
       </div>
       <div class="px-box">
-        <div class="sec-title" data-i18n="stats.driver_morale">◼ DRIVER MORALE</div>
+        <div class="sec-title">◼ DRIVER MORALE</div>
         <div id="morale-panel" style="padding:8px 12px 10px;display:flex;flex-direction:column;gap:10px;"></div>
       </div>
     </div>
@@ -1775,7 +1807,7 @@ body::after {
 <!-- ===================== TEAM HQ ===================== -->
 <div class="screen" id="screen-teamhq">
   <button class="help-btn" onclick="startHelp('teamhq')" title="Help">❓</button>
-  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="season-badge-static">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('dashboard')" data-i18n="nav.back_dashboard">◀ BACK TO DASHBOARD</button>
   <div class="page-title" data-i18n="hq.title">TEAM HQ</div>
   <div class="page-subtitle" data-i18n="hq.subtitle">Manage your team's operations</div>
@@ -2063,7 +2095,7 @@ body::after {
 
 <!-- ===================== CAR ===================== -->
 <div class="screen" id="screen-car">
-  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="season-badge-static">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">MY CAR</div>
   <div class="page-subtitle">APEX-S1 — Performance & Upgrades</div>
@@ -2117,7 +2149,7 @@ window.TILESET_URL = 'Tileset.png';
 
 <!-- ===================== CAR ===================== -->
 <div class="screen" id="screen-car">
-  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="season-badge-static">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">MY CAR</div>
   <div class="car-layout">
@@ -2163,7 +2195,7 @@ window.TILESET_URL = 'Tileset.png';
 <!-- ===================== FINANCES ===================== -->
 <div class="screen" id="screen-finances">
   <button class="help-btn" onclick="startHelp('finances')" title="Help">❓</button>
-  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="season-badge-static">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">FINANCES</div>
   <div class="page-subtitle">Season 3 — Budget Overview</div>
@@ -2298,7 +2330,7 @@ window.TILESET_URL = 'Tileset.png';
 <!-- ===================== GARAGE ===================== -->
 <div class="screen" id="screen-garage">
   <button class="help-btn" onclick="startHelp('garage')" title="Help">❓</button>
-  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="season-badge-static">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">GARAGE</div>
   <div class="page-subtitle">Trophy Cabinet & Car History</div>
@@ -2456,7 +2488,7 @@ window.TILESET_URL = 'Tileset.png';
 <!-- ===================== SCOUTING ===================== -->
 <div class="screen" id="screen-scouting">
   <button class="help-btn" onclick="startHelp('scouting')" title="Help">❓</button>
-  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="season-badge-static">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('teamhq')">◀ BACK TO TEAM HQ</button>
   <div class="page-title">SCOUTING</div>
   <div class="page-subtitle">Academy & Free Agent Market</div>
@@ -2518,7 +2550,7 @@ window.TILESET_URL = 'Tileset.png';
 <!-- ===================== RACES ===================== -->
 <div class="screen" id="screen-races">
   <button class="help-btn" onclick="startHelp('races')" title="Help">❓</button>
-  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="season-badge-static">◼ S1 — RD.1</div></div>
 
   <!-- Race selector header -->
   <div class="race-selector-bar">
@@ -2876,7 +2908,7 @@ window.TILESET_URL = 'Tileset.png';
 <!-- ===================== STANDINGS ===================== -->
 <div class="screen" id="screen-standings">
   <button class="help-btn" onclick="startHelp('standings')" title="Help">❓</button>
-  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge">◼ S3 — RD.7</div></div>
+  <div class="topbar"><div class="logo">▶ PROJECT GRAND PRIX</div><div class="season-badge" id="season-badge-static">◼ S1 — RD.1</div></div>
   <button class="back-btn" onclick="go('dashboard')">◀ BACK TO DASHBOARD</button>
   <div class="page-title">STANDINGS</div>
   <div style="font-family:var(--ui);font-size:11px;color:var(--dim);padding:0 20px 4px;letter-spacing:1px;">🔍 Click any row for detailed stats</div>
@@ -2915,18 +2947,6 @@ for(let i=0;i<80;i++){
   s.style.setProperty('--bright',(0.2+Math.random()*0.5).toFixed(2));
   starsEl.appendChild(s);
 }
-
-// Countdown
-let secs=6*86400+14*3600+22*60+9;
-function updateCd(){
-  if(secs<=0)return;secs--;
-  const d=Math.floor(secs/86400),h=Math.floor((secs%86400)/3600),m=Math.floor((secs%3600)/60),s=secs%60;
-  document.getElementById('cd-d').textContent=String(d).padStart(2,'0');
-  document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
-  document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
-  document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
-}
-setInterval(updateCd,1000);
 
 // ════════════════════════════════════════════════════════════════
 // TRANSLATION SYSTEM
@@ -4090,6 +4110,11 @@ function go(screen){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+screen).classList.add('active');
   window.scrollTo(0,0);
+  // Update mobile nav active state
+  ['dashboard','teamhq','raceday','races','standings'].forEach(s => {
+    const btn = document.getElementById('mobnav-'+s);
+    if(btn) btn.classList.toggle('active', s===screen);
+  });
   if(screen==='races') setTimeout(renderRacePage, 0);
   if(screen==='dashboard') setTimeout(updateDashboard, 0);
   if(screen==='raceday') setTimeout(()=>{
@@ -8306,6 +8331,59 @@ function getNextRace() {
 function updateDashboard() {
   updateBudgetDisplay();
   updateMoraleDisplay();
+
+  const rd = currentRaceIdx + 1;
+  const badgeText = `◼ S${currentSeason} — RD.${rd}`;
+  // Update all season badges
+  document.querySelectorAll('.season-badge').forEach(el => el.textContent = badgeText);
+
+  const ordinals = ['—','1ST','2ND','3RD','4TH','5TH','6TH','7TH','8TH','9TH','10TH'];
+
+  // Constructors position and points
+  const myTeamName = (typeof getMyTeamName === 'function') ? getMyTeamName() : (myTeam && myTeam.name) || '';
+  if (typeof teams !== 'undefined' && teams && teams.length) {
+    const sortedTeams = [...teams].sort((a, b) => b.pts - a.pts);
+    const myPos = sortedTeams.findIndex(t => t.my || t.name === myTeamName) + 1;
+    const myPts = sortedTeams.find(t => t.my || t.name === myTeamName)?.pts || 0;
+    const posEl = document.getElementById('dash-constructor-pos');
+    if (posEl) posEl.textContent = myPos > 0 ? (ordinals[myPos] || myPos + 'TH') : '—';
+    const ptsEl = document.getElementById('dash-points');
+    if (ptsEl) ptsEl.textContent = myPts > 0 ? myPts + ' PTS' : '0 PTS';
+  }
+
+  // Race stats — use last completed race data
+  const lastRace = (typeof races !== 'undefined' && races) ? [...races].reverse().find(r => r.past) : null;
+  const lastEl = document.getElementById('dash-last-race');
+  const gridEl = document.getElementById('dash-grid');
+  const penEl  = document.getElementById('dash-penalties');
+  const lapEl  = document.getElementById('dash-best-lap');
+  if (lastRace) {
+    if (lastEl) lastEl.textContent = lastRace.finish ? ordinals[lastRace.finish] || lastRace.finish + 'TH' : 'N/A';
+    if (gridEl) gridEl.textContent = lastRace.grid ? ordinals[lastRace.grid] || lastRace.grid + 'TH' : 'N/A';
+    if (penEl)  penEl.textContent  = 'NONE';
+    if (lapEl)  lapEl.textContent  = lastRace.fastLap || 'N/A';
+  } else {
+    if (lastEl) lastEl.textContent = 'N/A';
+    if (gridEl) gridEl.textContent = 'N/A';
+    if (penEl)  penEl.textContent  = 'N/A';
+    if (lapEl)  lapEl.textContent  = 'N/A';
+  }
+
+  // TV deal
+  const tvEl = document.getElementById('fin-tv-deal');
+  if (tvEl) {
+    const tvIncome = (typeof seasonIncome !== 'undefined' && seasonIncome.tv) ? seasonIncome.tv : 0;
+    tvEl.textContent = tvIncome > 0 ? `+$${tvIncome.toFixed(1)}M` : '—';
+  }
+
+  // Morale panel placeholder when no drivers signed
+  const moralePanel = document.getElementById('morale-panel');
+  const hasDrivers = signedDriverIds && signedDriverIds.some(id => id !== null);
+  if (moralePanel && !hasDrivers) {
+    moralePanel.innerHTML = `<div style="font-family:var(--ui);font-size:11px;color:var(--dim);padding:4px 0;">Morale will appear once drivers have been signed.</div>`;
+    const avgEl = document.getElementById('dash-morale-avg');
+    if (avgEl) { avgEl.textContent = 'N/A'; avgEl.style.color = 'var(--dim)'; }
+  }
   const next = getNextRace();
   if (!next) return;
   // Title
@@ -13600,6 +13678,26 @@ go = function(screen) {
       </div>
     </div>
 
+  </div>
+</div>
+
+<div id="mobile-nav">
+  <div class="mob-nav-inner">
+    <button onclick="go('dashboard')" id="mobnav-dashboard">
+      <span class="mob-icon">🏠</span>HOME
+    </button>
+    <button onclick="go('teamhq')" id="mobnav-teamhq">
+      <span class="mob-icon">🏢</span>HQ
+    </button>
+    <button onclick="go('raceday')" id="mobnav-raceday">
+      <span class="mob-icon">🏁</span>RACE
+    </button>
+    <button onclick="go('races')" id="mobnav-races">
+      <span class="mob-icon">📅</span>CALENDAR
+    </button>
+    <button onclick="go('standings')" id="mobnav-standings">
+      <span class="mob-icon">🏆</span>STANDINGS
+    </button>
   </div>
 </div>
 
